@@ -1,0 +1,8 @@
+build/
+dist/
+.vscode/
+.venv/
+.mypy_cache/
+.DS_Store
+typings/
+test.py
