@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2025 Ving Studio, Romashka
+Copyright (c) 2025 Ving Studio - Romashka
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
