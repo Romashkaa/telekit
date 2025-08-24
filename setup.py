@@ -23,6 +23,7 @@ setup(
     ],
     keywords='files speedfiles ',
     project_urls={
+        "GitHub": "https://github.com/Romashkaa/telekit",
         "Telegram": "https://t.me/TeleKitLib"
     },
     python_requires='>=3.12'

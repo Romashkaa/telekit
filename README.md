@@ -4,7 +4,7 @@
 
 ## Overview
 
-**TeleKit** is a Python library designed to simplify common tasks for developers working with Telegram bots or Python projects in general.  
+**TeleKit** is a Python library designed to simplify common tasks for developers working with Telegram bots.  
 It provides tools for:  
 
 - Managing data with `Vault`, a lightweight interface for SQLite databases.  
@@ -12,6 +12,10 @@ It provides tools for:
 - Creating modular, reusable handlers and chains for structured code.  
 
 The library is designed to reduce boilerplate code and make Python development more efficient.
+
+[GitHub](https://github.com/Romashkaa/telekit)
+[PyPi](https://pypi.org/project/telekit/)
+[Telegram](https://t.me/TeleKitLib)
 
 ---
 
