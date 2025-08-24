@@ -1,4 +1,4 @@
-![TeleKit Logo](https://github.com/Romashkaa/images/raw/main/TeleKit.png)
+![TeleKit](https://github.com/Romashkaa/images/blob/main/TeleKitWide.png?raw=true)
 
 # TeleKit Library
 
