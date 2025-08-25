@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name='telekit',
-    version='0.0.8',
+    version='0.0.9',
     author='romashka',
     author_email='comfy6011@gmail.com',
     description='The easiest and most convenient Telegram Bot API',
