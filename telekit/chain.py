@@ -34,27 +34,35 @@ class Chain:
         self._previous_message: Message | None = None
         self.always_edit_previous_message: bool = False
 
-    def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[[Message], Any]], row_width: int = 1) -> None:
+    def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[[Message], Any] | str], row_width: int = 1) -> None:
         """
         Sets an inline keyboard for the chain with buttons that call the corresponding functions.
         Each button will call the function with the message as an argument.
         
         Args:
-            keyboard (dict[str, Callable[[Message], Any]]): A dictionary where keys are button captions
+            keyboard (dict[str, Callable[[Message], Any] | str]): A dictionary where keys are button captions
                 and values are functions to be called when the button is clicked.
         """
         callback_functions: dict[str, Callable[[Message], Any]] = {}
         buttons: list[InlineKeyboardButton] = []
 
         for i, (caption, callback) in enumerate(keyboard.items()):
-            callback_data = f"button_{i}_{random.randint(1000, 9999)}"
-            callback_functions[callback_data] = callback
-            buttons.append(
-                InlineKeyboardButton(
-                    text=caption,
-                    callback_data=callback_data
+            if isinstance(callback, str):
+                buttons.append(
+                    InlineKeyboardButton(
+                        text=caption,
+                        url=callback
+                    )
                 )
-            )
+            else:
+                callback_data = f"button_{i}_{random.randint(1000, 9999)}"
+                callback_functions[callback_data] = callback
+                buttons.append(
+                    InlineKeyboardButton(
+                        text=caption,
+                        callback_data=callback_data
+                    )
+                )
 
         rows = [buttons[i:i + row_width] for i in range(0, len(buttons), row_width)]
         markup = InlineKeyboardMarkup()
