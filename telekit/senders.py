@@ -156,8 +156,18 @@ class BaseSender:
     def set_effect(self, effect: Effect | str | int):
         self.message_effect_id = str(effect)
 
-    def set_photo(self, photo: str | None):
-        self.photo = photo
+    def set_photo(self, photo: str | None | Any):
+        if not isinstance(photo, str):
+            self.photo = photo
+            return 
+
+        if photo.startswith(("http://", "https://")):
+            self.photo = photo
+            return
+        
+        with open(photo, "rb") as photo:
+            self.photo = photo.read()
+        
 
     def set_chat_id(self, chat_id: int):
         self.chat_id = chat_id
