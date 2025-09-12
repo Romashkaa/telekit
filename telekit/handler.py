@@ -1,5 +1,6 @@
 from typing import Callable
 import re
+import typing
 
 from telebot.types import Message # type: ignore
 import telebot # type: ignore
@@ -34,6 +35,36 @@ class Handler:
         Initializes the message handler
         """
         pass
+
+    @classmethod
+    def message_handler(
+        cls,
+        commands: list[str] | None = None,
+        regexp: str | None = None,
+        func: Callable[..., typing.Any] | None = None,
+        content_types: list[str] | None = None,
+        chat_types: list[str] | None = None,
+        whitelist: list[int] | None = None,
+        **kwargs
+    ):
+        original_decorator = cls.bot.message_handler(
+            commands=commands,
+            regexp=regexp,
+            func=func,
+            content_types=content_types,
+            chat_types=chat_types,
+            **kwargs
+        )
+
+        def wrapper(handler: Callable[..., typing.Any]):
+            def wrapped(message, *args, **kw):
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return
+                return handler(message, *args, **kw)
+
+            return original_decorator(wrapped)
+
+        return wrapper
 
 
     @classmethod
