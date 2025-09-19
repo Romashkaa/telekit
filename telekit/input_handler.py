@@ -1,6 +1,6 @@
 from typing import Callable, Any
-import telebot # type: ignore
-from telebot.types import Message # type: ignore
+import telebot
+from telebot.types import Message
 
 
 class InputHandler:
@@ -50,9 +50,7 @@ class InputHandler:
                 return
         
         if self.callback_functions or self.entry_callback:
-            self.bot.register_next_step_handler_by_chat_id(self.chat_id, handler) # type: ignore
-        else:
-            return
+            self.bot.register_next_step_handler_by_chat_id(self.chat_id, handler)
 
     def handle_callback(self, message: Message) -> None:
         """
@@ -61,7 +59,7 @@ class InputHandler:
         if message.text in self.callback_functions:
             self.callback_functions[message.text](message)
         elif message.text and message.text.startswith("/"):
-            self.bot.process_new_messages([message]) # type: ignore
+            self.bot.process_new_messages([message])
         elif self.entry_callback:
             self.handle_entry(message)
         else:
@@ -72,7 +70,7 @@ class InputHandler:
         Handles the next message by calling the appropriate callback based on the message data.
         """
         if message.text and message.text.startswith("/"):
-            self.bot.process_new_messages([message]) # type: ignore
+            self.bot.process_new_messages([message])
         elif self.entry_callback:
             if not self.entry_callback(message):
                 self.handle_next_message()

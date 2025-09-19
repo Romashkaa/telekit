@@ -1,7 +1,7 @@
 from typing import Any
 from enum import Enum
-from telebot import TeleBot # type: ignore
-from telebot.types import ( # type: ignore
+from telebot import TeleBot
+from telebot.types import (
     Message, InputMediaPhoto
 )
 

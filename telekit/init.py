@@ -5,7 +5,7 @@ from .callback_query_handler import CallbackQueryHandler
 from .user import User
 from . import senders
 
-import telebot  # type: ignore
+import telebot
 
 __all__ = ["init"]
 

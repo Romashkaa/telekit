@@ -320,26 +320,6 @@ class Chain:
 
     def __call__(self, message: Message | None = None):
         self.send()
-
-    # def alert_sender(self) -> senders.AlertSender:
-    #     """
-    #     Returns a sender instance specialized for sending alert messages.
-    #     If the current sender is not an AlertSender, it will be replaced with one.
-    #     """
-    #     if not isinstance(self.sender, senders.AlertSender):
-    #         self.sender = senders.AlertSender(self.chat_id)
-
-    #     return self.sender
-    
-    # def text_sender(self) -> senders.TextSender:
-    #     """
-    #     Returns a sender instance specialized for sending regular text messages.
-    #     If the current sender is not a TextSender, it will be replaced with one.
-    #     """
-    #     if not isinstance(self.sender, senders.TextSender):
-    #         self.sender = senders.TextSender(self.chat_id)
-
-    #     return self.sender
     
     def get_bot(self) -> telebot.TeleBot:
         """

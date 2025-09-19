@@ -2,8 +2,8 @@ from typing import Callable
 import re
 import typing
 
-from telebot.types import Message # type: ignore
-import telebot # type: ignore
+from telebot.types import Message
+import telebot
 
 from .chain import Chain
 from .user import User
@@ -12,9 +12,6 @@ from .user import User
 class Handler:
     
     bot: telebot.TeleBot
-
-    # def __init__(self, message: telebot.types.Message):
-    #     super().__init__(message)
     
     @classmethod
     def init(cls, bot: telebot.TeleBot):
@@ -91,8 +88,10 @@ class Handler:
     def __init__(self, message: Message):
         self.message: Message = message
         self.user = User(self.message.chat.id, self.message.from_user)
+        
         self._chain_factory: Callable[[], Chain] = Chain.get_chain_factory(self.message.chat.id)
         self._children_factory: Callable[[Chain | None], Chain] = Chain.get_children_factory(self.message.chat.id)
+        
         self.chain: Chain = self.get_chain()
 
     def get_chain(self) -> Chain:
@@ -108,6 +107,6 @@ class Handler:
 
     handlers: list[type['Handler']] = []
 
-    def __init_subclass__(cls, **kwargs): # type: ignore
+    def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Handler.handlers.append(cls)
