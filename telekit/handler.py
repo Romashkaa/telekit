@@ -85,6 +85,9 @@ class Handler:
             return func
         return decorator
 
+    def delete_user_initial_message(self):
+        self.chain.sender.delete_message(self.message)
+
     def __init__(self, message: Message):
         self.message: Message = message
         self.user = User(self.message.chat.id, self.message.from_user)
