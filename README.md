@@ -58,8 +58,8 @@ self.chain.sender.set_text("*Hello, user!*\n\nWelcome to the Bot!")
 ```
 - Or let Telekit handle the layout for you:
 ```python
-self.chain.sender.set_title("👋 Hello, user!") # Жирний текст
-self.chain.sender.set_message("Welcome to the Bot!")         # Курсив після відступа після Title
+self.chain.sender.set_title("👋 Hello, user!") # Bold title
+self.chain.sender.set_message("Welcome to the Bot!")  # Italic message after the title
 ```
 
 Approximate result:
