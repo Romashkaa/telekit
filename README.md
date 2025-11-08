@@ -4,7 +4,7 @@
 
 **Telekit** is a compilation of my early unpublished libraries, now working together seamlessly as a single unit. Intuitive and flexible, it doesn’t restrict you—you can still use handlers and other elements from the original library. 
 
-Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in self.chain and "confirm" using self.chain.send(). Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses. 
+Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in `self.chain` and "confirm" using `self.chain.send()`. Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses. 
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
@@ -49,7 +49,7 @@ telekit.Server(bot).polling()
 
 ### Let’s examine each element individually:
 
-**Message formatting:**
+#### Message formatting:
 
 - You can configure everything manually:
 
@@ -90,6 +90,7 @@ self.chain.sender.set_photo("url, bytes or path")
 
 Telekit decides whether to use bot.send_message or bot.send_photo automatically!
 
+#### Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
 
 - Inline keyboard:
