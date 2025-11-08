@@ -13,17 +13,21 @@
 
 1. New `@Handler.on_text()` decorator – example available in `telekit/example/example_handlers/on_text.py`!
 
-# 0.0.5
-
-1. I just added a picture (TeleKit.png)
-
-# 0.0.6
-
-# 0.0.7
-
-1. Finally updated the documentation photo
-
 # 0.0.8
 
 1. `inline_keyboard` and `entry`s no longer conflict
 2. New `entry_photo` decorator!
+
+# 0.0.9 and 0.0.10
+
+0.0.9. Refactor imports and remove commented-out code
+0.0.10. Add delete_user_initial_message method to remove user's initial message
+
+# 0.0.11
+
+1. The message parameter for functions used in set_inline_keyboard is now optional. Handlers can be defined without requiring a message object.
+2. Refactor Parser class to accept data directly and improve error handling in read function
+
+# 0.0.12 (unreleased)
+
+[ ] New `entry_file` decorator!
