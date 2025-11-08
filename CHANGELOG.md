@@ -52,6 +52,10 @@ def text_document_handler(message: telebot.types.Message, text_document: telekit
 - Introduced a new `logger` module to handle logging for the library and individual users.
 - Implemented full logging functionality across the Telekit library.
 - Integrated logging into key components, including handlers, senders, and the server.
+```log
+2025-11-08 17:20:37 | WARNING | senders.py | Failed to delete message 521. Maybe the user deleted it. Exception: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message to delete not found
+2025-11-08 17:20:37 | WARNING | senders.py | Failed to edit message 521, sending new one instead. Exception: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message to edit not found
+```
 - Added methods to enable user-specific logging in the `User` class:
 ```python
 # help.py [self = HelpHandler()]; [HelpHandler.handle(self)]:
@@ -62,6 +66,9 @@ self.user.logger.info(f"You (admin) clicked: {value[0]}")
 # If no `chat_id`s are provided, logging is enabled for the current user (`self.user.chat_id`).
 self.user.enable_logging()
 self.user.logger.info(f"User clicked: {value[0]}")
+```
+```log
+2025-11-08 17:20:43 | INFO | help.py:61 | [IDIDIDIDID] User clicked: Another Page
 ```
 ## Improvements:
 - Updated error handling to log exceptions with appropriate severity levels.
