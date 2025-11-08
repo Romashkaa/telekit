@@ -29,6 +29,40 @@
 2. Refactor Parser class to accept data directly and improve error handling in read function
 
 # 0.0.12 (unreleased)
+## New Features:
+### New decorators
+- Added `entry_document` decorator.
+```python
+@self.chain.entry_document(allowed_extensions=(".zip",))
+def doc_handler(message: telebot.types.Message, document: telebot.types.Document):
+    print(document.file_name, document)
+```
+- Added `entry_text_document` decorator.
+```python
+@self.chain.entry_text_document(allowed_extensions=(".txt", ".js"))
+def text_document_handler(message: telebot.types.Message, text_document: telekit.types.TextDocument):
+    print(
+        text_document.text, 
+        text_document.file_name,
+        text_document.encoding, 
+        text_document.document
+    )
+```
+### Logging functionality
+- Introduced a new `logger` module to handle logging for the library and individual users.
+- Implemented full logging functionality across the Telekit library.
+- Integrated logging into key components, including handlers, senders, and the server.
+- Added methods to enable user-specific logging in the `User` class:
+```python
+# help.py [self = HelpHandler()]; [HelpHandler.handle(self)]:
+# Call `self.user.enable_logging(1914626823, ...)` to enable logging for specific users.
+self.user.enable_logging(1914626823)
+self.user.logger.info(f"You (admin) clicked: {value[0]}")
 
-- New `entry_document` decorator!
-- New `entry_text_document` decorator!
+# If no `chat_id`s are provided, logging is enabled for the current user (`self.user.chat_id`).
+self.user.enable_logging()
+self.user.logger.info(f"User clicked: {value[0]}")
+```
+## Improvements:
+- Updated error handling to log exceptions with appropriate severity levels.
+- Typing improvements: New class `telekit.types`

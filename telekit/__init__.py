@@ -3,7 +3,7 @@
 
 # engine/__init__.py
 from .handler import Handler
-from .chain import Chain
+from .chain import Chain, TextDocument
 from .callback_query_handler import CallbackQueryHandler
 from .server import Server, example
 from .snapvault import Vault # type: ignore
@@ -13,4 +13,8 @@ from . import senders
 
 from .logger import logger
 
-__all__ = ["senders", "Chain", "Handler", "CallbackQueryHandler", "Server", "Vault", "User", "chapters", "example"]
+class types:
+    TextDocument = TextDocument
+    User = User
+
+__all__ = ["types", "senders", "Chain", "Handler", "CallbackQueryHandler", "Server", "Vault", "User", "chapters", "example"]
