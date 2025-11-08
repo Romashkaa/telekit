@@ -10,6 +10,8 @@ from telebot.types import ( # type: ignore
 
 from . import senders
 from . import input_handler
+from . import logger
+library = logger.logger.library
 
 import charset_normalizer
 from dataclasses import dataclass

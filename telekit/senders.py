@@ -5,6 +5,9 @@ from telebot.types import (
     Message, InputMediaPhoto
 )
 
+from .logger import logger
+library = logger.library
+
 class TempBuffer:
 
     _temporary_messages: dict[int, set[int]] = {}
@@ -141,9 +144,9 @@ class BaseSender:
 
     class Effect(Enum):
         FIRE = "5104841245755180586"   # 🔥
-        THUMBS_UP = "5107584321108051014"  # 👍
-        HEART = "5159385139981059251"  # ❤️
         PARTY = "5046509860389126442"  # 🎉
+        HEART = "5159385139981059251"  # ❤️
+        THUMBS_UP = "5107584321108051014"  # 👍
         THUMBS_DOWN = "5104858069142078462"  # 👎
         POOP = "5046589136895476101"  # 💩
 
@@ -167,7 +170,6 @@ class BaseSender:
         
         with open(photo, "rb") as photo:
             self.photo = photo.read()
-        
 
     def set_chat_id(self, chat_id: int):
         self.chat_id = chat_id
@@ -216,7 +218,6 @@ class BaseSender:
 
     def _get_send_args(self) -> dict[str, Any]:
         args: dict[str, Any] = {
-            # "caption" if self.photo else "text": self.text,
             "reply_markup": self.reply_markup, # type: ignore
         }
 
@@ -306,9 +307,9 @@ class BaseSender:
 
             try:
                 return self._edit(), True
-            except:
+            except Exception as exception:
                 self._delete_message(self.edit_message_id)
-                # print(f"Error editing message: {e}, sending new message instead.")
+                library.warning(f"Failed to edit message {self.edit_message_id}, sending new one instead. Exception: {exception}")
         
         return self._send(), False
     
@@ -324,8 +325,8 @@ class BaseSender:
         
         try:
             return self.bot.delete_message(chat_id=self.chat_id, message_id=message_id)
-        except:
-            # print(f"Error deleting message {message_id}: {e}")
+        except Exception as exception:
+            library.warning(f"Failed to delete message {message_id}. Maybe the user deleted it. Exception: {exception}")
             return False
         
     def delete_message(self, message: Message | None) -> bool:
@@ -345,8 +346,9 @@ class BaseSender:
             configs = self._get_send_configs()
             configs["parse_mode"] = "HTML"
             return self.bot.send_message(text=f"<b>{type(exception).__name__}</b>\n\n<i>{exception}.</i>", **configs)
-        except Exception:
-            pass
+        except Exception as exception:
+            library.warning(f"Failed to send `pyerror` message: {exception}")
+            return None
 
     def error(self, title: str, message: str) -> Message | None: # type: ignore
         """
@@ -363,8 +365,9 @@ class BaseSender:
             configs = self._get_send_configs()
             configs["parse_mode"] = "HTML"
             return self.bot.send_message(text=f"<b>{title}</b>\n\n<i>{message}.</i>", **configs)
-        except Exception:
-            pass
+        except Exception as exception:
+            library.warning(f"Failed to send `error` message: {exception}")
+            return None
     
     def try_send(self) -> tuple[Message | None, Exception | None]:
         """
@@ -378,6 +381,7 @@ class BaseSender:
         try:
             return self.send(), None
         except Exception as exception:
+            library.warning(f"Failed to send message in `try_send`: {exception}")
             return None, exception
 
     def send_or_handle_error(self) -> Message | None:

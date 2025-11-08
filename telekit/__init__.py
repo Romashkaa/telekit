@@ -11,4 +11,6 @@ from .chapters import chapters
 from .user import User
 from . import senders
 
+from .logger import logger
+
 __all__ = ["senders", "Chain", "Handler", "CallbackQueryHandler", "Server", "Vault", "User", "chapters", "example"]

@@ -5,9 +5,13 @@ import sys
 
 from . import init
 import telebot # type: ignore
+
+from . import logger
+server_logger = logger.logger.server
     
 def print_exception_message(ex: Exception) -> None:
     tb_str = ''.join(traceback.format_exception(*sys.exc_info()))
+    server_logger.critical(f"Polling cycle error : {ex}. Traceback : {tb_str}")
     print(f"- Polling cycle error: {ex}.", tb_str, sep="\n\n")
 
 # ------------------------------------------
@@ -25,6 +29,7 @@ class Server:
 
     def polling(self):
         while True:
+            server_logger.info("Telekit server is polling...")
             print("Telekit server is starting polling...")
 
             try:
@@ -33,6 +38,7 @@ class Server:
                 if self.catch_exceptions:
                     print_exception_message(exception)
                 else:
+                    server_logger.critical(f"Polling cycle error [catch_exceptions=False] : {exception}")
                     raise exception
             finally:
                 time.sleep(10)

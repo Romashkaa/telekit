@@ -5,6 +5,9 @@ import telebot
 
 import inspect
 
+from . import logger
+library = logger.logger.library
+
 class InputHandler:
 
     bot: telebot.TeleBot

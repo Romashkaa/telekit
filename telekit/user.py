@@ -1,10 +1,9 @@
-import telebot.types # type: ignore
-import telebot # type: ignore
+import telebot.types
+import telebot
 
-# from cachetools import TTLCache
+from .logger import logger
 
-# cache: TTLCache[int, str] = TTLCache(maxsize=float("inf"), ttl=300)
-
+__all__ = ["User"]
 
 class User:
 
@@ -26,6 +25,19 @@ class User:
 
         self._username: str | None = None
 
+        self.logger = logger.users(self.chat_id)
+
+    def enable_logging(self, *user_ids: int | str):
+        """
+        Enable logging for this user or for additional user IDs.
+
+        If no arguments are passed, enables logging for this instance's chat_id.
+        """
+        if user_ids:
+            logger.enable_user_logging(*user_ids)
+        else:
+            logger.enable_user_logging(self.chat_id)
+
     def get_username(self) -> str | None:
         if self._username:
             return self._username
@@ -44,3 +56,5 @@ class User:
             return None
 
         return self._username
+    
+    

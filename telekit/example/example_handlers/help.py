@@ -46,6 +46,10 @@ class HelpHandler(telekit.Handler):
     def handle(self) -> None:
         main: telekit.Chain = self.get_chain()
         main.set_always_edit_previous_message(True)
+
+        # `self.user.enable_logging()` enable logging for this user or for additional user IDs.
+        # If no arguments are passed, enables logging for this instance's chat_id.
+        self.user.enable_logging()
         
         main.sender.set_title("FAQ - Frequently Asked Questions")
         main.sender.set_message("Here are some common questions and answers to help you get started:")
@@ -53,6 +57,8 @@ class HelpHandler(telekit.Handler):
         @main.inline_keyboard(pages)
         def _(message: telebot.types.Message, value: tuple[str, str]) -> None:
             page: telekit.Chain = self.get_child()
+
+            self.user.logger.info(f"User clicked: {value[0]}")
 
             page.sender.set_title(value[0])
             page.sender.set_message(value[1])

@@ -7,6 +7,8 @@ import telebot
 
 from .chain import Chain
 from .user import User
+from .logger import logger
+library = logger.library
 
 
 class Handler:
