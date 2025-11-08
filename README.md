@@ -4,12 +4,9 @@
 
 ## Overview
 
-**TeleKit** is a Python library designed to simplify common tasks for developers working with Telegram bots.  
-It provides tools for:  
+**Telekit** is a compilation of my early unpublished libraries, now working together seamlessly as a single unit. Intuitive and flexible, it doesn’t restrict you—you can still use handlers and other elements from the original library. 
 
-- Managing data with `Vault`, a lightweight interface for SQLite databases.  
-- Organizing and processing text data using `chapters`, which allows converting `.txt` files into Python dictionaries for easy access.  
-- Creating modular, reusable handlers and chains for structured code.  
+Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in self.chain and "confirm" using self.chain.send(). Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses. 
 
 The library is designed to reduce boilerplate code and make Python development more efficient.
 
@@ -18,7 +15,7 @@ The library is designed to reduce boilerplate code and make Python development m
 [Telegram](https://t.me/TeleKitLib)
 [Real Example](https://github.com/Romashkaa/Questly)
 
-## Easy Example
+## Example
 
 ```python
 import telebot
@@ -51,10 +48,6 @@ class NameHandler(telekit.Handler):
 bot = telebot.TeleBot("TOKEN")
 telekit.Server(bot).polling()
 ```
-
-Telekit is a compilation of my early unpublished libraries, now working together seamlessly as a single unit. Intuitive and flexible, it doesn’t restrict you—you can still use handlers and other elements from the original library. 
-
-Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in self.chain and "confirm" using self.chain.send(). Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses.
 
 Message formatting is extremely simple:
 
