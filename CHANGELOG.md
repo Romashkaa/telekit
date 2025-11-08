@@ -30,4 +30,5 @@
 
 # 0.0.12 (unreleased)
 
-[ ] New `entry_file` decorator!
+- New `entry_document` decorator!
+- New `entry_text_document` decorator!

@@ -11,6 +11,16 @@ from telebot.types import ( # type: ignore
 from . import senders
 from . import input_handler
 
+import charset_normalizer
+from dataclasses import dataclass
+
+@dataclass
+class TextDocument:
+    message: telebot.types.Message
+    document: telebot.types.Document
+    file_name: str
+    encoding: str
+    text: str
 
 class Chain:
 
@@ -245,6 +255,158 @@ class Chain:
                 
                 func(message, message.photo)
                 return True
+            
+            self.handler.set_entry_callback(callback)
+
+        return wrapper
+    
+    def entry_document(self, 
+              filter_message: Callable[[Message, telebot.types.Document], bool] | None=None,
+              allowed_extensions: tuple[str, ...] | None = None,
+              delete_user_response: bool=False) -> Callable[[Callable[[Message, telebot.types.Document], Any]], None]:
+        """
+        Decorator for registering a callback that processes messages containing documents.
+
+        This decorator allows filtering by file extensions, applying a custom filter, 
+        and optionally deleting the user's document message after processing.
+
+        Args:
+            filter_message (Callable[[Message, Document], bool] | None): 
+                Optional function to filter messages. Receives the message and document,
+                should return True if the message should be processed.
+            allowed_extensions (tuple[str, ...] | None):
+                Only documents with these file extensions will be processed.
+                Example: (".txt", ".js")
+                If None, all document types are allowed.
+            delete_user_response (bool): 
+                If True, deletes the user's document message after it is received.
+
+        Returns:
+            Callable: A decorator that registers a callback function accepting a Message and Document.
+
+        Example:
+            >>> @bot.entry_document(allowed_extensions=(".txt",))
+            >>> def handle_doc(message, document):
+            >>>     print(document.file_name)
+        """
+        def wrapper(func: Callable[[Message, telebot.types.Document], Any]) -> None:
+            def callback(message: Message) -> bool:
+                if delete_user_response:
+                    self.sender.delete_message(message)
+
+                if not message.document:
+                    return False # only documents
+                
+                if message.content_type != 'document':
+                    return False # only documents
+                
+                if allowed_extensions and not str(message.document.file_name).endswith(allowed_extensions):
+                    return False # only allowed_extensions
+                    
+                if filter_message and not filter_message(message, message.document):
+                    return False # only filtered
+                
+                func(message, message.document)
+                return True # success
+            
+            self.handler.set_entry_callback(callback)
+
+        return wrapper
+    
+    def entry_text_document(self, 
+              filter_message: Callable[[Message, TextDocument], bool] | None=None,
+              allowed_extensions: tuple[str, ...] = (".txt",),
+              encoding: str | None = None,
+              decoding_errors: str = "strict",
+              delete_user_response: bool=False) -> Callable[[Callable[[Message, TextDocument], Any]], None]:
+        """
+        Decorator for registering a callback that processes text-based documents.
+
+        This decorator automatically downloads the document, detects or applies a
+        specified encoding, decodes the text, wraps it in a TextDocument object, 
+        and passes it to the callback.
+
+        Args:
+            filter_message (Callable[[Message, TextDocument], bool] | None):
+                Optional function to filter messages. Receives the message and TextDocument,
+                should return True if the message should be processed.
+            allowed_extensions (tuple[str, ...]):
+                File extensions that are allowed. Defaults to (".txt",).
+            encoding (str | None):
+                Encoding to decode the document. If None, charset-normalizer is used to detect it.
+            decoding_errors (str):
+                Error handling strategy for decoding. Defaults to "strict".
+                Other options: "ignore", "replace".
+            delete_user_response (bool):
+                If True, deletes the user's document message after it is received.
+
+        Returns:
+            Callable: A decorator that registers a callback function accepting a Message and TextDocument.
+
+        Example:
+            >>> @bot.entry_text_document(allowed_extensions=(".txt", ".js"))
+            >>> def handle_text_doc(message, text_doc):
+            >>>     # Access original Telegram message
+            >>>     print(text_doc.message)
+
+            >>>     # Access original Telegram document
+            >>>     print(text_doc.document)
+
+            >>>     # File name of the document
+            >>>     print(text_doc.file_name)
+
+            >>>     # Detected or specified encoding
+            >>>     print(text_doc.encoding)
+
+            >>>     # Decoded text content
+            >>>     print(text_doc.text)
+        """
+        def wrapper(func: Callable[[Message, TextDocument], Any]) -> None:
+            def callback(message: Message) -> bool:
+                if delete_user_response:
+                    self.sender.delete_message(message)
+
+                if not message.document:
+                    return False # only documents
+                
+                if message.content_type != 'document':
+                    return False # only documents
+                
+                file_name = str(message.document.file_name)
+                
+                if not file_name.endswith(allowed_extensions):
+                    return False # only allowed_extensions
+                
+                try:
+                    file_info = self.bot.get_file(message.document.file_id)
+                    downloaded_file = self.bot.download_file(str(file_info.file_path))
+
+                    if not encoding:
+                        results = charset_normalizer.from_bytes(downloaded_file)
+                        best_guess = results.best()
+
+                        if not best_guess:
+                            return False # unknown encoding
+                        
+                        _encoding = best_guess.encoding
+                    else:
+                        _encoding = encoding
+
+                    text = downloaded_file.decode(_encoding, decoding_errors)
+                except Exception as extension:
+                    print(extension)
+                    return False
+                
+                text_doc = TextDocument(
+                    message, message.document,
+                    file_name, _encoding, text
+                )
+                    
+                if filter_message and not filter_message(message, text_doc):
+                    return False # only filtered
+                
+                func(message, text_doc)
+                return True # success
             
             self.handler.set_entry_callback(callback)
 
