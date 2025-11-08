@@ -74,8 +74,6 @@ If you want more control:
 self.chain.sender.set_use_italic(False)
 self.chain.sender.set_parse_mode("HTML")
 self.chain.sender.set_reply_to(message)
-self.chain.sender.
-self.chain.sender.
 self.chain.sender.set_chat_id(chat_id)
 
 # And this is just the beginning...
@@ -88,7 +86,7 @@ self.chain.sender.set_effect(sender.Effect.HEART)
 self.chain.sender.set_photo("url, bytes or path")
 ```
 
-Telekit decides whether to use bot.send_message or bot.send_photo automatically!
+Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatically!
 
 #### Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
@@ -96,22 +94,26 @@ If your focus is on logic and functionality, Telekit is the ideal library:
 - Inline keyboard:
 
 ```python
-# callback types: Chain | str | Callable[[], Any] | Callable[[Message], Any]
-
+# Inline keyboard `label-callback`:
 self.chain.set_inline_keyboard(
     {
+    # label:    `str`
+    # callback: `Chain` | `str` | `Callable[[], Any]` | `Callable[[Message], Any]`
         "« Change": prompt, # When the user clicks this button, `prompt.send()` will be executed
         "Yes »": lambda: print("User: Okay!"), # When the user clicks this button, this lambda function will run
-        "Youtube": "https://youtube.com" # Навіть посилання
+        "Youtube": "https://youtube.com" # Can even be a link
     }, row_width=2
 )
 
+# Inline keyboard `label-value`:
 @self.chain.inline_keyboard({
+    # label: `str`
+    # value: `Any`
     "Red": (255, 0, 0),
     "Green": (0, 255, 0),
     "Blue": (0, 0, 255),
 }, row_width=2)
-def _(message: telebot.types.Message, value: tuple[int, int, int]) -> None:
+def _(message, value: tuple[int, int, int]) -> None:
     r, g, b = value
     self.chain.set_message(f"You selected RGB color: ({r}, {g}, {b})")
     self.chain.edit()
@@ -125,7 +127,7 @@ def _(message: telebot.types.Message, value: tuple[int, int, int]) -> None:
     filter_message=lambda message: bool(message.text),
     delete_user_response=True
 )
-def handler(message: Message):
+def handler(message):
     print(message.text)
 
 # Receive text message:
