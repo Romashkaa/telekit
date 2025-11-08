@@ -2,20 +2,18 @@
 
 # TeleKit Library
 
-## Overview
-
 **Telekit** is a compilation of my early unpublished libraries, now working together seamlessly as a single unit. Intuitive and flexible, it doesn’t restrict you—you can still use handlers and other elements from the original library. 
 
 Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in self.chain and "confirm" using self.chain.send(). Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses. 
-
-The library is designed to reduce boilerplate code and make Python development more efficient.
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
 [Telegram](https://t.me/TeleKitLib)
 [Real Example](https://github.com/Romashkaa/Questly)
 
-## Example
+## Overview
+
+The library is designed to reduce boilerplate code and make Python development more efficient:
 
 ```python
 import telebot
@@ -49,9 +47,11 @@ bot = telebot.TeleBot("TOKEN")
 telekit.Server(bot).polling()
 ```
 
-Message formatting is extremely simple:
+### Let’s examine each element individually:
 
-- You can set everything manually:
+**Message formatting:**
+
+- You can configure everything manually:
 
 ```python
 self.chain.sender.set_text("*Hello, user!*\n\nWelcome to the Bot!")
