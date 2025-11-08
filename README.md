@@ -16,6 +16,7 @@ The library is designed to reduce boilerplate code and make Python development m
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
 [Telegram](https://t.me/TeleKitLib)
+[Real Example](https://github.com/Romashkaa/Questly)
 
 ---
 
@@ -157,6 +158,8 @@ class NameAgeHandler(telekit.Handler):
 bot = telebot.TeleBot("TOKEN")
 telekit.Server(bot).polling()
 ```
+
+- (!) You can find information about the new decorators by checking their doc-strings in Python.
 
 ---
 
@@ -840,21 +843,6 @@ class DialogueHandler(telekit.Handler):
         self.chain.sender.set_text(f"Got it, {self._user_name.title()}! You feel: {feeling}")
         self.chain.send()
 ```
-
----
-
-## Features
-
-- Easy-to-use modular handlers and chains for structured project code.  
-- `Vault` for persistent storage of Python data structures in SQLite.  
-- `Chapters` for converting `.txt` files into Python dictionaries.  
-- Lightweight and minimal dependencies, fully compatible with Python 3.12 and higher.
-
----
-
-## Changelog 
-
-Available in CHANGELOG.md
 
 ## Developer 
 
