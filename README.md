@@ -18,6 +18,148 @@ The library is designed to reduce boilerplate code and make Python development m
 [Telegram](https://t.me/TeleKitLib)
 [Real Example](https://github.com/Romashkaa/Questly)
 
+## Easy Example
+
+```python
+import telebot
+import telekit
+
+class NameHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls, bot: telebot.TeleBot) -> None:
+        @cls.on_text("My name is {name}")
+        def _(message: telebot.types.Message, name: str):
+            cls(message).display_name(name)
+
+    def display_name(self, name: str) -> None:
+        self.chain.sender.set_title(f"Hello {name}!")
+        self.chain.sender.set_message("Your name has been set. You can change it below if you want")
+        self.chain.set_inline_keyboard({"✏️ Change": self.change_name})
+        self.chain.edit()
+
+    def change_name(self):
+        self.chain.sender.set_title("⌨️ Enter your new name")
+        self.chain.sender.set_message("Please type your new name below:")
+
+        @self.chain.entry_text(delete_user_response=True)
+        def name_handler(message, name: str):
+            self.display_name(name)
+
+        self.chain.edit()
+
+bot = telebot.TeleBot("TOKEN")
+telekit.Server(bot).polling()
+```
+
+Telekit is a compilation of my early unpublished libraries, now working together seamlessly as a single unit. Intuitive and flexible, it doesn’t restrict you—you can still use handlers and other elements from the original library. 
+
+Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in self.chain and "confirm" using self.chain.send(). Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses.
+
+Message formatting is extremely simple:
+
+- You can set everything manually:
+
+```python
+self.chain.sender.set_text("*Hello, user!*\n\nWelcome to the Bot!")
+```
+- Or let Telekit handle the layout for you:
+```python
+self.chain.sender.set_title("👋 Hello, user!") # Жирний текст
+self.chain.sender.set_message("Welcome to the Bot!")         # Курсив після відступа після Title
+```
+
+Approximate result:
+
+> **👋 Hello, user!**
+> 
+> _Welcome to the Bot!_
+
+If you want more control:
+
+```python
+self.chain.sender.set_use_italic(False)
+self.chain.sender.set_parse_mode("HTML")
+self.chain.sender.set_reply_to(message)
+self.chain.sender.
+self.chain.sender.
+self.chain.sender.set_chat_id(chat_id)
+
+# And this is just the beginning...
+```
+
+Want to add an image or an effect in a single line?
+
+```python
+self.chain.sender.set_effect(sender.Effect.HEART)
+self.chain.sender.set_photo("url, bytes or path")
+```
+
+Telekit decides whether to use bot.send_message or bot.send_photo automatically!
+
+If your focus is on logic and functionality, Telekit is the ideal library:
+
+- Inline keyboard:
+
+```python
+# callback types: Chain | str | Callable[[], Any] | Callable[[Message], Any]
+
+self.chain.set_inline_keyboard(
+    {
+        "« Change": prompt, # When the user clicks this button, `prompt.send()` will be executed
+        "Yes »": lambda: print("User: Okay!"), # When the user clicks this button, this lambda function will run
+        "Youtube": "https://youtube.com" # Навіть посилання
+    }, row_width=2
+)
+
+@self.chain.inline_keyboard({
+    "Red": (255, 0, 0),
+    "Green": (0, 255, 0),
+    "Blue": (0, 0, 255),
+}, row_width=2)
+def _(message: telebot.types.Message, value: tuple[int, int, int]) -> None:
+    r, g, b = value
+    self.chain.set_message(f"You selected RGB color: ({r}, {g}, {b})")
+    self.chain.edit()
+```
+
+- Receiving messages and files:
+
+```python
+# Receive any message type:
+@self.chain.entry(
+    filter_message=lambda message: bool(message.text),
+    delete_user_response=True
+)
+def handler(message: Message):
+    print(message.text)
+
+# Receive text message:
+@self.chain.entry_text()
+def name_handler(message, name: str):
+    print(name)
+
+# Inline keyboard with suggested options:
+chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
+
+# Receive a .zip document:
+@self.chain.entry_document(allowed_extensions=(".zip",))
+def doc_handler(message: telebot.types.Message, document: telebot.types.Document):
+    print(document.file_name, document)
+
+# Receive a text document (Telekit auto-detects encoding):
+@self.chain.entry_text_document(allowed_extensions=(".txt", ".js", ".py"))
+def text_document_handler(message, text_document: telekit.types.TextDocument):
+    print(
+        text_document.text,      # "Example\n ..."
+        text_document.file_name, # "example.txt"
+        text_document.encoding,  # "utf-8"
+        text_document.document   # <telebot.types.Document>
+    )
+```
+
+Telekit is lightweight yet powerful, giving you a full set of built-in tools and solutions for building advanced Telegram bots effortlessly.
+
 ---
 
 ## Quick Guide
@@ -25,9 +167,6 @@ The library is designed to reduce boilerplate code and make Python development m
 Here is a `server.py` example (entry point) for a project on TeleKit
 
 ```python
-
-# Your server.py or main.py
-
 import telebot
 import telekit
 
@@ -37,7 +176,15 @@ bot = telebot.TeleBot("TOKEN")
 telekit.Server(bot).polling()
 ```
 
-Here is an example of defining a handler using TeleKit:
+Here you can see an example of the `handlers/__init__.py` file:
+
+```python
+from . import (
+    start, entry, help
+)
+```
+
+Here is an example of defining a handler using TeleKit (`handlers/start.py` file):
 
 ```python
 import telekit
@@ -105,14 +252,6 @@ class StartHandler(telekit.Handler):
             chain.send() # Edit previous message
 
         chain.send() # Send message
-```
-
-Here you can see an example of the `handlers/__init__.py` file:
-
-```python
-from . import start
-from . import entry
-from . import help
 ```
 
 **It is recommended to declare each handler in a separate file and place all handlers in the handlers folder.** 
