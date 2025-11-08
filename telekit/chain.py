@@ -34,10 +34,14 @@ class Chain:
         self._previous_message: Message | None = None
         self.always_edit_previous_message: bool = False
 
-    def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[[Message], Any] | str], row_width: int = 1) -> None:
+    def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1) -> None:
         """
         Sets an inline keyboard for the chain with buttons that call the corresponding functions.
         Each button will call the function with the message as an argument.
+
+        `Callable[..., Any]` may be:
+            - `Callable[[Message], Any]` — accepts a Message object, or 
+            - `Callable[[], Any]` — takes no arguments.
         
         Args:
             keyboard (dict[str, Callable[[Message], Any] | str]): A dictionary where keys are button captions

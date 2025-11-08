@@ -3,22 +3,12 @@
 # --------------------------------------------------
 
 class Parser:
-    def __init__(self, path: str):
-        self.path = path
-        self.data = ""
+    def __init__(self, data: str):
+        self.data = data
+        self.code_length = len(data)
         self.position = 0
-        self.code_length = 0
-
-    def _read_file(self):
-        try:
-            with open(self.path, "r", encoding="utf-8") as f:
-                self.data = f.read()
-                self.code_length = len(self.data)
-        except Exception as e:
-            print(f"Failed to load file '{self.path}': {e}")
 
     def parse(self) -> dict[str, str]:
-        self._read_file()
 
         sections: dict[str, str] = {}
         current_title: str | None = None
@@ -90,4 +80,13 @@ __all__ = ["version", "read"]
 version = "x250708"
     
 def read(path: str) -> dict[str, str]:
-    return Parser(path).parse()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            source = f.read()
+        return Parser(source).parse()
+    except Exception as e:
+        print(f"Failed to load file '{path}': {e}")
+        return {}
+        
+def parse(source: str) -> dict[str, str]:
+    return Parser(source).parse()

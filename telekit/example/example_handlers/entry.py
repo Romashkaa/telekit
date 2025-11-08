@@ -51,9 +51,11 @@ class EntryHandler(telekit.Handler):
         self._user_data = UserData(self.message.chat.id)
         self.input_name()
 
+    # The message parameter is optional, 
+    # but you can receive it to access specific information
     def input_name(self, message: telebot.types.Message | None=None) -> None:
         prompt: telekit.Chain = self.get_child()
-        prompt.set_always_edit_previous_message(True) # `chain.send()` will change the previous message instead of sending a new one
+        prompt.set_always_edit_previous_message(True) # `chain.send()` will change the previous message instead of sending a new one, but use `chain.edit()` instead :)
          
         prompt.sender.set_title("⌨️ What`s your name?")
         prompt.sender.set_message("Please, send a text message")
@@ -85,7 +87,7 @@ class EntryHandler(telekit.Handler):
 
         prompt.send() # Sends new message
 
-    def input_age(self, message: telebot.types.Message) -> None:
+    def input_age(self) -> None: # The `message` parameter is optional
         prompt: telekit.Chain = self.get_child() # Child of `input_name.<locals>.confirm` (previous chain object)
          
         prompt.sender.set_title("⏳ How old are you?")
@@ -112,7 +114,7 @@ class EntryHandler(telekit.Handler):
 
         prompt.send() # Actually edits previous message
 
-    def result(self, message: telebot.types.Message) -> None:
+    def result(self) -> None:  # The `message` parameter is optional
         result: telekit.Chain = self.get_child() # Child of `input_age.<locals>.confirm` (previous chain object)
          
         result.sender.set_title("😏 Well well well")

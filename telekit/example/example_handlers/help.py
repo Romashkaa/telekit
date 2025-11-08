@@ -1,10 +1,32 @@
+from encodings.punycode import T
 import telebot.types # type: ignore
 import telekit
 
+source = """
+# Title
+
+Page text!
+
+# Another Page
+
+Text of another page
+Ця сторінка довша...
+
+Але не дуже)
+
+# Another Page 2
+You can write right under the title!
+"""
+
 pages: dict[str, tuple[str, str]] = {}
 
-for title, text in telekit.chapters.read("help.txt").items():
+for title, text in telekit.chapters.parse(source).items():
     pages[title] = (title, text)
+
+# Alternative:
+
+# for title, text in telekit.chapters.read("help.txt").items():
+#     pages[title] = (title, text)
 
 class HelpHandler(telekit.Handler):
 
@@ -24,7 +46,7 @@ class HelpHandler(telekit.Handler):
     def handle(self) -> None:
         main: telekit.Chain = self.get_chain()
         main.set_always_edit_previous_message(True)
-         
+        
         main.sender.set_title("FAQ - Frequently Asked Questions")
         main.sender.set_message("Here are some common questions and answers to help you get started:")
 
