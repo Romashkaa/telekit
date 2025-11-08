@@ -20,8 +20,8 @@
 
 # 0.0.9 and 0.0.10
 
-0.0.9. Refactor imports and remove commented-out code
-0.0.10. Add delete_user_initial_message method to remove user's initial message
+- 0.0.9. Refactor imports and remove commented-out code
+- 0.0.10. Add delete_user_initial_message method to remove user's initial message
 
 # 0.0.11
 
