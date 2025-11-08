@@ -31,13 +31,13 @@
 # 0.0.12 (unreleased)
 ## New Features:
 ### New decorators
-- Added `entry_document` decorator.
+- Added `entry_document` decorator:
 ```python
 @self.chain.entry_document(allowed_extensions=(".zip",))
 def doc_handler(message: telebot.types.Message, document: telebot.types.Document):
     print(document.file_name, document)
 ```
-- Added `entry_text_document` decorator.
+- Added `entry_text_document` decorator:
 ```python
 @self.chain.entry_text_document(allowed_extensions=(".txt", ".js"))
 def text_document_handler(message: telebot.types.Message, text_document: telekit.types.TextDocument):
