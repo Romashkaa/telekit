@@ -11,6 +11,28 @@ Instead, it adds new tools and a declarative style, where you only need to “fi
 [Telegram](https://t.me/TeleKitLib)
 [Real Example](https://github.com/Romashkaa/Questly)
 
+## Contents
+
+- [Overview](#overview)
+    - [Message Formatting](#message-formatting)
+    - [Handling Callbacks](#handling-callbacks-and-logic)
+- [Quick Guide](#quick-guide)
+- [Chains](#chains)
+    - [Case 1 — Using the Same Chain Across All Methods](#case-1--using-the-same-chain-across-all-methods)
+    - [Case 2 — Using Separate Chains for Each Step](#case-2--using-separate-chains-for-each-step)
+    - [Case 3 — Using Child Chains with Explicit Parent](#case-3--using-child-chains-with-explicit-parent)
+    - [Case 4 — Using Sequential Child Chains](#case-4--using-sequential-child-chains)
+- [Handler](#handler)
+    - [User](#attribute-handleruser)
+- [Listeners](#listeners)
+- [Senders](#senders)
+- [Chapters](#chapters)
+- [Examples and Solutions](#examples-and-solutions)
+    - [Counter](#counter)
+    - [FAQ Bot](#faq-pages)
+    - [Registration](#registration)
+    - [Dialogue](#dialogue)
+
 ## Overview
 
 The library is designed to reduce boilerplate code and make Python development more efficient:
@@ -500,7 +522,7 @@ class MyHandler(telekit.Handler):
         self.message.chat.id # Chat ID
 ```
 
-### Attribute `handler.user`
+### User (`handler.user`)
 
 The User class provides a simple abstraction for working with Telegram users inside your bot.
 It stores the chat_id, the from_user object, and provides convenient methods to get the username.
@@ -1022,4 +1044,5 @@ class DialogueHandler(telekit.Handler):
 ## Developer 
 
 Telegram: [Romashka](https://t.me/NotRomashka)
+
 Gravatar: [Romashka](https://gravatar.com/notromashka)
