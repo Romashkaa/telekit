@@ -1,6 +1,13 @@
-# 0.1.0 (unreleased)
+# 0.1.0
 ## New Features:
-### New decorators
+### Handler Methods
+
+- Added `simulate_user_message` method to programmatically simulate user messages. Useful for testing handlers or switching between commands without sending real Telegram messages:
+```python
+self.simulate_user_message("/start")
+```
+
+### New Decorators
 
 - Added `entry_document` decorator:
 
@@ -23,7 +30,7 @@ def text_document_handler(message: telebot.types.Message, text_document: telekit
     )
 ```
 
-### Logging functionality
+### Logging Functionality
 - Introduced a new `logger` module to handle logging for the library and individual users.
 - Implemented full logging functionality across the Telekit library.
 - Integrated logging into key components, including handlers, senders, and the server.
@@ -46,12 +53,12 @@ self.user.logger.info(f"User clicked: {value[0]}")
 2025-11-08 17:20:43 | INFO | help.py:61 | [IDIDIDIDID] User clicked: Another Page
 ```
 
-## Improvements:
+### Other Improvements:
 
 - Updated error handling to log exceptions with appropriate severity levels.
 - Typing improvements: New class `telekit.types`
 
-## Bug fixes:
+## Bug Fixes:
 
 - #1 Fixed! The main Telekit issue — **Double Handling**:
   Previously, if a user sent two or more commands to the bot while it was offline, the bot would process all of them **concurrently** after restarting.  

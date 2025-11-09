@@ -120,6 +120,12 @@ class EntryHandler(telekit.Handler):
         result.sender.set_title("😏 Well well well")
         result.sender.set_message(f"So your name is {self._user_data.get_name()} and you're {self._user_data.get_age()}? Fancy!")
 
-        result.set_inline_keyboard({"« Change": self.input_name})
+        result.set_inline_keyboard({
+            "« Change": self.input_name,
+            "Start": self.send_start_command,
+        }, row_width=2)
 
         result.send() # Actually edits previous message
+
+    def send_start_command(self) -> None:
+        self.simulate_user_message("/start")

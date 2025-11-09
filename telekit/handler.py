@@ -6,6 +6,7 @@ from telebot.types import Message
 import telebot
 
 from .chain import Chain
+from .callback_query_handler import CallbackQueryHandler
 from .user import User
 from .logger import logger
 library = logger.library
@@ -136,6 +137,21 @@ class Handler:
         self._children_factory: Callable[[Chain | None], Chain] = Chain.get_children_factory(self.message.chat.id)
         
         self.chain: Chain = self.get_chain()
+
+    def simulate_user_message(self, message_text: str) -> None:
+        """
+        Simulates a user sending a message to the bot.
+
+        Useful for testing, triggering handlers programmatically, 
+        or switching between commands without sending real Telegram messages.
+
+        Args:
+            message_text (str): The text of the message to simulate.
+
+        Example:
+            >>> self.simulate_user_message("/start")
+        """
+        CallbackQueryHandler().simulate(self.message, message_text)
 
     def delete_user_initial_message(self):
         self.chain.sender.delete_message(self.message)

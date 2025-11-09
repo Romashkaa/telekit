@@ -390,6 +390,8 @@ def _(message: telebot.types.Message, text: str) -> None:
     ...
 ```
 
+- (!) You can find information about the new decorators by checking their doc-strings in Python.
+
 ---
 
 # Method `handler.get_chain()`

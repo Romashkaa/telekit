@@ -27,9 +27,9 @@ class CallbackQueryHandler:
             CallbackQueryHandler().handle(call)
 
     def handle(self, call: CallbackQuery):
-        self._simulate(call.message, str(call.data), from_user=call.from_user)
+        self.simulate(call.message, str(call.data), from_user=call.from_user)
 
-    def _simulate(self, message: Message | InaccessibleMessage, text: str, from_user: Any=None) -> None:
+    def simulate(self, message: Message | InaccessibleMessage, text: str, from_user: Any=None) -> None:
         args = {}
 
         is_bot: bool = getattr(getattr(message, "from_user", from_user), "is_bot", False)
