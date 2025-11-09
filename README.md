@@ -537,6 +537,7 @@ class MyHandler(telekit.Handler):
 
 ---
 
+
 ## Listeners
 
 ### Decorator `handler.on_text()`
@@ -817,7 +818,7 @@ class HelpHandler(telekit.Handler):
         main.send()
 ```
 
-# Registration
+## Registration
 
 ```python
 import telebot.types
@@ -1020,4 +1021,5 @@ class DialogueHandler(telekit.Handler):
 
 ## Developer 
 
-Telegram: [@TeleKitLib](https://t.me/TeleKitLib)
+Telegram: [Romashka](https://t.me/NotRomashka)
+Gravatar: [Romashka](https://gravatar.com/notromashka)
