@@ -48,13 +48,39 @@ class Chain:
 
     def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1) -> None:
         """
-        Sets an inline keyboard for the chain with buttons that call the corresponding functions.
-        Each button will call the function with the message as an argument.
+        Sets an inline keyboard for the chain, where each button triggers the corresponding action.
+        Every button calls its associated function with the message as an argument (if applicable).
+        
+        ---
+        ### Example 1 (callback types):
+        ```
+        self.chain.set_inline_keyboard(
+            {   
+                # When the user clicks this button, `prompt.send()` will be executed
+                "« Change": prompt,
+                # When the user clicks this button, this lambda function will run
+                "Yes »": lambda: print("User: Okay!"),
+                # Can even be a link
+                "Youtube": "https://youtube.com"
+            }, row_width=2
+        )
+        ```
 
+        ### Example 2 (methods):
+        ```
+        self.chain.set_inline_keyboard(
+            {   
+                "« Change": self.entry_name,
+                "Next »": self.entry_age,
+            }, row_width=2
+        )
+        ```
+        ---
+        ## Callable types:
         `Callable[..., Any]` may be:
             - `Callable[[Message], Any]` — accepts a Message object, or 
             - `Callable[[], Any]` — takes no arguments.
-        
+        ---
         Args:
             keyboard (dict[str, Callable[[Message], Any] | str]): A dictionary where keys are button captions
                 and values are functions to be called when the button is clicked.
@@ -94,13 +120,24 @@ class Chain:
         Each button is mapped to a callback that calls the decorated 
         function with the button's associated value.
 
+        ---
+        ## Example:
+        ```
+        @self.chain.inline_keyboard({
+            # label: value
+            # str  : Any
+            "Red": (255, 0, 0),
+            "Green": (0, 255, 0),
+            "Blue": (0, 0, 255),
+        }, row_width=3)
+        def _(message, value: tuple[int, int, int]) -> None:
+            r, g, b = value
+            print(f"You selected RGB color: ({r}, {g}, {b})")
+        ```
+        ---
         Args:
             keyboard (dict[str, Value]): A dictionary mapping button captions to values.
             row_width (int): Number of buttons per row (default = 1).
-
-        Returns:
-            Callable[[Callable[[Message, Value], None]], None]:
-                A decorator function that registers the button callbacks.
         """
         def wrapper(func: Callable[[Message, Value], None]) -> None:
             callback_functions: dict[str, Callable[[Message], Any]] = {}
@@ -135,6 +172,20 @@ class Chain:
         Sets reply suggestions as inline buttons below the message input field.
         These buttons act as quick replies, and send the corresponding `callback_data` when clicked.
 
+        ---
+
+        ## Example:
+        ```
+        # Receive text message:
+        @self.chain.entry_text()
+        def name_handler(message, name: str):
+            print(name)
+
+        # Inline keyboard with suggested options:
+        self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
+        ```
+        ---
+
         Args:
             keyboard (dict[Caption, Value]): A dictionary where each key is the button's visible text (caption),
                                             and each value is the string to send as callback_data.
@@ -166,15 +217,37 @@ class Chain:
         """
         Decorator for registering an entry callback with optional message filtering.
 
+        ---
+        ## Example:
+        ```
+        # Receive any message type:
+        @self.chain.entry(
+            filter_message=lambda message: bool(message.text),
+            delete_user_response=True)
+        def handler(message):
+            print(message.text)
+        ```
+
+        ## Example 2 (Cancel button):
+        ```python
+        # Receive any message type:
+        @self.chain.entry()
+        def handler(message):
+            print(message.text)
+
+        self.chain.set_inline_keyboard(
+            {   
+                "🚫 Cancel": self.display_cancel,
+            }
+        )
+        ```
+        ---
+
         Args:
             filter_message (Callable[[Message], bool] | None): 
                 A filter function that takes a Message and returns True if it should be processed.
             delete_user_response (bool): 
                 If True, deletes the user's message after receiving it.
-
-        Returns:
-            Callable[[Callable[[Message], Any]], None]: 
-                A decorator function that registers the entry callback.
         """
         def wrapper(func: Callable[[Message], Any]) -> None:
             def callback(message: Message) -> bool:
@@ -197,16 +270,32 @@ class Chain:
         """
         Decorator for registering a text-only entry callback with optional message filtering.
 
+        ---
+        ## Example:
+        ```
+        @self.chain.entry_text(
+            filter_message=lambda _, name: " " not in name)
+        def name_handler(message, name: str):
+            print(name)
+        ```
+        ## Example 2 (Suggestions):
+        ```
+        # Receive text message:
+        @self.chain.entry_text()
+        def name_handler(message, name: str):
+            print(name)
+
+        # Add inline keyboard with suggested options:
+        self.chain.set_entry_suggestions(["Romashka", "NotRomashka"])
+        ```
+        ---
+
         Args:
             filter_message (Callable[[Message, str], bool] | None): 
                 A filter function that takes a Message and its text, 
                 returns True if it should be processed.
             delete_user_response (bool): 
                 If True, deletes the user's message after receiving it.
-
-        Returns:
-            Callable[[Callable[[Message, str], Any]], None]: 
-                A decorator function that registers the entry callback.
         """
         def wrapper(func: Callable[[Message, str], Any]) -> None:
             def callback(message: Message) -> bool:
@@ -233,16 +322,26 @@ class Chain:
         Decorator for registering a callback that only processes messages containing photos.
         Optionally applies a custom filter or deletes the user's message.
 
+        ---
+        ## Example:
+        ```
+        @self.chain.entry_photo()
+        def save_photos(message: Message, photos: list[telebot.types.PhotoSize]):
+            for i, photo in enumerate(photos):
+                file_info = bot.get_file(photo.file_id)
+                downloaded_file = bot.download_file(file_info.file_path)
+                filename = f"{message.message_id}_{i}.jpg"
+                with open(filename, "wb") as f:
+                    f.write(downloaded_file)
+        ```
+        ---
+
         Args:
             filter_message (Callable[[Message, list[telebot.types.PhotoSize]], bool] | None): 
                 A custom filter function that takes a Message and its list of PhotoSize objects. 
                 Returns True if the message should be processed.
             delete_user_response (bool): 
                 If True, the user's photo message will be deleted after being received.
-
-        Returns:
-            Callable[[Callable[[Message, list[telebot.types.PhotoSize]], Any]], None]: 
-                A decorator function that registers the photo entry callback.
         """
         def wrapper(func: Callable[[Message, list[telebot.types.PhotoSize]], Any]) -> None:
             def callback(message: Message) -> bool:
@@ -272,6 +371,15 @@ class Chain:
         This decorator allows filtering by file extensions, applying a custom filter, 
         and optionally deleting the user's document message after processing.
 
+        ---
+        ## Example:
+        ```
+        @self.chain.entry_document(allowed_extensions=(".zip",))
+        def doc_handler(message, document: telebot.types.Document):
+            print(document.file_name, document)
+        ```
+        ---
+
         Args:
             filter_message (Callable[[Message, Document], bool] | None): 
                 Optional function to filter messages. Receives the message and document,
@@ -282,14 +390,6 @@ class Chain:
                 If None, all document types are allowed.
             delete_user_response (bool): 
                 If True, deletes the user's document message after it is received.
-
-        Returns:
-            Callable: A decorator that registers a callback function accepting a Message and Document.
-
-        Example:
-            >>> @bot.entry_document(allowed_extensions=(".txt",))
-            >>> def handle_doc(message, document):
-            >>>     print(document.file_name)
         """
         def wrapper(func: Callable[[Message, telebot.types.Document], Any]) -> None:
             def callback(message: Message) -> bool:
@@ -328,6 +428,21 @@ class Chain:
         specified encoding, decodes the text, wraps it in a TextDocument object, 
         and passes it to the callback.
 
+        ---
+        ## Example:
+        ```
+        # Receive a text document (Telekit auto-detects encoding):
+        @self.chain.entry_text_document(allowed_extensions=(".txt", ".js", ".py"))
+        def text_document_handler(message, text_document: telekit.types.TextDocument):
+            print(
+                text_document.text,      # "Example\\n..."
+                text_document.file_name, # "example.txt"
+                text_document.encoding,  # "utf-8"
+                text_document.document   # <telebot.types.Document>
+            )
+        ```
+        ---
+
         Args:
             filter_message (Callable[[Message, TextDocument], bool] | None):
                 Optional function to filter messages. Receives the message and TextDocument,
@@ -341,27 +456,6 @@ class Chain:
                 Other options: "ignore", "replace".
             delete_user_response (bool):
                 If True, deletes the user's document message after it is received.
-
-        Returns:
-            Callable: A decorator that registers a callback function accepting a Message and TextDocument.
-
-        Example:
-            >>> @bot.entry_text_document(allowed_extensions=(".txt", ".js"))
-            >>> def handle_text_doc(message, text_doc):
-            >>>     # Access original Telegram message
-            >>>     print(text_doc.message)
-
-            >>>     # Access original Telegram document
-            >>>     print(text_doc.document)
-
-            >>>     # File name of the document
-            >>>     print(text_doc.file_name)
-
-            >>>     # Detected or specified encoding
-            >>>     print(text_doc.encoding)
-
-            >>>     # Decoded text content
-            >>>     print(text_doc.text)
         """
         def wrapper(func: Callable[[Message, TextDocument], Any]) -> None:
             def callback(message: Message) -> bool:
@@ -419,6 +513,8 @@ class Chain:
         Sets whether the chain should always edit the previous message 
         instead of sending a new one.
 
+        >>> self.chain.set_always_edit_previous_message(True)
+
         Args:
             value (bool): If True, edits previous messages by default.
         """
@@ -427,6 +523,8 @@ class Chain:
     def send(self) -> Message | None:
         """
         Sends a new message or edits the previous message if enabled.
+
+        >>> self.chain.send()
 
         Returns:
             Message | None: The sent or edited message.
@@ -444,6 +542,8 @@ class Chain:
         """
         Edits the previously sent message.
 
+        >>> self.chain.edit()
+
         Returns:
             Message | None: The edited message.
         """
@@ -459,6 +559,8 @@ class Chain:
     def get_previous_message(self) -> Message | None:
         """
         Returns the previous message sent by the chain.
+
+        >>> self.chain.get_previous_message()
         
         Returns:
             Message | None: The previous message or None if no message was sent
@@ -473,6 +575,12 @@ class Chain:
     def edit_previous_message(self) -> None:
         """
         Edits the previous message sent by the chain with the current sender's message
+
+        >>> self.chain.edit_previous_message()
+
+        is equal to:
+
+        >>> self.chain.sender.set_edit_message(self.chain.get_previous_message())
         """
         self.sender.set_edit_message(self.get_previous_message())
     

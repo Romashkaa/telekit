@@ -35,8 +35,8 @@ class HelpHandler(telekit.Handler):
         """
         Initializes the command handler.
         """
-        @bot.message_handler(commands=['help']) # type: ignore
-        def handler(message: telebot.types.Message) -> None: # type: ignore
+        @bot.message_handler(commands=['help'])
+        def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
     # ------------------------------------------
@@ -49,14 +49,14 @@ class HelpHandler(telekit.Handler):
 
         # `self.user.enable_logging()` enable logging for this user or for additional user IDs.
         # If no arguments are passed, enables logging for this instance's chat_id.
-        self.user.enable_logging()
+        # self.user.enable_logging()
         
         main.sender.set_title("FAQ - Frequently Asked Questions")
         main.sender.set_message("Here are some common questions and answers to help you get started:")
 
         @main.inline_keyboard(pages)
         def _(message: telebot.types.Message, value: tuple[str, str]) -> None:
-            page: telekit.Chain = self.get_child()
+            page: telekit.Chain = self.get_child(main)
 
             self.user.logger.info(f"User clicked: {value[0]}")
 

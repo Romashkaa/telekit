@@ -46,6 +46,22 @@ class Handler:
         whitelist: list[int] | None = None,
         **kwargs
     ):
+        """
+        Handles New incoming message of any kind - text, photo, sticker, etc. As a parameter to the decorator function, it passes telebot.types.Message object. All message handlers are tested in the order they were added.
+
+        ---
+        ## Example:
+        ```
+        class HelpHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls, bot: telebot.TeleBot) -> None:
+            
+                @cls.message_handler(commands=['help'])
+                def handler(message: telebot.types.Message) -> None:
+                    cls(message).handle()
+        ```
+        ---
+        """
         original_decorator = cls.bot.message_handler(
             commands=commands,
             regexp=regexp,
@@ -68,6 +84,31 @@ class Handler:
 
     @classmethod
     def on_text(cls, *patterns: str):
+        """
+        Decorator for registering a handler that triggers when a message matches one or more text patterns.
+
+        Patterns can include placeholders in curly braces (e.g., "My name is {name}"), 
+        which will be captured as keyword arguments and passed to the handler function.
+
+        ---
+        ## Example:
+        ```
+        class NameHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls, bot: telebot.TeleBot) -> None:
+            
+                @cls.on_text("My name is {name}", "I am {name}")
+                def handle_name(message, name: str):
+                    cls(message).handle_name(name)
+        ```
+        ---
+
+        Args:
+            *patterns (str): One or more text patterns to match against incoming messages.
+
+        Returns:
+            Callable: A decorator that registers the message handler.
+        """
         regexes = []
         for p in patterns:
             # {name} -> (?P<name>.+)
@@ -107,7 +148,7 @@ class Handler:
         if parent is None:
             parent = self.chain
 
-        self.chain = self._children_factory(self.chain)
+        self.chain = self._children_factory(parent)
         return self.chain
 
     handlers: list[type['Handler']] = []

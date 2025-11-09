@@ -80,6 +80,49 @@ __all__ = ["version", "read"]
 version = "x250708"
     
 def read(path: str) -> dict[str, str]:
+    """
+    Reads a text file and parses its content into a dictionary of key-value pairs.
+
+    ---
+
+    Args:
+        path (str): The file path to read.
+
+    Returns:
+        dict[str, str]: A dictionary where keys are section titles (lines starting with `#`)
+                        and values are the corresponding text blocks.
+                        Returns an empty dictionary if reading or parsing fails.
+
+    ---
+
+    ## Example:
+    ```
+        result = telekit.chapters.read("example.txt").items()
+        print(result)
+        # Output:
+        # {
+        #     "Key": "Value",
+        #     "Another Key": "Value line1\\nValue line2"
+        # }
+    ```
+    ## Output:
+    ```
+    {
+        "Key": "Value",
+        "Another Key": "Value line1\\nValue line2\\nValue line3"
+    }
+    ```
+    ## example.txt:
+    ```
+    # Key
+    Value
+
+    # Another Key
+    Value line1
+    Value line2
+    Value line3
+    ```
+    """
     try:
         with open(path, "r", encoding="utf-8") as f:
             source = f.read()
@@ -89,4 +132,43 @@ def read(path: str) -> dict[str, str]:
         return {}
         
 def parse(source: str) -> dict[str, str]:
+    """
+    Parses a text source into a dictionary of key-value pairs. 
+    Keys are lines starting with `#`, and values are the text that follows until the next key.
+
+    ---
+
+    Args:
+        source (str): The source string containing keys and values.
+
+    Returns:
+        dict[str, str]: A dictionary where keys are the section titles (without `#`) 
+                        and values are the corresponding text blocks.
+
+    ---
+
+    ## Example
+    ```
+    source = \"""
+    # Key
+    Value
+
+    # Another Key
+    Value line1
+    Value line2
+    Value line3
+    \"""
+
+    pages = telekit.chapters.parse(source).items()
+    print(pages)
+    ```
+
+    ## Output:
+    ```
+    {
+        "Key": "Value",
+        "Another Key": "Value line1\\nValue line2\\nValue line3"
+    }
+    ```
+    """
     return Parser(source).parse()
