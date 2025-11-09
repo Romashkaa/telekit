@@ -1,9 +1,12 @@
 # 0.2.0
-## Planned:
+## New Features
+- `@chain.entry_location()` decorator: allows handling messages with user coordinates.
+- `@chain.on_timeout()` decorator: registers a callback to be executed after a timeout.  
+- `chain.set_timeout()` an alternative way to set a timeout programmatically.
 
+## Planned:
 - Ability to disable logging `server.enable_logging(True)`
 - Localization of the method effect `self.user.enable_logging()` (Currently working globally)
-- New decorators
 - New listeners
 - New ways to "polling"?
 

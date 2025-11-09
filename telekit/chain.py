@@ -1,4 +1,3 @@
-from ast import Try
 import random
 from typing import Callable, Any
 
@@ -11,6 +10,7 @@ from telebot.types import ( # type: ignore
 
 from . import senders
 from . import input_handler
+from . import timeout
 
 import charset_normalizer
 from dataclasses import dataclass
@@ -46,6 +46,8 @@ class Chain:
         self.parent: Chain | None = None
         self._previous_message: Message | None = None
         self.always_edit_previous_message: bool = False
+        
+        self._timeout_handler = timeout.TimeoutHandler()
 
     def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1) -> None:
         """
@@ -258,6 +260,7 @@ class Chain:
                 if filter_message and not filter_message(message):
                     return False
                 
+                self._cancel_timeout()
                 func(message)
                 return True
             
@@ -309,6 +312,7 @@ class Chain:
                 if filter_message and not filter_message(message, message.text):
                     return False
                 
+                self._cancel_timeout()
                 func(message, message.text)
                 return True
             
@@ -355,6 +359,7 @@ class Chain:
                 if filter_message and not filter_message(message, message.photo):
                     return False
                 
+                self._cancel_timeout()
                 func(message, message.photo)
                 return True
             
@@ -409,6 +414,7 @@ class Chain:
                 if filter_message and not filter_message(message, message.document):
                     return False # only filtered
                 
+                self._cancel_timeout()
                 func(message, message.document)
                 return True # success
             
@@ -502,12 +508,101 @@ class Chain:
                 if filter_message and not filter_message(message, text_doc):
                     return False # only filtered
                 
+                self._cancel_timeout()
                 func(message, text_doc)
                 return True # success
             
             self.handler.set_entry_callback(callback)
 
         return wrapper
+
+    def entry_location(
+        self,
+        filter_message: Callable[[Message, telebot.types.Location], bool] | None = None,
+        delete_user_response: bool = False
+    ) -> Callable[[Callable[[Message, telebot.types.Location], Any]], None]:
+        """
+        Decorator for registering a callback that processes messages containing a location.
+
+        ---
+        ## Example:
+        ```
+        @self.chain.entry_location()
+        def location_handler(message, location: telebot.types.Location):
+            print(location.latitude, location.longitude)
+        ```
+        ---
+
+        Args:
+            filter_message: Optional function to filter messages. Receives message and location,
+                            should return True if the message should be processed.
+            delete_user_response: If True, deletes the user's location message after it is received.
+        """
+        def wrapper(func: Callable[[Message, telebot.types.Location], Any]) -> None:
+            def callback(message: Message) -> bool:
+                if not message.location:
+                    return False  # only location messages
+                
+                loc = message.location
+
+                if filter_message and not filter_message(message, loc):
+                    return False  # only filtered
+                
+                if delete_user_response:
+                    self.sender.delete_message(message, True)
+                
+                self._cancel_timeout()
+                func(message, loc)
+                return True  # success
+            
+            self.handler.set_entry_callback(callback)
+        return wrapper
+    
+    # -------------------------------------------
+    # Timeouts
+    # -------------------------------------------
+
+    def on_timeout(self, seconds: int = 0, minutes: int = 0, hours: int = 0):
+        """
+        Decorator for registering a callback to be executed after a timeout.
+
+        ---
+
+        ## Usage:
+        ```
+            @chain.timeout(seconds=10)
+            def my_callback():
+                ...
+        ```
+        ---
+        
+        """
+        def decorator(func: Callable):
+            self.set_timeout(func, seconds=seconds, minutes=minutes, hours=hours)
+            return func
+        return decorator
+    
+    def set_timeout(self, callback: Callable | None, seconds: int=0, minutes: int=0, hours: int=0):
+        if callback is None:
+            callback = lambda: None
+        self._set_timeout_callback(callback)
+        self._set_timeout_time(seconds, minutes, hours)
+    
+    def _set_timeout_callback(self, callback: Callable):
+        def wrapper():
+            self.handler.reset()
+            callback()
+        self.handler.set_cancel_timeout_callback(self._cancel_timeout)
+        self._timeout_handler.set_callback(wrapper)
+
+    def _set_timeout_time(self, seconds: int=0, minutes: int=0, hours: int=0):
+        self._timeout_handler.set_time(seconds, minutes, hours)
+    
+    def _start_timeout(self):
+        self._timeout_handler.maybe_start()
+
+    def _cancel_timeout(self):
+        self._timeout_handler.cancel()
 
     def set_always_edit_previous_message(self, value: bool=True) -> None:
         """
@@ -530,6 +625,7 @@ class Chain:
         Returns:
             Message | None: The sent or edited message.
         """
+        self._start_timeout()
         self.handler.handle_next_message()
 
         if self.always_edit_previous_message:

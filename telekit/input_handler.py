@@ -1,4 +1,3 @@
-from operator import call
 from typing import Callable, Any
 from telebot.types import Message
 import telebot
@@ -26,6 +25,18 @@ class InputHandler:
         self.chat_id = chat_id
         self.callback_functions: dict[str, Callable[..., Any]] = {}
         self.entry_callback: Callable[[Message], bool] | None = None
+        self.cancel_timeout_callback: Callable | None = None
+
+    def reset(self):
+        self.bot.clear_step_handler_by_chat_id(self.chat_id)
+
+    def cancel_timeout(self):
+        cancel_timeout_callback = self.__dict__["cancel_timeout_callback"]
+        if cancel_timeout_callback:
+            cancel_timeout_callback()
+
+    def set_cancel_timeout_callback(self, callback: Callable[[], None] | None):
+        self.cancel_timeout_callback = callback
 
     def set_callback_functions(self, callback_functions: dict[str, Callable[[Message], Any]]) -> None:
         """
@@ -64,12 +75,14 @@ class InputHandler:
         Handles the next message by calling the appropriate callback based on the message data.
         """
         if message.text in self.callback_functions:
+            self.cancel_timeout()
             callback = self.callback_functions[message.text]
             if self.accepts_parameter(callback):
                 callback(message)
             else:
                 callback()
         elif message.text and message.text.startswith("/"):
+            self.cancel_timeout()
             self.bot.process_new_messages([message])
         elif self.entry_callback:
             self.handle_entry(message)
@@ -81,6 +94,7 @@ class InputHandler:
         Handles the next message by calling the appropriate callback based on the message data.
         """
         if message.text and message.text.startswith("/"):
+            self.cancel_timeout()
             self.bot.process_new_messages([message])
         elif self.entry_callback:
             if not self.entry_callback(message):

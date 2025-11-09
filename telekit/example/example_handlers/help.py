@@ -1,4 +1,3 @@
-from encodings.punycode import T
 import telebot.types # type: ignore
 import telekit
 
@@ -64,7 +63,6 @@ class HelpHandler(telekit.Handler):
             page.sender.set_message(value[1])
 
             page.set_inline_keyboard({"« Back": main})
-
             page.send()
 
         main.send()
