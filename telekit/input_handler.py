@@ -5,8 +5,8 @@ import telebot
 
 import inspect
 
-from . import logger
-library = logger.logger.library
+from .logger import logger
+library = logger.library
 
 class InputHandler:
 
@@ -53,6 +53,8 @@ class InputHandler:
                 self.handle_entry(message)
             else:
                 return
+            
+        self.bot.clear_step_handler_by_chat_id(self.chat_id)
         
         if self.callback_functions or self.entry_callback:
             self.bot.register_next_step_handler_by_chat_id(self.chat_id, handler)

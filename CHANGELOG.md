@@ -1,13 +1,17 @@
 # 0.0.12 (unreleased)
 ## New Features:
 ### New decorators
+
 - Added `entry_document` decorator:
+
 ```python
 @self.chain.entry_document(allowed_extensions=(".zip",))
 def doc_handler(message: telebot.types.Message, document: telebot.types.Document):
     print(document.file_name, document)
 ```
+
 - Added `entry_text_document` decorator:
+
 ```python
 @self.chain.entry_text_document(allowed_extensions=(".txt", ".js"))
 def text_document_handler(message: telebot.types.Message, text_document: telekit.types.TextDocument):
@@ -18,6 +22,7 @@ def text_document_handler(message: telebot.types.Message, text_document: telekit
         text_document.document
     )
 ```
+
 ### Logging functionality
 - Introduced a new `logger` module to handle logging for the library and individual users.
 - Implemented full logging functionality across the Telekit library.
@@ -40,14 +45,24 @@ self.user.logger.info(f"User clicked: {value[0]}")
 ```log
 2025-11-08 17:20:43 | INFO | help.py:61 | [IDIDIDIDID] User clicked: Another Page
 ```
+
 ## Improvements:
+
 - Updated error handling to log exceptions with appropriate severity levels.
 - Typing improvements: New class `telekit.types`
+
+## Bug fixes:
+
+- #1 Fixed! The main Telekit issue — **Double Handling**:
+  Previously, if a user sent two or more commands to the bot while it was offline, the bot would process all of them **concurrently** after restarting.  
+  This behavior could cause unexpected results and race conditions.  
 
 ## Planned:
 
 - Ability to disable logging `server.enable_logging(True)`
 - Localization of the method effect `self.user.enable_logging()` (Currently working globally)
+
+
 
 
 # 0.0.11

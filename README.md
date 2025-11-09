@@ -112,7 +112,7 @@ self.chain.set_inline_keyboard(
     "Red": (255, 0, 0),
     "Green": (0, 255, 0),
     "Blue": (0, 0, 255),
-}, row_width=2)
+}, row_width=3)
 def _(message, value: tuple[int, int, int]) -> None:
     r, g, b = value
     self.chain.set_message(f"You selected RGB color: ({r}, {g}, {b})")
