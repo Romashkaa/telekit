@@ -329,7 +329,10 @@ class BaseSender:
             library.warning(f"Failed to delete message {message_id}. Maybe the user deleted it. Exception: {exception}")
             return False
         
-    def delete_message(self, message: Message | None) -> bool:
+    def delete_message(self, message: Message | None, only_user_messages: bool=False) -> bool:
+        if only_user_messages and message and message.from_user and message.from_user.is_bot:
+            return False
+
         return self._delete_message(self.get_message_id(message))
 
     def pyerror(self, exception: BaseException) -> Message | None: # type: ignore

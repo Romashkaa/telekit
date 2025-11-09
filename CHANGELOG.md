@@ -1,3 +1,10 @@
+# 0.1.1
+## Bug Fixes:
+- Fixed an issue where `@self.chain.entry_text(delete_user_response=True)` would delete the bot’s message if `set_entry_suggestions` was used.
+
+
+---
+
 # 0.1.0
 ## New Features:
 ### Handler Methods
@@ -70,7 +77,7 @@ self.user.logger.info(f"User clicked: {value[0]}")
 - Localization of the method effect `self.user.enable_logging()` (Currently working globally)
 
 
-
+---
 
 # 0.0.11
 

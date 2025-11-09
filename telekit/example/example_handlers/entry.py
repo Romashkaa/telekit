@@ -49,83 +49,95 @@ class EntryHandler(telekit.Handler):
 
     def handle(self) -> None:
         self._user_data = UserData(self.message.chat.id)
-        self.input_name()
+        self.entry_name()
+
+    # -------------------------------
+    # NAME HANDLING
+    # -------------------------------
 
     # The message parameter is optional, 
     # but you can receive it to access specific information
-    def input_name(self, message: telebot.types.Message | None=None) -> None:
-        prompt: telekit.Chain = self.get_child()
-        prompt.set_always_edit_previous_message(True) # `chain.send()` will change the previous message instead of sending a new one, but use `chain.edit()` instead :)
-         
-        prompt.sender.set_title("⌨️ What`s your name?")
-        prompt.sender.set_message("Please, send a text message")
+    def entry_name(self, message: telebot.types.Message | None=None) -> None:
+        self.chain.sender.set_title("⌨️ What`s your name?")
+        self.chain.sender.set_message("Please, send a text message")
+
+        self.add_name_listener()
 
         name: str | None = self._user_data.get_name( # from own data base
             default=self.user.get_username() # from telebot API
         )
         
         if name:
-            prompt.set_entry_suggestions([name])
+            self.chain.set_entry_suggestions([name])
 
-        @prompt.entry_text(delete_user_response=True)
+        self.chain.edit()
+
+    def add_name_listener(self):
+        @self.chain.entry_text(delete_user_response=True)
         def _(message: telebot.types.Message, name: str) -> None:
-            confirm: telekit.Chain = self.get_child()
-
-            confirm.sender.set_title(f"👋 Bonjour, {name}!")
-            confirm.sender.set_message(f"Is that your name?")
+            self.chain.sender.set_title(f"👋 Bonjour, {name}!")
+            self.chain.sender.set_message(f"Is that your name?")
 
             self._user_data.set_name(name)
 
-            confirm.set_inline_keyboard(
+            self.chain.set_inline_keyboard(
                 {
-                    "« Change": prompt,
-                    "Yes »": self.input_age,
+                    "« Change": self.entry_name,
+                    "Yes »": self.entry_age,
                 }, row_width=2
             )
 
-            confirm.send() # Actually edits prompt message (REASON: prompt.set_always_edit_previous_message(True))
+            self.chain.edit()
 
-        prompt.send() # Sends new message
+    # -------------------------------
+    # AGE HANDLING
+    # -------------------------------
 
-    def input_age(self) -> None: # The `message` parameter is optional
-        prompt: telekit.Chain = self.get_child() # Child of `input_name.<locals>.confirm` (previous chain object)
-         
-        prompt.sender.set_title("⏳ How old are you?")
-        prompt.sender.set_message("Please, send a numeric message")
+    def entry_age(self, message: telebot.types.Message | None=None) -> None:
+        self.chain.sender.set_title("⏳ How old are you?")
+        self.chain.sender.set_message("Please, send a numeric message")
 
-        @prompt.entry_text(
+        self.add_age_listener()
+
+        age: int | None = self._user_data.get_age()
+
+        if age:
+            self.chain.set_entry_suggestions([str(age)])
+
+        self.chain.edit()
+
+    def add_age_listener(self):
+        @self.chain.entry_text(
             filter_message=lambda message, text: text.isdigit() and 0 < int(text) < 130,
-            delete_user_response=True)
+            delete_user_response=True
+        )
         def _(message: telebot.types.Message, text: str) -> None:
-            confirm: telekit.Chain = self.get_child()
-
-            confirm.sender.set_title(f"😏 {text} years old?")
-            confirm.sender.set_message(f"Noted. Now I know which memes are safe to show you")
             self._user_data.set_age(int(text))
 
-            confirm.set_inline_keyboard(
+            self.chain.sender.set_title(f"😏 {text} years old?")
+            self.chain.sender.set_message("Noted. Now I know which memes are safe to show you")
+
+            self.chain.set_inline_keyboard(
                 {
-                    "« Change": prompt,
-                    "Ok »": self.result,
+                    "« Change": self.entry_age,
+                    "Ok »": self.show_result,
                 }, row_width=2
             )
+            self.chain.edit()
 
-            confirm.send() # Actually edits prompt message
+    # ------------------------------------------
+    # RESULT
+    # ------------------------------------------
 
-        prompt.send() # Actually edits previous message
+    def show_result(self):
+        name = self._user_data.get_name()
+        age = self._user_data.get_age()
 
-    def result(self) -> None:  # The `message` parameter is optional
-        result: telekit.Chain = self.get_child() # Child of `input_age.<locals>.confirm` (previous chain object)
-         
-        result.sender.set_title("😏 Well well well")
-        result.sender.set_message(f"So your name is {self._user_data.get_name()} and you're {self._user_data.get_age()}? Fancy!")
+        self.chain.sender.set_title("😏 Well well well")
+        self.chain.sender.set_message(f"So your name is {name} and you're {age}? Fancy!")
 
-        result.set_inline_keyboard({
-            "« Change": self.input_name,
-            "Start": self.send_start_command,
+        self.chain.set_inline_keyboard({
+            "« No, change": self.entry_name,
         }, row_width=2)
 
-        result.send() # Actually edits previous message
-
-    def send_start_command(self) -> None:
-        self.simulate_user_message("/start")
+        self.chain.edit()

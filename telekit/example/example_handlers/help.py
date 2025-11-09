@@ -49,7 +49,7 @@ class HelpHandler(telekit.Handler):
 
         # `self.user.enable_logging()` enable logging for this user or for additional user IDs.
         # If no arguments are passed, enables logging for this instance's chat_id.
-        # self.user.enable_logging()
+        self.user.enable_logging()
         
         main.sender.set_title("FAQ - Frequently Asked Questions")
         main.sender.set_message("Here are some common questions and answers to help you get started:")

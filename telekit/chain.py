@@ -1,3 +1,4 @@
+from ast import Try
 import random
 from typing import Callable, Any
 
@@ -252,7 +253,7 @@ class Chain:
         def wrapper(func: Callable[[Message], Any]) -> None:
             def callback(message: Message) -> bool:
                 if delete_user_response:
-                    self.sender.delete_message(message)
+                    self.sender.delete_message(message, True)
                     
                 if filter_message and not filter_message(message):
                     return False
@@ -300,7 +301,7 @@ class Chain:
         def wrapper(func: Callable[[Message, str], Any]) -> None:
             def callback(message: Message) -> bool:
                 if delete_user_response:
-                    self.sender.delete_message(message)
+                    self.sender.delete_message(message, True)
 
                 if not message.text:
                     return False # Only text messages
@@ -346,7 +347,7 @@ class Chain:
         def wrapper(func: Callable[[Message, list[telebot.types.PhotoSize]], Any]) -> None:
             def callback(message: Message) -> bool:
                 if delete_user_response:
-                    self.sender.delete_message(message)
+                    self.sender.delete_message(message, True)
 
                 if not message.photo:
                     return False # Only photos
@@ -394,7 +395,7 @@ class Chain:
         def wrapper(func: Callable[[Message, telebot.types.Document], Any]) -> None:
             def callback(message: Message) -> bool:
                 if delete_user_response:
-                    self.sender.delete_message(message)
+                    self.sender.delete_message(message, True)
 
                 if not message.document:
                     return False # only documents
@@ -460,7 +461,7 @@ class Chain:
         def wrapper(func: Callable[[Message, TextDocument], Any]) -> None:
             def callback(message: Message) -> bool:
                 if delete_user_response:
-                    self.sender.delete_message(message)
+                    self.sender.delete_message(message, True)
 
                 if not message.document:
                     return False # only documents
