@@ -1,7 +1,17 @@
+# 0.2.0
+## Planned:
+
+- Ability to disable logging `server.enable_logging(True)`
+- Localization of the method effect `self.user.enable_logging()` (Currently working globally)
+- New decorators
+- New listeners
+- New ways to "polling"?
+
+---
+
 # 0.1.1
 ## Bug Fixes:
 - Fixed an issue where `@self.chain.entry_text(delete_user_response=True)` would delete the bot’s message if `set_entry_suggestions` was used.
-
 
 ---
 
@@ -70,12 +80,6 @@ self.user.logger.info(f"User clicked: {value[0]}")
 - #1 Fixed! The main Telekit issue — **Double Handling**:
   Previously, if a user sent two or more commands to the bot while it was offline, the bot would process all of them **concurrently** after restarting.  
   This behavior could cause unexpected results and race conditions.  
-
-## Planned:
-
-- Ability to disable logging `server.enable_logging(True)`
-- Localization of the method effect `self.user.enable_logging()` (Currently working globally)
-
 
 ---
 

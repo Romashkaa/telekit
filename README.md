@@ -69,9 +69,9 @@ bot = telebot.TeleBot("TOKEN")
 telekit.Server(bot).polling()
 ```
 
-### Let’s examine each element individually:
+Let’s examine each element individually...
 
-#### Message formatting:
+### Message formatting:
 
 - You can configure everything manually:
 
@@ -110,7 +110,7 @@ self.chain.sender.set_photo("url, bytes or path")
 
 Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatically!
 
-#### Handling callbacks and Logic
+### Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
 
 - Inline keyboard:
