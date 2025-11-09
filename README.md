@@ -94,6 +94,7 @@ If you want more control:
 
 ```python
 self.chain.sender.set_use_italic(False)
+self.chain.sender.set_add_new_line(False)
 self.chain.sender.set_parse_mode("HTML")
 self.chain.sender.set_reply_to(message)
 self.chain.sender.set_chat_id(chat_id)
@@ -104,7 +105,7 @@ self.chain.sender.set_chat_id(chat_id)
 Want to add an image or an effect in a single line?
 
 ```python
-self.chain.sender.set_effect(sender.Effect.HEART)
+self.chain.sender.set_effect(self.chain.sender.Effect.HEART)
 self.chain.sender.set_photo("url, bytes or path")
 ```
 
@@ -117,10 +118,10 @@ If your focus is on logic and functionality, Telekit is the ideal library:
 
 ```python
 # Inline keyboard `label-callback`:
+# - label:    `str`
+# - callback: `Chain` | `str` | `Callable[[], Any]` | `Callable[[Message], Any]`
 self.chain.set_inline_keyboard(
     {
-    # label:    `str`
-    # callback: `Chain` | `str` | `Callable[[], Any]` | `Callable[[Message], Any]`
         "« Change": prompt, # When the user clicks this button, `prompt.send()` will be executed
         "Yes »": lambda: print("User: Okay!"), # When the user clicks this button, this lambda function will run
         "Youtube": "https://youtube.com" # Can even be a link
@@ -128,9 +129,9 @@ self.chain.set_inline_keyboard(
 )
 
 # Inline keyboard `label-value`:
+# - label: `str`
+# - value: `Any`
 @self.chain.inline_keyboard({
-    # label: `str`
-    # value: `Any`
     "Red": (255, 0, 0),
     "Green": (0, 255, 0),
     "Blue": (0, 0, 255),
