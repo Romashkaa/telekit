@@ -116,6 +116,43 @@ self.chain.sender.set_photo("url, bytes or path")
 
 Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatically!
 
+### Text Styling with `Styles`
+
+Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `chain.sender` or manually:
+
+```python
+...
+# Automatically detects `parse_mode` from `sender`
+styles = self.chain.sender.styles
+
+text = styles.bold("Bold") + " and " + styles.italic("Italic")
+...
+```
+
+Manual usage:
+
+```python
+# Manually create a Styles object
+styles = Styles()
+styles.use_html()                 # force HTML
+styles.use_markdown()             # force Markdown
+styles.set_parse_mode("markdown") # force Markdown
+print(styles.bold("Text"))        # print as markdown
+
+# Print directly
+print(Bold("Text").markdown)
+# or:
+print(Bold("Text", parse_mode="markdown"))
+```
+
+Composition:
+
+```python
+# Combine multiple styles
+text = Strikethrough(Bold("...") + Italic("..."))
+text = styles.strike(styles.bold("...") + styles.italic())
+```
+
 ### Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
 

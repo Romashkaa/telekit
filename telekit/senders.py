@@ -5,6 +5,8 @@ from telebot.types import (
     Message, InputMediaPhoto
 )
 
+from telekit import buildtext
+
 from .logger import logger
 library = logger.library
 
@@ -142,6 +144,11 @@ class BaseSender:
 
         self.photo = photo
 
+        self.styles = buildtext.Styles()
+
+        if self.parse_mode:
+            self.styles.set_parse_mode(self.parse_mode)
+
     class Effect(Enum):
         FIRE = "5104841245755180586"   # 🔥
         PARTY = "5046509860389126442"  # 🎉
@@ -192,6 +199,7 @@ class BaseSender:
         
         if parse_mode.lower() in ("html", "markdown"):
             self.parse_mode = parse_mode.lower()
+            self.styles.set_parse_mode(self.parse_mode)
 
     def set_reply_to_message_id(self, reply_to_message_id: int | None):
         self.reply_to_message_id = reply_to_message_id

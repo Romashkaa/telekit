@@ -6,7 +6,7 @@ import sys
 from . import init
 import telebot # type: ignore
 
-from . import logger
+from .logger import logger
 server_logger = logger.server
     
 def print_exception_message(ex: Exception) -> None:

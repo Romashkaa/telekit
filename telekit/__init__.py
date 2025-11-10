@@ -11,6 +11,7 @@ from .chapters import chapters
 from .user import User
 from .guidekit.guidekit import GuideKit
 from .guidekit.guide_mixin import GuideMixin
+from .buildtext import styles
 from . import senders
 
 from .logger import logger
@@ -19,4 +20,18 @@ class types:
     TextDocument = TextDocument
     User = User
 
-__all__ = ["types", "Handler", "GuideKit", "GuideMixin", "senders", "Chain", "CallbackQueryHandler", "Server", "Vault", "User", "chapters", "example"]
+__all__ = [
+    "types", 
+    "styles", 
+    "Server", 
+    "Chain", 
+    "Handler", 
+    "User", 
+    "GuideKit", 
+    "GuideMixin", 
+    "Vault", 
+    "chapters", 
+    "example",
+    "CallbackQueryHandler", 
+    "senders", 
+]

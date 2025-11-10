@@ -1,6 +1,7 @@
 # 0.2.0
 ## New Features
 - `telekit.GuideMixin` and `telekit.GuideKit(...).register()`: allows creating interactive FAQ pages using a custom DSL, with automatic scene handling, user input processing, and message formatting.
+- `Styles` helper class: easily create styled text objects (`Bold`, `Italic`, `Underline`, `Strikethrough`, `Code`, `Python`, `Spoiler`, `Quote`) with automatic `parse_mode` support for Markdown or HTML.
 - `@chain.entry_location()` decorator: allows handling messages with user coordinates.
 - `@chain.on_timeout()` decorator: registers a callback to be executed after a timeout.  
 - `chain.set_timeout()` an alternative way to set a timeout programmatically.
