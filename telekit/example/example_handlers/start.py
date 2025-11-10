@@ -1,4 +1,4 @@
-import telebot.types # type: ignore
+import telebot.types
 import telekit
 import typing
 
@@ -14,8 +14,8 @@ class StartHandler(telekit.Handler):
         """
         Initializes the message handler for the '/start' command.
         """
-        @bot.message_handler(commands=['start']) # type: ignore
-        def handler(message: telebot.types.Message) -> None: # type: ignore
+        @bot.message_handler(commands=['start'])
+        def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
     # ------------------------------------------
@@ -23,12 +23,10 @@ class StartHandler(telekit.Handler):
     # ------------------------------------------
 
     def handle(self) -> None:
-        chain: telekit.Chain = self.get_chain()
-         
-        chain.sender.set_title("Hello")
-        chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.")
-        chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
-        chain.sender.set_effect(chain.sender.Effect.PARTY)
+        self.chain.sender.set_title("Hello")
+        self.chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.")
+        self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
+        self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
 
         def counter_factory() -> typing.Callable[[int], int]:
             count = 0
@@ -40,10 +38,9 @@ class StartHandler(telekit.Handler):
         
         click_counter = counter_factory()
 
-        @chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
+        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
         def _(message: telebot.types.Message, value: int) -> None:
-            chain.sender.set_message(f"You clicked {click_counter(value)} times")
-            chain.edit_previous_message()
-            chain.send()
+            self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
+            self.chain.edit()
 
-        chain.send()
+        self.chain.send()

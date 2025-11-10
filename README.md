@@ -17,6 +17,7 @@ It automatically handles message formatting, user input, and potential errors (s
 
 - [Overview](#overview)
     - [Message Formatting](#message-formatting)
+    - [Text Styling](#text-styling-with-styles)
     - [Handling Callbacks](#handling-callbacks-and-logic)
 - [Quick Guide](#quick-guide)
 - [Chains](#chains)
@@ -227,6 +228,17 @@ Telekit is lightweight yet powerful, giving you a full set of built-in tools and
 
 ## Quick Guide
 
+You can write the entire bot in a single file, but it’s recommended to organize your project using a simple structure like this one:
+
+```
+handlers/
+    __init__.py
+    start.py    # `/start` handler
+    help.py     # `/help` handler
+    ...
+server.py       # entry point
+```
+
 Here is a `server.py` example (entry point) for a project on TeleKit
 
 ```python
@@ -250,11 +262,9 @@ from . import (
 Here is an example of defining a handler using TeleKit (`handlers/start.py` file):
 
 ```python
+import telebot.types
 import telekit
 import typing
-
-import telebot.types
-
 
 class StartHandler(telekit.Handler):
 
@@ -265,9 +275,9 @@ class StartHandler(telekit.Handler):
     @classmethod
     def init_handler(cls, bot: telebot.TeleBot) -> None:
         """
-        Initializes the command handler.
+        Initializes the message handler for the '/start' command.
         """
-        @bot.message_handler(commands=['start']) # Standard handler declaration
+        @bot.message_handler(commands=['start'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
@@ -276,16 +286,11 @@ class StartHandler(telekit.Handler):
     # ------------------------------------------
 
     def handle(self) -> None:
-	    # Get the `chain` object:
-        chain: telekit.Chain = self.get_chain() 
-        
-        # Below we change the message view using `chain.sender`:
-        chain.sender.set_title("Hello") # Set the title for the message
-        chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.") # Set the message text
-        chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450") # Add a photo to the message (optional)
-        chain.sender.set_effect(chain.sender.Effect.PARTY) # Add an effect (optional)
-		
-		# Handler's own logic:
+        self.chain.sender.set_title("Hello")
+        self.chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.")
+        self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
+        self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
+
         def counter_factory() -> typing.Callable[[int], int]:
             count = 0
             def counter(value: int=1) -> int:
@@ -295,31 +300,16 @@ class StartHandler(telekit.Handler):
             return counter
         
         click_counter = counter_factory()
-		
-		# Add a keyboard to the message via `chain`:
-		#  {"⊕": 1, ...} - {"caption": value}
-		#  The button caption should be a string
-		#  The value of the button can be any object and is not sent to Telegram servers
-        @chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
+
+        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
         def _(message: telebot.types.Message, value: int) -> None:
-            #    ^                              ^
-            # Callback turns to Message         |
-            # Value from `{caption: value}` – not sent to Telegram servers
+            self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
+            self.chain.edit()
 
-            chain.sender.set_message(f"You clicked {click_counter(value)} times") # Change the message text
-
-            chain.edit_previous_message() # Сhange the previous message instead of sending the new one.
-            # ^ You can also call this once at the beginning of the function: 
-            # ^ `chain.set_always_edit_previous_message(True)`
-
-            chain.send() # Edit previous message
-
-        chain.send() # Send message
+        self.chain.send()
 ```
 
-**It is recommended to declare each handler in a separate file and place all handlers in the handlers folder.** 
-
-**But you can write everything in one file:**
+**One-file bot example:**
 
 ```python
 import telebot
@@ -345,9 +335,6 @@ class NameAgeHandler(telekit.Handler):
             cls(message).handle(None, age)
 
     def handle(self, name: str | None, age: str | None) -> None: 
-        # Starting from TeleKit 0.0.3, the initial chain is created automatically.
-        # However, you can still create a new one manually: `chain: telekit.Chain = self.get_chain()`
-
         if not name: 
             name = self.user.get_username()
 
