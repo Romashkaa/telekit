@@ -1,4 +1,4 @@
-from . import fml_parser
+from . import parser
 
 import telekit
 
@@ -64,7 +64,7 @@ class GuideMixin(telekit.Handler):
     @classmethod
     def analyze_source(cls, source: str) -> None | NoReturn:
         """Analyze FML source string and store parsed data."""
-        cls.data = fml_parser.analyze(source)
+        cls.data = parser.analyze(source)
 
     def start_guide(self) -> None | NoReturn:
         """Start the guide; raises an error if data is not loaded."""
