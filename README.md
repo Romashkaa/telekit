@@ -2,14 +2,16 @@
 
 # TeleKit Library
 
-**Telekit** is a compilation of my early unpublished libraries, now working together seamlessly as a single unit. Intuitive and flexible, it doesn’t restrict you—you can still use handlers and other elements from the original library. 
+Telekit provides the easiest and most convenient way to work with the Telegram Bot API using a declarative interface, offering a wide range of built-in tools and ready-to-use solutions for fast bot development.
 
-Instead, it adds new tools and a declarative style, where you only need to “fill in the fields” in `self.chain` and "confirm" using `self.chain.send()`. Telekit automatically formats messages, handles potential errors (like unclosed HTML tags), and processes user responses. 
+The library is currently in beta and doesn’t yet cover the entire Bot API, but it allows developers to seamlessly integrate telebot to fill in the current gaps. Despite being in early stages, Telekit significantly simplifies bot creation thanks to its clean, declarative design.
+
+It automatically handles message formatting, user input, and potential errors (such as unclosed HTML tags), letting developers focus on building logic instead of boilerplate.
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
 [Telegram](https://t.me/TeleKitLib)
-[Real Example](https://github.com/Romashkaa/Questly)
+[Examples](#examples-and-solutions)
 
 ## Contents
 
@@ -35,7 +37,10 @@ Instead, it adds new tools and a declarative style, where you only need to “fi
 
 ## Overview
 
-The library is designed to reduce boilerplate code and make Python development more efficient:
+Telekit focuses on reducing repetitive code and providing a clear, declarative way to define bot logic.
+Instead of manually managing updates, states, or message parsing, you describe the behavior step by step using chains — the core concept that links handlers, messages, and user actions together.
+
+Let’s see how it works in practice 👇
 
 ```python
 import telebot
