@@ -7,7 +7,7 @@ from . import init
 import telebot # type: ignore
 
 from . import logger
-server_logger = logger.logger.server
+server_logger = logger.server
     
 def print_exception_message(ex: Exception) -> None:
     tb_str = ''.join(traceback.format_exception(*sys.exc_info()))
@@ -28,6 +28,7 @@ class Server:
         init.init(bot)
 
     def polling(self):
+        """Standard `self.bot.polling(none_stop=True)` polling"""
         while True:
             server_logger.info("Telekit server is polling...")
             print("Telekit server is starting polling...")
@@ -36,12 +37,31 @@ class Server:
                 self.bot.polling(none_stop=True)
             except Exception as exception:
                 if self.catch_exceptions:
+                    server_logger.critical(f"Polling cycle error [catch_exceptions=False] : {exception}")
                     print_exception_message(exception)
                 else:
-                    server_logger.critical(f"Polling cycle error [catch_exceptions=False] : {exception}")
+                    server_logger.fatal(f"[server dead] Polling cycle error [catch_exceptions=False] : {exception}")
                     raise exception
             finally:
                 time.sleep(10)
+
+    def long_polling(self, timeout: int = 60):
+        """Long `self.bot.polling(none_stop=True, timeout=timeout)` polling with custom timeout"""
+        while True:
+            server_logger.info("Telekit server is long polling...")
+            print(f"Telekit server is long polling with timeout={timeout}...")
+            try:
+                self.bot.polling(none_stop=True, timeout=timeout)
+            except Exception as exception:
+                if self.catch_exceptions:
+                    server_logger.critical(f"Long polling error [catch_exceptions=False]: {exception}")
+                    print_exception_message(exception)
+                else:
+                    server_logger.fatal(f"[server dead] Long polling error [catch_exceptions=False]: {exception}")
+                    raise exception
+            finally:
+                time.sleep(5)
+
 
 # Example
 

@@ -9,6 +9,8 @@ from .server import Server, example
 from .snapvault import Vault # type: ignore
 from .chapters import chapters
 from .user import User
+from .guidekit.guidekit import GuideKit
+from .guidekit.guide_mixin import GuideMixin
 from . import senders
 
 from .logger import logger
@@ -17,4 +19,4 @@ class types:
     TextDocument = TextDocument
     User = User
 
-__all__ = ["types", "senders", "Chain", "Handler", "CallbackQueryHandler", "Server", "Vault", "User", "chapters", "example"]
+__all__ = ["types", "Handler", "GuideKit", "GuideMixin", "senders", "Chain", "CallbackQueryHandler", "Server", "Vault", "User", "chapters", "example"]

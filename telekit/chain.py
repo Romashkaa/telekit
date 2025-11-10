@@ -577,12 +577,12 @@ class Chain:
         ---
         
         """
-        def decorator(func: Callable):
+        def decorator(func: Callable[[], None]):
             self.set_timeout(func, seconds=seconds, minutes=minutes, hours=hours)
             return func
         return decorator
     
-    def set_timeout(self, callback: Callable | None, seconds: int=0, minutes: int=0, hours: int=0):
+    def set_timeout(self, callback: Callable[[], None] | None, seconds: int=0, minutes: int=0, hours: int=0):
         if callback is None:
             callback = lambda: None
         self._set_timeout_callback(callback)
