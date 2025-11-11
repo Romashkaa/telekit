@@ -3,7 +3,7 @@ import telekit
 
 class GuideHandler(telekit.GuideMixin):
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         @cls.message_handler(commands=["faq"])
         def handler(message: telebot.types.Message) -> None:
             cls(message).start_guide()

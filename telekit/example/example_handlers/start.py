@@ -10,11 +10,11 @@ class StartHandler(telekit.Handler):
     # ------------------------------------------
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handler for the '/start' command.
         """
-        @bot.message_handler(commands=['start'])
+        @cls.bot.message_handler(commands=['start'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 

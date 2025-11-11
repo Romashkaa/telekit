@@ -7,7 +7,7 @@ from telekit.buildtext.styles import *
 class OnTextHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handlers.
         """

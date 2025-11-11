@@ -44,13 +44,12 @@ Instead of manually managing updates, states, or message parsing, you describe t
 Let’s see how it works in practice 👇
 
 ```python
-import telebot
 import telekit
 
 class NameHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         @cls.on_text("My name is {name}")
         def _(message: telebot.types.Message, name: str):
             cls(message).display_name(name)
@@ -71,8 +70,7 @@ class NameHandler(telekit.Handler):
 
         self.chain.edit()
 
-bot = telebot.TeleBot("TOKEN")
-telekit.Server(bot).polling()
+telekit.Server("TOKEN").polling()
 ```
 
 Let’s examine each element individually...
@@ -242,28 +240,26 @@ server.py       # entry point
 Here is a `server.py` example (entry point) for a project on TeleKit
 
 ```python
-import telebot
 import telekit
-
 import handlers # Package with all your handlers
 
-bot = telebot.TeleBot("TOKEN")
-telekit.Server(bot).polling()
+telekit.Server("BOT_TOKEN").polling()
 ```
 
 Here you can see an example of the `handlers/__init__.py` file:
 
 ```python
 from . import (
-    start, entry, help
+    start, help #, ...
 )
 ```
 
 Here is an example of defining a handler using TeleKit (`handlers/start.py` file):
 
 ```python
-import telebot.types
 import telekit
+
+import telebot.types
 import typing
 
 class StartHandler(telekit.Handler):
@@ -273,11 +269,11 @@ class StartHandler(telekit.Handler):
     # ------------------------------------------
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handler for the '/start' command.
         """
-        @bot.message_handler(commands=['start'])
+        @cls.message_handler(commands=['start'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
@@ -312,13 +308,12 @@ class StartHandler(telekit.Handler):
 **One-file bot example:**
 
 ```python
-import telebot
 import telekit
 
 class NameAgeHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handlers.
         """
@@ -344,8 +339,7 @@ class NameAgeHandler(telekit.Handler):
         self.chain.sender.set_text(f"👋 Hello {name}! {age} years is a wonderful stage of life!")
         self.chain.send()
 
-bot = telebot.TeleBot("TOKEN")
-telekit.Server(bot).polling()
+telekit.Server("TOKEN").polling()
 ```
 
 ---
@@ -603,7 +597,7 @@ import telekit
 class OnTextHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handlers.
         """
@@ -654,7 +648,7 @@ from typing import Callable, Any
 class MessageHandlerExample(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes message handlers.
         """
@@ -787,11 +781,11 @@ class Entry2Handler(telekit.Handler):
     # ------------------------------------------
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handler for the '/entry' command.
         """
-        @bot.message_handler(commands=['entry2'])
+        @cls.message_handler(commands=['entry2'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
@@ -837,11 +831,11 @@ for title, text in telekit.chapters.read("help.txt").items():
 class HelpHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the command handler.
         """
-        @bot.message_handler(commands=['help'])
+        @cls.message_handler(commands=['help'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
@@ -910,11 +904,11 @@ class UserData:
 class EntryHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the command handler.
         """
-        @bot.message_handler(commands=['entry'])
+        @cls.message_handler(commands=['entry'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
@@ -1034,7 +1028,7 @@ class DialogueHandler(telekit.Handler):
     # ------------------------------------------
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes message handlers
         """

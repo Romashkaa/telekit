@@ -21,8 +21,11 @@ def print_exception_message(ex: Exception) -> None:
 __all__ = ["Server"]
 
 class Server:
-    def __init__(self, bot: telebot.TeleBot, catch_exceptions: bool=True):
+    def __init__(self, bot: telebot.TeleBot | str, catch_exceptions: bool=True):
         self.catch_exceptions = catch_exceptions
+
+        if isinstance(bot, str):
+            bot = telebot.TeleBot(bot)
         
         self.bot = bot
         init.init(bot)

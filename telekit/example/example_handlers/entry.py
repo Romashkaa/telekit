@@ -36,11 +36,11 @@ import gc
 class EntryHandler(telekit.Handler):
 
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the command handler.
         """
-        @bot.message_handler(commands=['entry'])
+        @cls.bot.message_handler(commands=['entry'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 

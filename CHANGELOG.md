@@ -1,11 +1,25 @@
 # 0.2.0
 ## New Features
+- `Server` now accepts a **bot token string** directly:
+You can initialize the server either with an existing `TeleBot` instance or with a token string:
+
+```python
+import telekit
+
+server = telekit.Server("BOT_TOKEN")
+server.polling()
+```
+
+If a string is provided, a `TeleBot` instance is created internally automatically. 
 - `telekit.GuideMixin` and `telekit.GuideKit(...).register()`: allows creating interactive FAQ pages using a custom DSL, with automatic scene handling, user input processing, and message formatting.
 - `Styles` helper class: easily create styled text objects (`Bold`, `Italic`, `Underline`, `Strikethrough`, `Code`, `Python`, `Spoiler`, `Quote`) with automatic `parse_mode` support for Markdown or HTML.
 - `@chain.entry_location()` decorator: allows handling messages with user coordinates.
 - `@chain.on_timeout()` decorator: registers a callback to be executed after a timeout.  
 - `chain.set_timeout()` an alternative way to set a timeout programmatically.
 - `server.long_polling()` an alternative to `server.polling()` that uses long polling with a configurable timeout
+
+## Deprecation Notice
+- Handlers that use the old signature `init_handler(cls, bot)` are now **deprecated**. A warning will be shown in logs when such handlers are initialized. This method will be **removed completely in the next major release**. Use `cls.bot` directly or switch to Telekit’s built-in handler methods (e.g. `cls.handle_message(...)`).
 
 ## Planned:
 - Result caching in `GuideKit`

@@ -1,6 +1,8 @@
 from typing import Callable
-import re
 import typing
+import re
+
+import inspect
 
 from telebot.types import Message
 import telebot
@@ -8,6 +10,7 @@ import telebot
 from .chain import Chain
 from .callback_query_handler import CallbackQueryHandler
 from .user import User
+
 from .logger import logger
 library = logger.library
 
@@ -27,10 +30,20 @@ class Handler:
         cls.bot = bot
 
         for handler in cls.handlers:
-            handler.init_handler(bot)
-
+            if accepts_parameter(handler.init_handler):
+                library.warning(
+                    f"[DEPRECATED] {handler.__name__}.init_handler(bot) "
+                    f"was called from {__file__}. This method signature "
+                    f"is deprecated and will be removed soon. "
+                    f"Use 'cls.bot' or Telekit handlers "
+                    f"(e.g., cls.handle_message(...)) instead."
+                )
+                handler.init_handler(bot) # type: ignore
+            else:
+                handler.init_handler()
+    
     @classmethod
-    def init_handler(cls, bot: telebot.TeleBot) -> None:
+    def init_handler(cls) -> None:
         """
         Initializes the message handler
         """
@@ -172,3 +185,16 @@ class Handler:
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Handler.handlers.append(cls)
+
+def accepts_parameter(func: Callable) -> bool:
+        """
+        Checks if the function accepts at least one parameter,
+        ignoring 'self' for class methods.
+        """
+        sig = inspect.signature(func)
+        params = list(sig.parameters.values())
+
+        if params and params[0].name == "cls":
+            params = params[1:]
+
+        return len(params) > 0
