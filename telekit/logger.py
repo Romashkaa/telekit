@@ -4,12 +4,6 @@ from pathlib import Path
 from typing import Union, Callable, Protocol
 
 # ------------------------------
-# Log folder
-# ------------------------------
-LOG_FOLDER = Path("logs")
-LOG_FOLDER.mkdir(exist_ok=True)
-
-# ------------------------------
 # Formatter
 # ------------------------------
 formatter = logging.Formatter(
@@ -33,17 +27,11 @@ formatter_nofile = logging.Formatter(
 library_logger: logging.Logger = logging.getLogger("library")
 library_logger.setLevel(logging.DEBUG)
 
-# Console handler
+# Console handler (always on)
 ch = logging.StreamHandler(sys.stdout)
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(formatter)
 library_logger.addHandler(ch)
-
-# File handler
-fh = logging.FileHandler(LOG_FOLDER / "library.log", encoding="utf-8")
-fh.setLevel(logging.DEBUG)
-fh.setFormatter(formatter)
-library_logger.addHandler(fh)
 
 # ------------------------------
 # User Logging
@@ -52,17 +40,11 @@ _enabled_users: set[Union[int, str]] = set()
 user_logger: logging.Logger = logging.getLogger("users")
 user_logger.setLevel(logging.DEBUG)
 
-# Console
+# Console handler (always on)
 uch = logging.StreamHandler(sys.stdout)
 uch.setLevel(logging.DEBUG)
 uch.setFormatter(formatter_lineno)
 user_logger.addHandler(uch)
-
-# File
-ufh = logging.FileHandler(LOG_FOLDER / "users.log", encoding="utf-8")
-ufh.setLevel(logging.DEBUG)
-ufh.setFormatter(formatter_lineno)
-user_logger.addHandler(ufh)
 
 def enable_user_logging(*user_ids: Union[int, str]) -> None:
     _enabled_users.update(user_ids)
@@ -79,23 +61,18 @@ def _users(user_id: Union[int, str]) -> UserLoggerProtocol:
         def info(self, msg, *args, **kwargs):
             if user_id in _enabled_users:
                 user_logger.info(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-
         def warning(self, msg, *args, **kwargs):
             if user_id in _enabled_users:
                 user_logger.warning(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-
         def debug(self, msg, *args, **kwargs):
             if user_id in _enabled_users:
                 user_logger.debug(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-
         def error(self, msg, *args, **kwargs):
             if user_id in _enabled_users:
                 user_logger.error(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-
         def critical(self, msg, *args, **kwargs):
             if user_id in _enabled_users:
                 user_logger.critical(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-
     return UserLogger()
 
 # ------------------------------
@@ -104,17 +81,30 @@ def _users(user_id: Union[int, str]) -> UserLoggerProtocol:
 server_logger: logging.Logger = logging.getLogger("server")
 server_logger.setLevel(logging.DEBUG)
 
-# # Console
-# sch = logging.StreamHandler(sys.stdout)
-# sch.setLevel(logging.DEBUG)
-# sch.setFormatter(formatter_nofile)
-# server_logger.addHandler(sch)
+# ------------------------------
+# Enable file logging
+# ------------------------------
+def enable_file_logging(log_folder: Union[str, Path] = "logs") -> None:
+    LOG_FOLDER = Path(log_folder)
+    LOG_FOLDER.mkdir(exist_ok=True)
 
-# File
-sfh = logging.FileHandler(LOG_FOLDER / "server.log", encoding="utf-8")
-sfh.setLevel(logging.DEBUG)
-sfh.setFormatter(formatter_nofile)
-server_logger.addHandler(sfh)
+    # Library file handler
+    fh = logging.FileHandler(LOG_FOLDER / "library.log", encoding="utf-8")
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    library_logger.addHandler(fh)
+
+    # User file handler
+    ufh = logging.FileHandler(LOG_FOLDER / "users.log", encoding="utf-8")
+    ufh.setLevel(logging.DEBUG)
+    ufh.setFormatter(formatter_lineno)
+    user_logger.addHandler(ufh)
+
+    # Server file handler
+    sfh = logging.FileHandler(LOG_FOLDER / "server.log", encoding="utf-8")
+    sfh.setLevel(logging.DEBUG)
+    sfh.setFormatter(formatter_nofile)
+    server_logger.addHandler(sfh)
 
 # ------------------------------
 # Typed convenience wrapper
@@ -123,11 +113,11 @@ class LoggerWrapper:
     library: logging.Logger = library_logger
     server: logging.Logger = server_logger
     enable_user_logging: Callable[..., None] = enable_user_logging
+    enable_file_logging: Callable[..., None] = enable_file_logging
 
     def users(self, user_id: int | str):
         return _users(user_id)
 
-
 logger: LoggerWrapper = LoggerWrapper()
 
-__all__ = ["logger", "enable_user_logging"]
+__all__ = ["logger", "enable_user_logging", "enable_file_logging"]

@@ -1,14 +1,19 @@
+# Copyright (c) 2025 Ving Studio, Romashka
+# Licensed under the MIT License. See LICENSE file for full terms.
+
 from typing import Any
 from enum import Enum
 from telebot import TeleBot
 from telebot.types import (
-    Message, InputMediaPhoto
+    Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
 
 from telekit import buildtext
 
 from .logger import logger
 library = logger.library
+
+from telekit.buildtext.formatter import StyleFormatter
 
 class TempBuffer:
 
@@ -146,6 +151,8 @@ class BaseSender:
 
         self.styles = buildtext.Styles()
 
+        self.media = []
+
         if self.parse_mode:
             self.styles.set_parse_mode(self.parse_mode)
 
@@ -167,6 +174,7 @@ class BaseSender:
         self.message_effect_id = str(effect)
 
     def set_photo(self, photo: str | None | Any):
+        self.media = []
         if not isinstance(photo, str):
             self.photo = photo
             return 
@@ -178,11 +186,41 @@ class BaseSender:
         with open(photo, "rb") as photo:
             self.photo = photo.read()
 
+    def set_media(self, *media: str | Any):
+        """Sets the photos to be sent as InputMediaPhoto objects."""
+        self.photo = None
+        self.media: list[InputMediaPhoto] = []
+
+        for m in media:
+            if isinstance(m, InputMediaPhoto):
+                self.media.append(m)
+                continue
+
+            if not isinstance(m, str):
+                # assume it's a file-like object or bytes
+                self.media.append(InputMediaPhoto(media=m))
+                continue
+
+            if m.startswith(("http://", "https://")):
+                self.media.append(InputMediaPhoto(media=m))
+                continue
+
+            # assume it's a local file path
+            self.media.append(InputMediaPhoto(media=InputFile(open(m, "rb"))))
+
+    def _prepare_media(self):
+        if self.media:
+            def f(media: InputMediaPhoto):
+                media.parse_mode = self.parse_mode
+                return media
+            self.media[0].caption = self.text
+            self.media = list(map(f, self.media))
+
     def set_chat_id(self, chat_id: int):
         self.chat_id = chat_id
 
-    def set_text(self, text: str):
-        self.text = text
+    def set_text(self, text: str | StyleFormatter):
+        self.text = str(text)
 
     def set_reply_markup(self, reply_markup):
         self.reply_markup = reply_markup
@@ -223,10 +261,9 @@ class BaseSender:
             "reply_to_message_id": self.reply_to_message_id,
         }
 
-
     def _get_send_args(self) -> dict[str, Any]:
         args: dict[str, Any] = {
-            "reply_markup": self.reply_markup, # type: ignore
+            "reply_markup": self.reply_markup,
         }
 
         if self.message_effect_id:
@@ -266,6 +303,8 @@ class BaseSender:
     def _send(self) -> Message | None:
         if self.photo:
             return self._send_photo()
+        elif self.media:
+            return self._send_media()
         else:
             return self._send_text()
         
@@ -275,6 +314,16 @@ class BaseSender:
             caption=self.text,
             **self._get_send_args()
         )
+    
+    def _send_media(self) -> Message | None:
+        self._prepare_media()
+        media: list[InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo] = list(self.media)
+
+        return self.bot.send_media_group(
+            media=media,
+            reply_to_message_id=self.reply_to_message_id,
+            chat_id=self.chat_id
+        )[0]
 
     def _send_text(self) -> Message | None:
         return self.bot.send_message(
@@ -361,7 +410,7 @@ class BaseSender:
             library.warning(f"Failed to send `pyerror` message: {exception}")
             return None
 
-    def error(self, title: str, message: str) -> Message | None: # type: ignore
+    def error(self, title: str | StyleFormatter, message: str | StyleFormatter) -> Message | None: # type: ignore
         """
         Sends a custom error message with a title and detailed message.
 
@@ -486,11 +535,11 @@ class AlertSender(BaseSender):
 
         self.set_text(text)
 
-    def set_title(self, title: str):
-        self._title = title
+    def set_title(self, title: str | StyleFormatter):
+        self._title = str(title)
 
-    def set_message(self, *message: str, sep: str=""):
-        self._message = sep.join(message)
+    def set_message(self, *message: str | StyleFormatter, sep: str=""):
+        self._message = sep.join(map(str, message))
 
     def set_use_italics(self, use_italics: bool=True):
         self._use_italics = use_italics

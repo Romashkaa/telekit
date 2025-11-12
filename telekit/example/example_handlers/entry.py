@@ -67,7 +67,7 @@ class EntryHandler(telekit.Handler):
         self.add_name_listener()
 
         name: str | None = self._user_data.get_name( # from own data base
-            default=self.user.get_username() # from telebot API
+            default=self.user.username # from telebot API
         )
         
         if name:

@@ -2,8 +2,6 @@ from typing import Callable, Any
 from telebot.types import Message
 import telebot
 
-import inspect
-
 from .logger import logger
 library = logger.library
 
@@ -77,10 +75,7 @@ class InputHandler:
         if message.text in self.callback_functions:
             self.cancel_timeout()
             callback = self.callback_functions[message.text]
-            if self.accepts_parameter(callback):
-                callback(message)
-            else:
-                callback()
+            callback(message)
         elif message.text and message.text.startswith("/"):
             self.cancel_timeout()
             self.bot.process_new_messages([message])
@@ -101,17 +96,4 @@ class InputHandler:
                 self.handle_next_message()
         else:
             self.handle_next_message()
-
-    def accepts_parameter(self, func: Callable) -> bool:
-        """
-        Checks if the function accepts at least one parameter,
-        ignoring 'self' for class methods.
-        """
-        sig = inspect.signature(func)
-        params = list(sig.parameters.values())
-
-        if params and params[0].name == "self":
-            params = params[1:]
-
-        return len(params) > 0
 

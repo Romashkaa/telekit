@@ -1,7 +1,6 @@
 # Copyright (c) 2025 Ving Studio, Romashka
 # Licensed under the MIT License. See LICENSE file for full terms.
 
-# engine/__init__.py
 from .handler import Handler
 from .chain import Chain, TextDocument
 from .callback_query_handler import CallbackQueryHandler
@@ -9,12 +8,13 @@ from .server import Server, example
 from .snapvault import Vault # type: ignore
 from .chapters import chapters
 from .user import User
-from .guidekit.guidekit import GuideKit
-from .guidekit.guide_mixin import GuideMixin
-from .buildtext import styles
+from .telekit_dsl.telekit_dsl import TelekitDSL
 from . import senders
 
-from .logger import logger
+from .buildtext import styles
+Styles = styles.Styles
+
+from .logger import enable_file_logging
 
 class types:
     TextDocument = TextDocument
@@ -22,16 +22,17 @@ class types:
 
 __all__ = [
     "types", 
-    "styles", 
+    "styles",
+    "Styles", 
     "Server", 
     "Chain", 
     "Handler", 
     "User", 
-    "GuideKit", 
-    "GuideMixin", 
+    "TelekitDSL",
     "Vault", 
     "chapters", 
     "example",
     "CallbackQueryHandler", 
     "senders", 
+    "enable_file_logging"
 ]

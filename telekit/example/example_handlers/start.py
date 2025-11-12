@@ -14,33 +14,26 @@ class StartHandler(telekit.Handler):
         """
         Initializes the message handler for the '/start' command.
         """
-        @cls.bot.message_handler(commands=['start'])
-        def handler(message: telebot.types.Message) -> None:
-            cls(message).handle()
-
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
-
-    def handle(self) -> None:
-        self.chain.sender.set_title("Hello")
-        self.chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.")
+        cls.on.message(["start"]).invoke(cls.start)
+    
+    def start(self):
+        self.chain.sender.set_title(f"👋 Welcome, {self.user.first_name}!")
+        self.chain.sender.set_message(
+            "Here you can explore some example commands to get started.\n\n"
+            "Use the buttons below to try them out:"
+        )
         self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
-        self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
 
-        def counter_factory() -> typing.Callable[[int], int]:
-            count = 0
-            def counter(value: int=1) -> int:
-                nonlocal count
-                count += value
-                return count
-            return counter
+        @self.chain.inline_keyboard(
+            {
+                "🧮 Counter": "/counter",
+                "⌨️ Entry": "/entry",
+                "📚 FAQ": "/faq",
+                "📄 Pages": "/pages",
+                "🦻 On Text": "/on_text",
+            }, row_width=2
+        )
+        def handle_response(message: telebot.types.Message, command: str):
+            self.simulate_user_message(command)
         
-        click_counter = counter_factory()
-
-        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
-        def _(message: telebot.types.Message, value: int) -> None:
-            self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
-            self.chain.edit()
-
         self.chain.send()

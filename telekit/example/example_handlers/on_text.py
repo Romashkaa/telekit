@@ -23,9 +23,11 @@ class OnTextHandler(telekit.Handler):
         def _(message: telebot.types.Message, name: str):
             cls(message).handle(name, None)
 
-        @cls.on.text("I'm {age}  years old")
+        @cls.on.text("I'm {age} years old")
         def _(message: telebot.types.Message, age: str):
             cls(message).handle(None, age)
+
+        cls.on.message(["on_text"]).invoke(cls.display_info)
             
     # ------------------------------------------
     # Handling Logic
@@ -34,7 +36,7 @@ class OnTextHandler(telekit.Handler):
     def handle(self, name: str | None, age: str | None) -> None: 
 
         if not name: 
-            name = self.user.get_username()
+            name = self.user.username
 
         if not age:
             age = "An unknown number of"
@@ -58,6 +60,19 @@ class OnTextHandler(telekit.Handler):
         self.chain.sender.set_title(f"Hello {styles.italic(name)}!")
         self.chain.sender.set_message(
             f"{styles.bold(age)} years is a wonderful stage of life!\n" 
-            f"{styles.quote(f'(You can customize styles)')}"
+            f"{styles.quote(f'(You can customize styles using "sender.styles.*")')}"
+        )
+        self.chain.send()
+
+    def display_info(self):
+        code = self.chain.sender.styles.code
+        self.chain.sender.set_title(f"🦻 On Text Handler")
+        self.chain.sender.set_message(
+            "Try sending any of these example phrases to see the handler in action:\n\n"
+            f"- {code('Name: John. Age: 25')}\n"
+            f"- {code('My name is Alice and I am 30 years old')}\n"
+            f"- {code('My name is Romashka')}\n"
+            f"- {code('I\'m 18 years old')}\n\n"
+            f"The bot will respond according to the information you provide."
         )
         self.chain.send()

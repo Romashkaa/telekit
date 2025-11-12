@@ -1,6 +1,5 @@
-# --------------------------------------------------
-# Local
-# --------------------------------------------------
+# Copyright (c) 2025 Ving Studio, Romashka
+# Licensed under the MIT License. See LICENSE file for full terms.
 
 class Parser:
     def __init__(self, data: str):

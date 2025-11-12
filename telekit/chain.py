@@ -1,19 +1,25 @@
-import random
-from typing import Callable, Any
+# Copyright (c) 2025 Ving Studio, Romashka
+# Licensed under the MIT License. See LICENSE file for full terms.
 
-import telebot              # type: ignore
-from telebot.types import ( # type: ignore
+# Standard library
+import random
+import inspect
+from typing import Callable, Any
+from dataclasses import dataclass
+
+# Third-party packages
+import telebot
+from telebot.types import (
     Message, 
     InlineKeyboardButton,
     InlineKeyboardMarkup
 )
+import charset_normalizer
 
+# Local modules
 from . import senders
 from . import input_handler
 from . import timeout
-
-import charset_normalizer
-from dataclasses import dataclass
 
 __all__ = ["TextDocument", "Chain"]
 
@@ -43,22 +49,98 @@ class Chain:
         self.chat_id = chat_id
         self.sender = senders.AlertSender(chat_id)
         self.handler = input_handler.InputHandler(chat_id)
-        self.parent: Chain | None = None
         self._previous_message: Message | None = None
-        self.always_edit_previous_message: bool = False
-        
         self._timeout_handler = timeout.TimeoutHandler()
 
+        self.do_remove_timeout = True
+        self.do_remove_entry_handler = True
+        self.do_remove_inline_keyboard = True
+
+    def remove_timeout(self):
+        """
+        Forces the removal of the active timeout handler.
+
+        This immediately clears any pending timeout to prevent it from triggering.
+
+        You can also remove all handlers at once using `remove_all_handlers()`.
+        """
+        self._timeout_handler.remove()
+    
+    def remove_entry_handler(self):
+        """
+        Forces the removal of the current entry handler.
+
+        This disables any active entry_* callbacks, 
+        ensuring they won't process new incoming messages.
+
+        You can also remove all handlers at once using `remove_all_handlers()`.
+        """
+        self.handler.set_entry_callback(None)
+
     def remove_inline_keyboard(self):
+        """
+        Forces the removal of the inline keyboard and all related callbacks.
+
+        This clears both the visual buttons and their callback bindings.
+
+        You can also remove all handlers at once using `remove_all_handlers()`.
+        """
         self.sender.set_reply_markup(None)
         self.handler.set_callback_functions({})
 
-    def remove_entry_handler(self):
-        self.handler.set_entry_callback(None)
-
     def remove_all_handlers(self):
+        """
+        Forces removal of all handlers associated with the chain.
+
+        This includes timeouts, entry handlers, and inline keyboards.
+        Use when starting a new chain to avoid conflicts with old state.
+
+        This includes:
+        - timeouts (`remove_timeout()`),
+        - entry handlers (`remove_entry_handler()`), 
+        - and inline keyboards (`remove_inline_keyboard()`).
+        """
+        self.remove_timeout()
         self.remove_entry_handler()
         self.remove_inline_keyboard()
+
+    def _remove_all_handlers(self):
+        if self.do_remove_timeout:
+            self.remove_timeout()
+        if self.do_remove_entry_handler:
+            self.remove_entry_handler()
+        if self.do_remove_inline_keyboard:
+            self.remove_inline_keyboard()
+
+    def set_remove_timeout(self, remove_timeout: bool = True):
+        """
+        Enables or disables automatic timeout removal after sending a message.
+
+        When True, the timeout handler will be cleared after each message, 
+        preventing it from triggering for every subsequent message.
+        Set to False if you want to keep the same timeout across messages.
+        """
+        self.do_remove_timeout = remove_timeout
+
+    def set_remove_entry_handler(self, remove_entry_handler: bool = True):
+        """
+        Enables or disables automatic removal of entry handlers after sending a message.
+
+        When True, any entry_* handlers (like entry_text) will be cleared automatically 
+        to avoid being reused unintentionally in the next message.
+        Set to False if you need to persist them between messages.
+        """
+        self.do_remove_entry_handler = remove_entry_handler
+
+    def set_remove_inline_keyboard(self, remove_inline_keyboard: bool = True):
+        """
+        Enables or disables automatic removal of the inline keyboard after sending a message.
+
+        When True, the inline keyboard will be removed automatically 
+        to prevent it from appearing in the next message by mistake.
+        Set to False if you want to reuse the same keyboard in subsequent messages.
+        """
+        self.do_remove_inline_keyboard = remove_inline_keyboard
 
     def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1) -> None:
         """
@@ -102,6 +184,16 @@ class Chain:
         callback_functions: dict[str, Callable[[Message], Any]] = {}
         buttons: list[InlineKeyboardButton] = []
 
+        def wrap_callback(callback: Callable[..., None]):
+            def wrapper(*args):
+                self._got_response_or_callback()
+
+                if self._accepts_parameter(callback):
+                    callback(*args)
+                else:
+                    callback()
+            return wrapper
+
         for i, (caption, callback) in enumerate(keyboard.items()):
             if isinstance(callback, str):
                 buttons.append(
@@ -112,7 +204,7 @@ class Chain:
                 )
             else:
                 callback_data = f"button_{i}_{random.randint(1000, 9999)}"
-                callback_functions[callback_data] = callback
+                callback_functions[callback_data] = wrap_callback(callback)
                 buttons.append(
                     InlineKeyboardButton(
                         text=caption,
@@ -159,6 +251,7 @@ class Chain:
 
             def get_callback(value: Value) -> Callable[[Message], None]:
                 def callback(message: Message) -> None:
+                    self._got_response_or_callback()
                     func(message, value)
                 return callback
 
@@ -176,7 +269,7 @@ class Chain:
             markup = InlineKeyboardMarkup()
             markup.keyboard = rows
 
-            self.sender.set_reply_markup(markup)  # type: ignore
+            self.sender.set_reply_markup(markup)
             self.handler.set_callback_functions(callback_functions)
 
         return wrapper
@@ -271,7 +364,7 @@ class Chain:
                 if filter_message and not filter_message(message):
                     return False
                 
-                self._cancel_timeout()
+                self._got_response_or_callback()
                 func(message)
                 return True
             
@@ -323,7 +416,7 @@ class Chain:
                 if filter_message and not filter_message(message, message.text):
                     return False
                 
-                self._cancel_timeout()
+                self._got_response_or_callback()
                 func(message, message.text)
                 return True
             
@@ -332,8 +425,8 @@ class Chain:
         return wrapper
     
     def entry_photo(self, 
-              filter_message: Callable[[Message, list[telebot.types.PhotoSize]], bool] | None=None,
-              delete_user_response: bool=False) -> Callable[[Callable[[Message, list[telebot.types.PhotoSize]], Any]], None]:
+            filter_message: Callable[[Message, list[telebot.types.PhotoSize]], bool] | None=None,
+            delete_user_response: bool=False) -> Callable[[Callable[[Message, list[telebot.types.PhotoSize]], Any]], None]:
         """
         Decorator for registering a callback that only processes messages containing photos.
         Optionally applies a custom filter or deletes the user's message.
@@ -370,7 +463,7 @@ class Chain:
                 if filter_message and not filter_message(message, message.photo):
                     return False
                 
-                self._cancel_timeout()
+                self._got_response_or_callback()
                 func(message, message.photo)
                 return True
             
@@ -379,9 +472,9 @@ class Chain:
         return wrapper
     
     def entry_document(self, 
-              filter_message: Callable[[Message, telebot.types.Document], bool] | None=None,
-              allowed_extensions: tuple[str, ...] | None = None,
-              delete_user_response: bool=False) -> Callable[[Callable[[Message, telebot.types.Document], Any]], None]:
+            filter_message: Callable[[Message, telebot.types.Document], bool] | None=None,
+            allowed_extensions: tuple[str, ...] | None = None,
+            delete_user_response: bool=False) -> Callable[[Callable[[Message, telebot.types.Document], Any]], None]:
         """
         Decorator for registering a callback that processes messages containing documents.
 
@@ -425,7 +518,7 @@ class Chain:
                 if filter_message and not filter_message(message, message.document):
                     return False # only filtered
                 
-                self._cancel_timeout()
+                self._got_response_or_callback()
                 func(message, message.document)
                 return True # success
             
@@ -434,11 +527,11 @@ class Chain:
         return wrapper
     
     def entry_text_document(self, 
-              filter_message: Callable[[Message, TextDocument], bool] | None=None,
-              allowed_extensions: tuple[str, ...] = (".txt",),
-              encoding: str | None = None,
-              decoding_errors: str = "strict",
-              delete_user_response: bool=False) -> Callable[[Callable[[Message, TextDocument], Any]], None]:
+            filter_message: Callable[[Message, TextDocument], bool] | None=None,
+            allowed_extensions: tuple[str, ...] = (".txt",),
+            encoding: str | None = None,
+            decoding_errors: str = "strict",
+            delete_user_response: bool=False) -> Callable[[Callable[[Message, TextDocument], Any]], None]:
         """
         Decorator for registering a callback that processes text-based documents.
 
@@ -519,7 +612,7 @@ class Chain:
                 if filter_message and not filter_message(message, text_doc):
                     return False # only filtered
                 
-                self._cancel_timeout()
+                self._got_response_or_callback()
                 func(message, text_doc)
                 return True # success
             
@@ -562,12 +655,33 @@ class Chain:
                 if delete_user_response:
                     self.sender.delete_message(message, True)
                 
-                self._cancel_timeout()
+                self._got_response_or_callback()
                 func(message, loc)
                 return True  # success
             
             self.handler.set_entry_callback(callback)
         return wrapper
+    
+    # -------------------------------------------
+    # Got Responce Or Callback Logic
+    # -------------------------------------------
+
+    def _got_response_or_callback(self):
+        self._cancel_timeout()
+        self._remove_all_handlers()
+
+    def _accepts_parameter(self, func: Callable) -> bool:
+        """
+        Checks if the function accepts at least one parameter,
+        ignoring 'self' for class methods.
+        """
+        sig = inspect.signature(func)
+        params = list(sig.parameters.values())
+
+        if params and params[0].name == "self":
+            params = params[1:]
+
+        return len(params) > 0
     
     # -------------------------------------------
     # Timeouts
@@ -576,6 +690,10 @@ class Chain:
     def on_timeout(self, seconds: int = 0, minutes: int = 0, hours: int = 0):
         """
         Decorator for registering a callback to be executed after a timeout.
+
+        Sets a timeout for the user's response (inline keyboard or entry_*). 
+
+        After the specified duration, the callback will be executed if the user hasn't responded.
 
         ---
 
@@ -594,6 +712,20 @@ class Chain:
         return decorator
     
     def set_timeout(self, callback: Callable[[], None] | None, seconds: int=0, minutes: int=0, hours: int=0):
+        """
+        Sets a timeout callback for the user's response (inline keyboard or entry_*). 
+
+        After the specified duration, the callback will be executed if the user hasn't responded.
+
+        Args:
+            callback (Callable[[], None] | None): The function to call after the timeout. If None, a no-op is used.
+            seconds (int, optional): Number of seconds to wait before executing the callback. Defaults to 0.
+            minutes (int, optional): Number of minutes to wait before executing the callback. Defaults to 0.
+            hours (int, optional): Number of hours to wait before executing the callback. Defaults to 0.
+
+        Notes:
+            - The timeout will be scheduled relative to the current `chain.send()` or `chain.edit()` execution.
+        """
         if callback is None:
             callback = lambda: None
         self._set_timeout_callback(callback)
@@ -606,9 +738,6 @@ class Chain:
         self.handler.set_cancel_timeout_callback(self._timeout_handler.cancel)
         self._timeout_handler.set_callback(wrapper)
 
-    def remove_timeout(self):
-        self._timeout_handler.remove()
-
     def _set_timeout_time(self, seconds: int=0, minutes: int=0, hours: int=0):
         self._timeout_handler.set_time(seconds, minutes, hours)
     
@@ -618,18 +747,18 @@ class Chain:
     def _cancel_timeout(self):
         self._timeout_handler.cancel()
 
-    def set_always_edit_previous_message(self, value: bool=True) -> None:
-        """
-        Sets whether the chain should always edit the previous message 
-        instead of sending a new one.
+    def _send(self)  -> Message | None:
+        self._start_timeout()
+        self.handler.handle_next_message()
 
-        >>> self.chain.set_always_edit_previous_message(True)
+        message = self.sender.send_or_handle_error()
 
-        Args:
-            value (bool): If True, edits previous messages by default.
-        """
-        self.always_edit_previous_message = value
+        # reset edit target and store new previous message
+        self.sender.set_edit_message(None)
+        self._set_previous_message(message)
 
+        return message
+    
     def send(self) -> Message | None:
         """
         Sends a new message or edits the previous message if enabled.
@@ -639,15 +768,8 @@ class Chain:
         Returns:
             Message | None: The sent or edited message.
         """
-        self._start_timeout()
-        self.handler.handle_next_message()
-
-        if self.always_edit_previous_message:
-            self.edit_previous_message()
-
-        message = self.sender.send_or_handle_error()
-        self._set_previous_message(message)
-        return message
+        self.sender.set_edit_message(None)
+        return self._send()
     
     def edit(self) -> Message | None:
         """
@@ -658,14 +780,11 @@ class Chain:
         Returns:
             Message | None: The edited message.
         """
-        self.edit_previous_message()
+        self.mark_previous_message_for_edit()
         return self.send()
     
     def _set_previous_message(self, message: Message | None) -> None:
         self._previous_message = message
-
-        if self.parent:
-            self.parent._set_previous_message(message)
     
     def get_previous_message(self) -> Message | None:
         """
@@ -678,34 +797,23 @@ class Chain:
         """
         if self._previous_message:
             return self._previous_message
-        elif self.parent:
-            return self.parent.get_previous_message()
         else:
             return None
         
-    def edit_previous_message(self) -> None:
+    def mark_previous_message_for_edit(self) -> None:
         """
-        Edits the previous message sent by the chain with the current sender's message
+        Marks the previous message sent by the chain to be edited
+        with the current sender's message when chain.send() is called.
 
-        >>> self.chain.edit_previous_message()
+        >>> self.chain.mark_previous_message_for_edit()
 
-        is equal to:
+        is equivalent to:
 
-        >>> self.chain.sender.set_edit_message(self.chain.get_previous_message())
+        >>> self.chain.sender.set_edit_message(self.get_previous_message())
         """
         self.sender.set_edit_message(self.get_previous_message())
-    
-    def set_parent(self, parent: 'Chain') -> None:
-        """
-        Sets the parent chain for this chain.
 
-        Args:
-            parent (Chain): The parent chain to be set.
-        """
-        self.parent = parent
-        self.always_edit_previous_message = parent.always_edit_previous_message
-
-    def __call__(self, message: Message | None = None):
+    def __call__(self, *args):
         self.send()
     
     def get_bot(self) -> telebot.TeleBot:
@@ -716,18 +824,8 @@ class Chain:
             telebot.TeleBot: The bot instance.
         """
         return self.bot
-
-    @classmethod
-    def get_chain_factory(cls, chat_id: int) -> Callable[[], 'Chain']:
-        def message_factory() -> Chain:
-            return cls(chat_id)
-        return message_factory
     
-    @classmethod
-    def get_children_factory(cls, chat_id: int) -> Callable[[Any], 'Chain']:
-        def children_factory(parent: Chain | None=None) -> Chain:
-            chain = cls(chat_id)
-            if parent:
-                chain.set_parent(parent)
-            return chain
-        return children_factory
+    def create_sender(self, chat_id: int | None=None) -> senders.AlertSender:
+        if not chat_id:
+            chat_id = self.chat_id
+        return senders.AlertSender(chat_id)

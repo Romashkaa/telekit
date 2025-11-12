@@ -1,18 +1,21 @@
 import telebot.types # type: ignore
 import telekit
 
-class GuideHandler(telekit.GuideMixin):
+class GuideHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        @cls.on.message(commands=["faq"])
-        def handler(message: telebot.types.Message) -> None:
-            cls(message).start_guide()
-
+        cls.on.message(commands=["faq"]).invoke(cls.start_script)
         cls.analyze_source(guide)
 
+    # If you want to add your own bit of logic:
+    
     # def start_guide(self):
     #     # Your logic
     #     super().start_guide()
+
+# ------------------------------------------------------
+# Telekit DSL
+# ------------------------------------------------------
 
 guide = """
 // -----------------------------------------------------
@@ -33,8 +36,8 @@ $ config {
 // -----------------------------------------------------
 // `@ main` — entry point for the faq.
 @ main {
-    title   = "📖 Main Menu"; // Heading / Title (Bold)
-    message = "Choose a demo section to explore:\n\nEach option shows a different feature of the Questly DSL.";
+    title   = "📖 FAQ - Frequently Asked Questions"; // Heading / Title (Bold)
+    message = "Here are some common questions and answers to help you get started:";
 
     // `buttons[2]` — max 2 buttons per row
     buttons[2] {

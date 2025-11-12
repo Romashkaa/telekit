@@ -11,7 +11,7 @@ It automatically handles message formatting, user input, and potential errors (s
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
 [Telegram](https://t.me/TeleKitLib)
-[Examples](#examples-and-solutions)
+[Tutorial](docs/tutorial/0_tutorial.md)
 
 ## Contents
 
@@ -19,12 +19,10 @@ It automatically handles message formatting, user input, and potential errors (s
     - [Message Formatting](#message-formatting)
     - [Text Styling](#text-styling-with-styles)
     - [Handling Callbacks](#handling-callbacks-and-logic)
-- [Quick Guide](#quick-guide)
+- [Quick Guide](#quick-start)
 - [Chains](#chains)
     - [Case 1 — Using the Same Chain Across All Methods](#case-1--using-the-same-chain-across-all-methods)
     - [Case 2 — Using Separate Chains for Each Step](#case-2--using-separate-chains-for-each-step)
-    - [Case 3 — Using Child Chains with Explicit Parent](#case-3--using-child-chains-with-explicit-parent)
-    - [Case 4 — Using Sequential Child Chains](#case-4--using-sequential-child-chains)
 - [Handler](#handler)
     - [User](#attribute-handleruser)
 - [Listeners](#listeners)
@@ -32,7 +30,7 @@ It automatically handles message formatting, user input, and potential errors (s
 - [Chapters](#chapters)
 - [Examples and Solutions](#examples-and-solutions)
     - [Counter](#counter)
-    - [FAQ Bot](#faq-pages)
+    - [FAQ Pages (Telekit DSL)](#faq-pages-telekit-dsl)
     - [Registration](#registration)
     - [Dialogue](#dialogue)
 
@@ -50,9 +48,7 @@ class NameHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        @cls.on_text("My name is {name}")
-        def _(message: telebot.types.Message, name: str):
-            cls(message).display_name(name)
+        cls.on.text("My name is {name}").invoke(cls.display_name)
 
     def display_name(self, name: str) -> None:
         self.chain.sender.set_title(f"Hello {name}!")
@@ -117,7 +113,7 @@ Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatica
 
 ### Text Styling with `Styles`
 
-Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `chain.sender` or manually:
+Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender` or manually:
 
 ```python
 ...
@@ -224,7 +220,7 @@ Telekit is lightweight yet powerful, giving you a full set of built-in tools and
 
 ---
 
-## Quick Guide
+## Quick Start
 
 You can write the entire bot in a single file, but it’s recommended to organize your project using a simple structure like this one:
 
@@ -257,10 +253,10 @@ from . import (
 Here is an example of defining a handler using TeleKit (`handlers/start.py` file):
 
 ```python
-import telekit
-
 import telebot.types
+import telekit
 import typing
+
 
 class StartHandler(telekit.Handler):
 
@@ -273,17 +269,21 @@ class StartHandler(telekit.Handler):
         """
         Initializes the message handler for the '/start' command.
         """
-        @cls.message_handler(commands=['start'])
-        def handler(message: telebot.types.Message) -> None:
-            cls(message).handle()
+        cls.on.message(['start']).invoke(cls.counter)
+
+        # Or define the handler manually:
+
+        # @cls.on.message(commands=['start'])
+        # def handler(message: telebot.types.Message) -> None:
+        #     cls(message).counter()
 
     # ------------------------------------------
     # Handling Logic
     # ------------------------------------------
 
-    def handle(self) -> None:
-        self.chain.sender.set_title("Hello")
-        self.chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.")
+    def counter(self) -> None:
+        self.chain.sender.set_title("Hello!")
+        self.chain.sender.set_message("Click the button below to start interacting")
         self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
         self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
 
@@ -301,6 +301,7 @@ class StartHandler(telekit.Handler):
         def _(message: telebot.types.Message, value: int) -> None:
             self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
             self.chain.edit()
+        self.chain.set_remove_inline_keyboard(False)
 
         self.chain.send()
 ```
@@ -314,24 +315,21 @@ class NameAgeHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the message handlers.
-        """
-        @cls.on_text("My name is {name} and I am {age} years old")
+        @cls.on.text("My name is {name} and I am {age} years old")
         def _(message: telebot.types.Message, name: str, age: str):
             cls(message).handle(name, age)
 
-        @cls.on_text("My name is {name}")
+        @cls.on.text("My name is {name}")
         def _(message: telebot.types.Message, name: str):
             cls(message).handle(name, None)
 
-        @cls.on_text("I'm {age}  years old")
+        @cls.on.text("I'm {age}  years old")
         def _(message: telebot.types.Message, age: str):
             cls(message).handle(None, age)
 
     def handle(self, name: str | None, age: str | None) -> None: 
         if not name: 
-            name = self.user.get_username()
+            name = self.user.username
 
         if not age:
             age = "An unknown number of"
@@ -358,26 +356,26 @@ In this approach, the same Chain instance is used throughout all methods of the 
 ```python
 class MyHandler(telekit.Handler):
     ...
-    def handle(self) -> None:
+    def first(self) -> None:
         self.chain.sender.set_text("1st page")
         self.chain.set_inline_keyboard(
             {
-                "Next": self.handle_next
+                "Next": self.second
             }
         )
         self.chain.edit()
 
-    def handle_next(self) -> None:
+    def second(self) -> None:
         self.chain.sender.set_text("2nd page")
         self.chain.set_inline_keyboard(
             {
-                "Back": self.handle
+                "Back": self.first
             }
         )
         self.chain.edit()
 ```
 
-Using the same `Chain` can help save memory and automatically replaces the previous message with smooth animations. However, it also retains previous settings. For example, if you don’t call `self.chain.set_inline_keyboard` in `handle_next` or otherwise (don't) update the inline keyboard, the old configuration will persist in the new message.
+Using the same `Chain` can help save memory and automatically replaces the previous message with smooth animations. However, it also retains some previous settings.
 
 ### Case 2 — Using Separate Chains for Each Step
 
@@ -386,155 +384,57 @@ In this approach, a new Chain instance is created for each step:
 ```python
 class MyHandler(telekit.Handler):
     ...
-    def handle(self) -> None:
-        chain = self.get_chain()
+    def first(self) -> None:
+        chain = self.get_local_chain()
         chain.sender.set_text("1st page")
         chain.set_inline_keyboard(
             {
-                "Next": self.handle_next
+                "Next": self.second
             }
         )
         chain.edit()
 
-    def handle_next(self) -> None:
-        chain = self.get_chain()
+    def second(self) -> None:
+        chain = self.get_local_chain()
         chain.sender.set_text("2nd page")
         chain.set_inline_keyboard(
             {
-                "Back": self.handle
+                "Back": self.first
             }
         )
         chain.edit()
 ```
 
-Using a separate Chain for each step is also fine for memory usage, but it won’t provide automatic animations—you’ll need to call `chain.sender.set_edit_message(...)` yourself. 
+Using a separate Chain for each step is also fine for memory usage, but it won’t provide automatic animations – you’ll need to call `chain.sender.set_edit_message(...)` yourself. 
 
 On the plus side, it doesn’t retain any previous settings.
 
-### Case 3 — Using Child Chains with Explicit Parent
-
-In this approach, each child chain is explicitly linked to a parent chain to avoid uncontrolled recursion:
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def handle(self) -> None:
-        main: telekit.Chain = self.get_chain()
-        main.set_always_edit_previous_message(True)
-        
-        main.sender.set_title(...)
-        main.sender.set_message(...)
-
-        @main.inline_keyboard(pages)
-        def _(message: telebot.types.Message, value: tuple[str, str]) -> None:
-            page: telekit.Chain = self.get_child(main) # Explicitly assign `main` as the parent
-
-            page.sender.set_title(value[0])
-            page.sender.set_message(value[1])
-
-            page.set_inline_keyboard({"« Back": main}) # btw: `page.parent` == `main`
-
-            page.send()
-
-        main.send()
-```
-
-If you don’t explicitly provide the parent chain, get_child will keep creating a child of the previous child indefinitely. The longer a user interacts with this function, the deeper the chain nesting grows, consuming more memory as each Chain object holds its inline keyboard and callbacks. Always specify the parent to prevent memory leaks.
-
-### Case 4 — Using Sequential Child Chains
-
-Each method creates a new child chain from the previous one, and (important:) there’s no way for the user to generate an infinite sequence:
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def handle_1st(self) -> None:
-        chain = self.get_chain()
-        chain.sender.set_text("1st page")
-        chain.set_inline_keyboard(
-            {
-                "Next": self.handle_2nd
-            }
-        )
-        chain.edit()
-
-    def handle_2nd(self) -> None:
-        chain = self.get_child()
-        chain.sender.set_text("2nd page")
-        chain.set_inline_keyboard(
-            {
-                "Next": self.handle_3rd
-            }
-        )
-        chain.edit()
-
-    def handle_3rd(self) -> None:
-        chain = self.get_child()
-        chain.sender.set_text("3rd page")
-        chain.edit()
-```
-
-Here everything is safe because there’s no “Back” button, so the user cannot endlessly create new chains that consume server memory. Each chain is a child of the previous one, but this sequence has a natural limit determined by program logic, preventing memory bloat.
-
 ### By the way:
 
-- `self.get_chain()` and `self.get_child()` updates the `chain` attribute in the `handler` (`self.chain`):
+- `self.new_chain()` updates the `chain` attribute in the `handler` (`self.chain`):
 
 ```python
-chain = self.get_chain()
-print(chain == self.chain)   # True
+old = self.chain
+self.new_chain()
+print(old == self.chain)             # False (the "сhain" object has been replaced)
 
-child = self.get_child()
-print(child == self.chain)   # True
-
-print(chain == child)        # False
-print(chain == child.parent) # True
-
-# ---
-
-chain1 = self.chain
-self.get_chain()
-print(chain1 == self.chain) # False
+old2 = self.chain
+local_chain = self.get_local_chain()
+print(local_chain == self.chain)     # False ("local_chain" is local)
+print(old2 == self.chain)            # True  (The "сhain" object remained)
 ```
-
-- Ways to create child chains:
-
-```python
-self.get_child()       # Child chain of previous chain
-self.get_child(parent) # Or explicitly provide the parent chain
-
-# Assign a parent chain after the current chain has been created:
-self.get_chain().set_parent(parent)
-```
-
-### Other Chain`s Methods
-
-#### Method `chain.edit_previous_message()`
-
-Sets whether to edit the previously sent message instead of sending a new one.
-
-```python
-chain.edit_previous_message()  # The next chain.send() will edit the previous message
-```
-
-#### Method `chain.set_always_edit_previous_message()`
-
-Allows you to specify that the previous message should always be edited when sending a new one.
-When used in a chain, this setting is automatically applied to all (future) child chains of this object.
-
-```python
-chain.set_always_edit_previous_message(True)
-```
-
----
-
-#### Method `chain.get_previous_message()`
-
-Returns the previously sent message (`telebot.types.Message`) or None if no message has been sent yet.
 
 ---
 
 ## Handler
+
+A `Handler` subclass defines how your bot reacts to messages or commands.  
+
+- Each subclass should implement class method `init_handler(cls)` to register the message triggers (example: `cls.on.message(["start"]).invoke(cls.display_start)`).
+- Instance methods like `handle()` or `display_name()` define the logic executed when a message matches a trigger.
+
+> Essentially, you subclass `Handler`, register triggers in `init_handler`, and define responses in instance methods.
+
 
 ### Attribute `handler.message`
 
@@ -562,7 +462,7 @@ Returns the username of the user.
 class MyHandler(telekit.Handler):
     ...
     def handle(self) -> None:
-        username = self.user.get_username()
+        username = self.user.username
 
         if username:
             self.chain.sender.set_text(f"👋 Hello {username}!")
@@ -578,7 +478,7 @@ class MyHandler(telekit.Handler):
 class MyHandler(telekit.Handler):
     ...
     def handle(self) -> None:
-        print(self.user.chat_id() == self.message.chat.id) # True
+        print(self.user.chat_id == self.message.chat.id) # True
 ```
 
 ---
@@ -586,7 +486,7 @@ class MyHandler(telekit.Handler):
 
 ## Listeners
 
-### Decorator `handler.on_text()`
+### Decorator `handler.on.text()`
 
 Decorator for handling messages that match a given text pattern with placeholders {}. Each placeholder is passed as a separate argument to the decorated function:
 
@@ -601,19 +501,19 @@ class OnTextHandler(telekit.Handler):
         """
         Initializes the message handlers.
         """
-        @cls.on_text("Name: {name}. Age: {age}")
+        @cls.on.text("Name: {name}. Age: {age}")
         def _(message: telebot.types.Message, name: str, age: str):
             cls(message).handle(name, age)
 
-        @cls.on_text("My name is {name} and I am {age} years old")
+        @cls.on.text("My name is {name} and I am {age} years old")
         def _(message: telebot.types.Message, name: str, age: str):
             cls(message).handle(name, age)
 
-        @cls.on_text("My name is {name}")
+        @cls.on.text("My name is {name}")
         def _(message: telebot.types.Message, name: str):
             cls(message).handle(name, None)
 
-        @cls.on_text("I'm {age}  years old")
+        @cls.on.text("I'm {age}  years old")
         def _(message: telebot.types.Message, age: str):
             cls(message).handle(None, age)
 
@@ -636,7 +536,7 @@ class OnTextHandler(telekit.Handler):
 
 This allows you to define multiple on_text handlers with different patterns, each extracting the placeholders automatically.
 
-### Decorator `handler.message_handler()`
+### Decorator `handler.on.message()`
 
 Decorator for handling any kind of incoming message — text, photo, sticker, etc. The decorated function receives a `telebot.types.Message` object as a parameter. Handlers are executed in the order they are added.
 
@@ -653,11 +553,11 @@ class MessageHandlerExample(telekit.Handler):
         Initializes message handlers.
         """
 
-        @cls.message_handler(commands=['help'])
+        @cls.on.message(commands=['help'])
         def help_handler(message: telebot.types.Message) -> None:
             cls(message).show_help()
 
-        @cls.message_handler(regexp=r"^My name is (.+)$")
+        @cls.on.message(regexp=r"^My name is (.+)$")
         def name_handler(message: telebot.types.Message) -> None:
             name = message.text.split("My name is ")[1]
             cls(message).greet(name)
@@ -756,8 +656,8 @@ chapters: dict[str, str] = telekit.chapters.read("help.txt")
 print(chapters["intro"])
 # Output: "Welcome to TeleKit library. Here are the available commands:"
 
-print(chapters["entry"])
-# Output: "/entry — Example command for handling input"
+print(chapters["commands"])
+# Output: "/start — Start command\n/entry — Example command for handling input"
 ```
 
 This method allows you to separate content from code, making it easier to manage large texts or structured help documentation. It's especially useful for commands like `/help`, where each section can be displayed individually in a bot interface.
@@ -769,35 +669,26 @@ This method allows you to separate content from code, making it easier to manage
 ## Counter
 
 ```python
-import telebot.types # type: ignore
+import telebot.types
 import telekit
 import typing
 
-
-class Entry2Handler(telekit.Handler):
-
-    # ------------------------------------------
-    # Initialization
-    # ------------------------------------------
+class CounterHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
         """
-        Initializes the message handler for the '/entry' command.
+        Initializes the message handler for the '/counter' command.
         """
-        @cls.message_handler(commands=['entry2'])
+        @cls.on.message(['counter'])
         def handler(message: telebot.types.Message) -> None:
             cls(message).handle()
 
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
-
     def handle(self) -> None:
-        chain: telekit.Chain = self.get_chain()
-         
-        chain.sender.set_title("Hello")
-        chain.sender.set_message("Welcome to the bot! Click the button below to start interacting.")
+        self.chain.sender.set_title("Hello")
+        self.chain.sender.set_message("Click the button below to start interacting")
+        self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
+        self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
 
         def counter_factory() -> typing.Callable[[int], int]:
             count = 0
@@ -809,60 +700,97 @@ class Entry2Handler(telekit.Handler):
         
         click_counter = counter_factory()
 
-        @chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
+        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
         def _(message: telebot.types.Message, value: int) -> None:
-            chain.sender.set_message(f"You clicked {click_counter(value)} times") # The title remains unchanged (Hello)
-            chain.edit() # Edit previous message
+            self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
+            self.chain.edit()
+        self.chain.set_remove_inline_keyboard(False)
 
-        chain.send()
+        self.chain.send()
 ```
 
-## FAQ Pages
+## FAQ Pages (Telekit DSL)
+
+**Telekit DSL** — this is a custom domain-specific language (DSL) used to create interactive pages, such as FAQs.  
+It allows you to describe the message layout, add images, and buttons for navigation between pages in a convenient, structured format that your bot can easily process.
+
+The parser and analyzer provide an excellent system of warnings and errors with examples, so anyone can figure it out!
+
+To integrate Telekit DSL into your project, simply add it as a Mixin to your Handler:
 
 ```python
-import telebot.types
 import telekit
 
-pages: dict[str, tuple[str, str]] = {}
-
-for title, text in telekit.chapters.read("help.txt").items():
-    pages[title] = (title, text)
-
-class HelpHandler(telekit.Handler):
-
+class GuideHandler(telekit.GuideMixin):
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the command handler.
-        """
-        @cls.message_handler(commands=['help'])
-        def handler(message: telebot.types.Message) -> None:
-            cls(message).handle()
+        cls.on.message(["faq"]).invoke(cls.start_script)
+        cls.analyze_source(source)
 
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
+source = """...Telekit DSL..."""
 
-    def handle(self) -> None:
-        main: telekit.Chain = self.get_chain()
-        main.set_always_edit_previous_message(True)
-        
-        main.sender.set_title("FAQ - Frequently Asked Questions")
-        main.sender.set_message("Here are some common questions and answers to help you get started:")
-
-        @main.inline_keyboard(pages)
-        def _(message: telebot.types.Message, value: tuple[str, str]) -> None:
-            page: telekit.Chain = self.get_child(main)
-
-            page.sender.set_title(value[0])
-            page.sender.set_message(value[1])
-
-            page.set_inline_keyboard({"« Back": main})
-
-            page.send()
-
-        main.send()
+telekit.Server(TOKEN).polling()
 ```
+
+- Even easier: call the appropriate method:
+
+```python
+import telekit
+
+telekit.TelekitDSL.from_string("""...Telekit DSL...""", ["start"])
+
+telekit.Server(TOKEN).polling()
+```
+
+```js
+@ main {
+    title   = "📖 FAQ - Frequently Asked Questions";
+    message = "Here are some common examples to help you get started:";
+    buttons {
+        photo_demo("Image Example");    // Opens @photo_demo
+        navigation("Navigation Demo");  // Opens @navigation
+    }
+}
+
+@ photo_demo {
+    title   = "🖼 Photo Example";
+    message = "This page demonstrates how an image could be placed below this text.";
+    image   = "https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450";
+    buttons {
+        back("⬅️ Back"); // "back" is magic variable (FILO stack)
+    }
+}
+
+@ navigation {
+    title   = "🧭 Navigation Demo";
+    message = "This demonstrates multiple choices and auto-back handling.";
+
+    // `buttons[2]` — Maximum 2 buttons per row (row_width=2)
+    buttons[2] {
+        option_a("A: Path One");
+        option_b("B: Path Two");
+        back("⬅️ Back");
+    }
+}
+
+@ option_a {
+    title   = "Path A";
+    message = "You chose option A.";
+    buttons {
+        back("⬅️ Return");
+    }
+}
+
+@ option_b {
+    title   = "Path B";
+    message = "You chose option B.";
+    buttons {
+        back("⬅️ Return");
+    }
+}
+```
+
+[Telekit DSL Syntax](docs/tutorial/11_telekit_dsl.md)
 
 ## Registration
 
@@ -899,7 +827,6 @@ class UserData:
 
     def set_age(self, value: int):
         self.ages[self.chat_id] = value
-    
 
 class EntryHandler(telekit.Handler):
 
@@ -908,9 +835,13 @@ class EntryHandler(telekit.Handler):
         """
         Initializes the command handler.
         """
-        @cls.message_handler(commands=['entry'])
-        def handler(message: telebot.types.Message) -> None:
-            cls(message).handle()
+        cls.on.message(commands=['entry']).invoke(cls.handle)
+
+        # Or define the handler manually:
+
+        # @cls.on.message(commands=['entry'])
+        # def handler(message: telebot.types.Message) -> None:
+        #     cls(message).handle()
 
     # ------------------------------------------
     # Handling Logic
@@ -924,16 +855,14 @@ class EntryHandler(telekit.Handler):
     # NAME HANDLING
     # -------------------------------
 
-    # The message parameter is optional, 
-    # but you can receive it to access specific information
-    def entry_name(self, message: telebot.types.Message | None=None) -> None:
+    def entry_name(self) -> None:
         self.chain.sender.set_title("⌨️ What`s your name?")
         self.chain.sender.set_message("Please, send a text message")
 
         self.add_name_listener()
 
         name: str | None = self._user_data.get_name( # from own data base
-            default=self.user.get_username() # from telebot API
+            default=self.user.username # from telebot API
         )
         
         if name:
@@ -1058,7 +987,7 @@ class DialogueHandler(telekit.Handler):
         def _(message, feeling: str):
             self.handle_feeling(feeling)
 
-        self.chain.send() # Sends new message (it's dialogue)
+        self.chain.send()
 
     def handle_feeling(self, feeling: str):
         self.chain.sender.set_text(f"Got it, {self._user_name.title()}! You feel: {feeling}")

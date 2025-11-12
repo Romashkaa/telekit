@@ -28,6 +28,7 @@ class CallbackQueryHandler:
 
     def handle(self, call: CallbackQuery):
         self.simulate(call.message, str(call.data), from_user=call.from_user)
+        self.bot.answer_callback_query(call.id)
 
     def simulate(self, message: Message | InaccessibleMessage, text: str, from_user: Any=None) -> None:
         args = {}

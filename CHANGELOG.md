@@ -1,3 +1,60 @@
+# 2.0.0 BETA
+
+Version that introduced a new trigger-handling logic. Reduced confusion and minimized the risk of bugs caused by developer oversight. Workarounds for handling Chain—which could theoretically create recursion when searching for a parent—have been removed.
+
+## New Features
+- The new `on` API provides a cleaner and more intuitive way to declare triggers for messages and commands:
+
+```python
+@cls.on.command('start')
+def start_handler(message):
+    cls(message).handle_start()
+
+@cls.on.text("My name is {name}")
+def name_handler(message, name: str):
+    cls(message).handle_name(name)
+
+# A simpler ways (Automatic instance creation `cls(message)`):
+
+cls.on.command("start").invoke(cls.handle_start)
+cls.on.text("My name is {name}").invoke(cls.handle_name)
+```
+- New `telekit.enable_file_logging()` function.
+- New `sender.set_media(...)` method.
+- New `chain.create_sender(chat_id)` method.
+- New `handler.new_chain() -> None` method.
+- New `TelekitDSL.from_file(...)` and `TelekitDSL.from_string(...)` methods for creation handlers with Telekit DSL.
+- Renamed `GuideMixin`, now `TelekitDSL.Mixin`.
+- New `chain.remove_all_handlers()` method. Forces removal of all callback handlers associated with the chain.
+    - New `chain.remove_timeout()` — removes active timeout handler.
+    - New `chain.remove_entry_handler()` — removes the current entry handler.
+    - New `chain.remove_inline_keyboard()` — removes the inline keyboard and all callback bindings.
+    - By default, all of them are automatically called after `chain.send()` or `.edit()`, but you can disable this behavior:
+        - `chain.set_remove_timeout(False)`
+        - `chain.set_remove_entry_handler(False)`
+        - `chain.set_remove_inline_keyboard(False)`
+- New tutorial ([Tutorial](docs/tutorial/0_tutorial.md))
+- New Telekit DSL Documentation.
+- Other.
+
+## Breaking Changes
+- renamed `GuideKit` and `GuideMixin`
+    - now `TelekitDSL` and `TelekitDSL.Mixin`
+- changed `GuideKit(...)`.
+    - now `TelekitDSL.from_file(...)`
+- removed `chain.set_always_edit_previous_message(...)` method.
+- removed `chain.parent` and everything related to it.
+- removed `handler.get_child()` method.
+- removed `handler.get_chain(...)` method.
+    - now `handler.new_chain() -> None` method.
+- renamed `chain.edit_previous_message()` for better clarity:
+    - now `chain.mark_previous_message_for_edit()` method.
+
+## Planned:
+- Localization of the method effect `self.user.enable_logging()` (Currently working globally)
+
+---
+
 # 0.2.0
 ## New Features
 - `chain.remove_all_handlers()` – removes the `InlineKeyboard` and all "chain.entry_..." handlers. Use it if the previous `chain.send()` or `chain.edit()` added them but they are not needed in the new one.
@@ -41,12 +98,6 @@ If a string is provided, a `TeleBot` instance is created internally automaticall
 - Handlers that use the old signature `init_handler(cls, bot)` are now **deprecated**. A warning will be shown in logs when such handlers are initialized. This method will be **removed completely in the next major release**. Use `cls.bot` directly or switch to Telekit’s built-in handler methods (e.g. `cls.handle_message(...)`).
 - `cls.message_handler(...)` is **deprecated** and will be removed soon. Use `@cls.on.message(...)` or `@cls.bot.message_handler(...)` instead.
 - `cls.on_text(...)` is **deprecated** and will be removed soon. Use `@cls.on.text(...)` instead.
-
-## Planned:
-- sender.set_photo("ref1", "ref2", ...) - multi-photo
-- Result caching in `GuideKit`
-- Ability to disable logging `server.enable_logging(True)` (IN-FILE LOGGING MUST BE DISABLED BY DEFAULT)
-- Localization of the method effect `self.user.enable_logging()` (Currently working globally)
 
 ---
 

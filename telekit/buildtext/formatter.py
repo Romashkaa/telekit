@@ -1,8 +1,11 @@
+# Copyright (c) 2025 Ving Studio, Romashka
+# Licensed under the MIT License. See LICENSE file for full terms.
+
 class StyleFormatter:
     markdown_symbol: str | tuple[str, str] = ''
     html_tag: str | tuple[str, str] = ''
 
-    def __init__(self, *content, parse_mode: str = "markdown"):
+    def __init__(self, *content, parse_mode: str = "html"):
         self.content = list(content)
         self.parse_mode = parse_mode
 
@@ -53,6 +56,7 @@ class StyleFormatter:
 
 class Composite(StyleFormatter):
     def __init__(self, *parts):
+        super().__init__(parts)
         self.parts = parts
 
     def render_markdown(self):

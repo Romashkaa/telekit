@@ -1,4 +1,7 @@
 # -*- encoding:utf-8 -*-
+# Copyright (c) 2025 Ving Studio, Romashka
+# Licensed under the MIT License. See LICENSE file for full terms.
+
 import time
 import traceback
 import sys
