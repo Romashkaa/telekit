@@ -44,3 +44,8 @@ class TimeoutHandler:
         if self.timeout:
             self.timeout.cancel()
             self.timeout = None
+
+    def remove(self):
+        self.cancel()
+        self.callback = None
+        self.total_seconds = 0

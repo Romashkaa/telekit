@@ -184,8 +184,8 @@ class BaseSender:
     def set_text(self, text: str):
         self.text = text
 
-    def set_reply_markup(self, reply_markup): # type: ignore
-        self.reply_markup = reply_markup # type: ignore
+    def set_reply_markup(self, reply_markup):
+        self.reply_markup = reply_markup
 
     def set_temporary(self, is_temp: bool):
         self.is_temporary = is_temp

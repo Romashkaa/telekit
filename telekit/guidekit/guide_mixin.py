@@ -108,6 +108,8 @@ class GuideMixin(telekit.Handler):
                         self.history.pop() # current
                     if self.history:
                         scene_name = self.history.pop()
+                case "timeout":
+                    self.chain.remove_timeout()
             
             self.history.append(scene_name)
 

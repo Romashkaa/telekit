@@ -49,6 +49,17 @@ class Chain:
         
         self._timeout_handler = timeout.TimeoutHandler()
 
+    def remove_inline_keyboard(self):
+        self.sender.set_reply_markup(None)
+        self.handler.set_callback_functions({})
+
+    def remove_entry_handler(self):
+        self.handler.set_entry_callback(None)
+
+    def remove_all_handlers(self):
+        self.remove_entry_handler()
+        self.remove_inline_keyboard()
+
     def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1) -> None:
         """
         Sets an inline keyboard for the chain, where each button triggers the corresponding action.
@@ -113,7 +124,7 @@ class Chain:
         markup = InlineKeyboardMarkup()
         markup.keyboard = rows
 
-        self.sender.set_reply_markup(markup)  # type: ignore
+        self.sender.set_reply_markup(markup)
         self.handler.set_callback_functions(callback_functions)
 
     def inline_keyboard[Caption: str, Value](self, keyboard: dict[Caption, Value], row_width: int = 1) -> Callable[[Callable[[Message, Value], None]], None]:
@@ -592,8 +603,11 @@ class Chain:
         def wrapper():
             self.handler.reset()
             callback()
-        self.handler.set_cancel_timeout_callback(self._cancel_timeout)
+        self.handler.set_cancel_timeout_callback(self._timeout_handler.cancel)
         self._timeout_handler.set_callback(wrapper)
+
+    def remove_timeout(self):
+        self._timeout_handler.remove()
 
     def _set_timeout_time(self, seconds: int=0, minutes: int=0, hours: int=0):
         self._timeout_handler.set_time(seconds, minutes, hours)

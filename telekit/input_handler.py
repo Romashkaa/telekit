@@ -47,7 +47,7 @@ class InputHandler:
         """
         self.callback_functions = callback_functions
 
-    def set_entry_callback(self, entry_callback: Callable[[Message], bool]) -> None:
+    def set_entry_callback(self, entry_callback: Callable[[Message], bool] | None) -> None:
         """
         Sets the callback functions for the input.
 

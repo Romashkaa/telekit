@@ -1,5 +1,23 @@
 # 0.2.0
 ## New Features
+- `chain.remove_all_handlers()` – removes the `InlineKeyboard` and all "chain.entry_..." handlers. Use it if the previous `chain.send()` or `chain.edit()` added them but they are not needed in the new one.
+- The new `cls.on` API provides a cleaner and more intuitive way to declare handlers for messages and commands:
+
+```python
+@cls.on.message(commands=['start'])
+def start_handler(message):
+    cls(message).handle_start()
+
+@cls.on.text("My name is {name}")
+def name_handler(message, name: str):
+    cls(message).handle_name(name)
+
+# A simpler ways (Automatic instance creation `cls(message)`):
+
+cls.on.command(["start"]).invoke(cls.handle_start)
+cls.on.text("My name is {name}").invoke(cls.handle_name)
+```
+
 - `Server` now accepts a **bot token string** directly:
 You can initialize the server either with an existing `TeleBot` instance or with a token string:
 
@@ -16,14 +34,18 @@ If a string is provided, a `TeleBot` instance is created internally automaticall
 - `@chain.entry_location()` decorator: allows handling messages with user coordinates.
 - `@chain.on_timeout()` decorator: registers a callback to be executed after a timeout.  
 - `chain.set_timeout()` an alternative way to set a timeout programmatically.
+- `chain.remove_timeout()` cancel and remove a timeout.
 - `server.long_polling()` an alternative to `server.polling()` that uses long polling with a configurable timeout
 
 ## Deprecation Notice
 - Handlers that use the old signature `init_handler(cls, bot)` are now **deprecated**. A warning will be shown in logs when such handlers are initialized. This method will be **removed completely in the next major release**. Use `cls.bot` directly or switch to Telekit’s built-in handler methods (e.g. `cls.handle_message(...)`).
+- `cls.message_handler(...)` is **deprecated** and will be removed soon. Use `@cls.on.message(...)` or `@cls.bot.message_handler(...)` instead.
+- `cls.on_text(...)` is **deprecated** and will be removed soon. Use `@cls.on.text(...)` instead.
 
 ## Planned:
+- sender.set_photo("ref1", "ref2", ...) - multi-photo
 - Result caching in `GuideKit`
-- Ability to disable logging `server.enable_logging(True)`
+- Ability to disable logging `server.enable_logging(True)` (IN-FILE LOGGING MUST BE DISABLED BY DEFAULT)
 - Localization of the method effect `self.user.enable_logging()` (Currently working globally)
 
 ---

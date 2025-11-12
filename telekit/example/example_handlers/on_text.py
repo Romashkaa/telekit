@@ -11,19 +11,19 @@ class OnTextHandler(telekit.Handler):
         """
         Initializes the message handlers.
         """
-        @cls.on_text("Name: {name}. Age: {age}")
+        @cls.on.text("Name: {name}. Age: {age}")
         def _(message: telebot.types.Message, name: str, age: str):
             cls(message).handle(name, age)
 
-        @cls.on_text("My name is {name} and I am {age} years old")
+        @cls.on.text("My name is {name} and I am {age} years old")
         def _(message: telebot.types.Message, name: str, age: str):
             cls(message).handle(name, age)
 
-        @cls.on_text("My name is {name}")
+        @cls.on.text("My name is {name}")
         def _(message: telebot.types.Message, name: str):
             cls(message).handle(name, None)
 
-        @cls.on_text("I'm {age}  years old")
+        @cls.on.text("I'm {age}  years old")
         def _(message: telebot.types.Message, age: str):
             cls(message).handle(None, age)
             

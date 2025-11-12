@@ -30,8 +30,6 @@ class UserData:
 
     def set_age(self, value: int):
         self.ages[self.chat_id] = value
-    
-import gc
 
 class EntryHandler(telekit.Handler):
 
@@ -40,9 +38,13 @@ class EntryHandler(telekit.Handler):
         """
         Initializes the command handler.
         """
-        @cls.bot.message_handler(commands=['entry'])
-        def handler(message: telebot.types.Message) -> None:
-            cls(message).handle()
+        cls.on.message(commands=['entry']).invoke(cls.handle)
+
+        # Or define the handler manually:
+
+        # @cls.on.message(commands=['entry'])
+        # def handler(message: telebot.types.Message) -> None:
+        #     cls(message).handle()
 
     # ------------------------------------------
     # Handling Logic
@@ -50,16 +52,6 @@ class EntryHandler(telekit.Handler):
 
     def handle(self) -> None:
         self._user_data = UserData(self.message.chat.id)
-        @self.chain.on_timeout(5)
-        def _on_timeout():
-            print(gc.collect())
-            for o in gc.get_objects():
-                if isinstance(o, (
-                    telekit.Handler,
-                    telekit.Chain,
-                    telekit.Handler
-                )):
-                    print(o)
         self.entry_name()
 
     # -------------------------------
