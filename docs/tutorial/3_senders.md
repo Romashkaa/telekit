@@ -68,7 +68,7 @@ Telekit provides advanced tools for managing messages and errors:
 - `get_message_id(message)`: Get the ID of a message.
 - `delete_message(message)`: Delete a message.
 - `set_temporary(flag)`: Mark message as temporary.
-- `set_delete_temporaries(flag)`: Delete previous temporary messages.
+- `set_delete_temporaries(flag)`: Delete previous temporary messages after a new one is sent.
 - `error(title, message)`: Send a custom error (не впливає на збережені title та message).
 - `pyerror(exception)`: Send exception details.
 - `send_or_handle_error()`: Send a message and show a Python exception if it fails.
