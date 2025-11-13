@@ -18,15 +18,6 @@ class TelekitDSLMixin(telekit.Handler):
     - Render scenes with inline keyboards and formatting.
 
     Requirements:
-    - The Telekit DSL data must contain at two top-level keys: 'scenes' (dict) and 'config' (dict).
-    - Each scene in 'scenes' must be a dictionary with optional keys:
-        - 'title': str, default '[ Title ]'
-        - 'message': str, default '[ Message ]'
-        - 'image': str | None
-        - 'parse_mode': str, default 'Markdown'
-        - 'use_italics': bool
-        - 'buttons': dict[str, str], mapping button label -> target scene name
-        - 'row_width': int, default 1
     - The handler using this mixin must have `self.chain` available (Telekit Chain instance).
     - Must call `analyze_file()` or `analyze_source()` before `start_script()`.
 
@@ -35,9 +26,9 @@ class TelekitDSLMixin(telekit.Handler):
         import telebot.types
         import telekit
 
-        class MyFAQHandler(telekit.TelekitDSLMixin):
+        class MyFAQHandler(telekit.TelekitDSL.Mixin):
             @classmethod
-            def init_handler(cls, bot: telebot.TeleBot) -> None:
+            def init_handler(cls) -> None:
                 @cls.message_handler(commands=["faq"])
                 def handler(message: telebot.types.Message) -> None:
                     cls(message).start_script()
@@ -121,7 +112,7 @@ class TelekitDSLMixin(telekit.Handler):
             # main logic
             scene = self.scenes[scene_name]
 
-            self.chain.sender.set_parse_mode(scene.get("parse_mode", "Markdown"))
+            self.chain.sender.set_parse_mode(scene.get("parse_mode", "HTML"))
             self.chain.sender.set_use_italics(scene.get("use_italics", False))
 
             self.chain.sender.set_title(scene.get("title", "[ Title ]"))

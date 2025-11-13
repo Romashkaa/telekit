@@ -500,7 +500,7 @@ class AlertSender(BaseSender):
     _use_italics: bool
     _add_new_line: bool
 
-    def _compile_text(self, use_italics: bool=True) -> None:
+    def _compile_text(self) -> None:
 
         if self.parse_mode == "markdown":
             _start_bold = "*"
@@ -526,12 +526,12 @@ class AlertSender(BaseSender):
             self.set_text(self._message)
             return
 
-        new_line: str = "\n\n" if getattr(self, "_add_new_line", True) else ""
+        separator: str = " \n\n" if getattr(self, "_add_new_line", True) else " "
 
         if getattr(self, "_use_italics", True):
-            text = f"{_start_bold}{self._title}{_end_bold} {new_line}{_start_italic}{self._message}{_end_italic}"
+            text = f"{_start_bold}{self._title}{_end_bold}{separator}{_start_italic}{self._message}{_end_italic}"
         else:
-            text = f"{_start_bold}{self._title}{_end_bold} {new_line}{self._message}"
+            text = f"{_start_bold}{self._title}{_end_bold}{separator}{self._message}"
 
         self.set_text(text)
 

@@ -39,12 +39,16 @@ class ConfigBlock(Node):
 #  Scene block
 # ---------------------------
 
+class NoLabel:
+	pass
+
 @dataclass
 class SceneBlock(Node):
 	name: str
-	fields: dict[str, Any] = field(default_factory=dict)
+	fields: dict[str, str | int | list | None | dict[str, int | dict[str | NoLabel, str]]] = field(default_factory=dict)
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, default_label: str | None):
 		super().__init__(type="scene")
 		self.name = name
+		self.default_label = default_label
 		self.fields = {}

@@ -8,7 +8,7 @@ The parser and analyzer provide an excellent system of warnings and errors with 
 ```js
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
+    message = "Here are answers to common questions to help you get started:";
     buttons {
         photo_demo("Image Example");
         navigation("Navigation Demo");

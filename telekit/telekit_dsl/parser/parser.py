@@ -81,7 +81,7 @@ class Parser:
         if t.value == "@":
             return self.parse_scene_block()
 
-        # Skip anything else
+        # skip anything else
         self.next()
         return None
 
@@ -110,9 +110,19 @@ class Parser:
     def parse_scene_block(self):
         self.expect("op", "@")
         name = self.expect("kw").value
+
+        # optional default label
+        default_label = None
+        if self.match("punc", "("):
+            if self.token().type != "string":
+                raise ParserError(f"Expected string as default label at {self.pos}")
+            default_label = self.token().value
+            self.next()
+            self.expect("punc", ")")
+
         self.expect("punc", "{")
 
-        scene = SceneBlock(name=name)
+        scene = SceneBlock(name, default_label)
 
         while self.token().value != "}":
             t = self.token()
@@ -120,7 +130,7 @@ class Parser:
                 key = t.value
                 self.next()
 
-                # Special case: buttons[width] { ... }
+                # special case: buttons[width] { ... }
                 if key == "buttons":
                     scene.fields[key] = self.parse_buttons_block()
                     continue
@@ -135,20 +145,20 @@ class Parser:
         self.expect("punc", "}")
         return scene
 
-    def parse_buttons_block(self):
+    def parse_buttons_block(self) -> dict[str, int | dict[str | NoLabel, str]]:
         width = 1
 
-        # Optional `[row_width]`
-        if self.match("punc", "["):
+        # optional `(row_width)`
+        if self.match("punc", "("):
             if self.token().type != "number":
-                raise ParserError(f"Expected number after 'buttons[' at {self.pos}")
-            width = float(self.token().value)
+                raise ParserError(f"Expected number after 'buttons(' at {self.pos}")
+            width = int(self.token().value)
             self.next()
-            self.expect("punc", "]")
+            self.expect("punc", ")")
 
-        # Expect `{`
+        # expect `{`
         self.expect("punc", "{")
-        buttons = {}
+        buttons: dict[str | NoLabel, str] = {}
 
         while self.token() and self.token().value != "}":
             t = self.token()
@@ -158,9 +168,9 @@ class Parser:
                 scene_name = t.value
                 self.next()
 
-                label = None
+                label = NoLabel()
                 if self.match("punc", "("):
-                    # Expect only one argument (string)
+                    # expect only one argument (string)
                     if self.token().type == "string":
                         label = self.token().value
                         self.next()
@@ -168,8 +178,8 @@ class Parser:
                         raise ParserError(f"Expected string as button label at {self.pos}")
                     self.expect("punc", ")")
 
-                # If no label provided, use scene name as fallback
-                label = label or scene_name
+                # # if no label provided, use scene name as fallback
+                # label = label or scene_name
                 buttons[label] = scene_name
 
             elif t.value == ";":
@@ -191,6 +201,17 @@ class Parser:
         if t.type == "number":
             self.next()
             return t.value
+        
+        if t.type == "kw":
+            if t.value.lower() == "none":
+                self.next()
+                return None
+            if t.value.lower() == "false":
+                self.next()
+                return False
+            if t.value.lower() == "true":
+                self.next()
+                return True
 
         if t.value == "[":
             self.next()

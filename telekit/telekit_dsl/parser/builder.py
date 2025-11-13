@@ -13,11 +13,14 @@ class Builder:
             "scenes": {},
             "source": self.src
         }
+        self.scenes_default_labels: dict[str, str] = {}
 
     def build(self) -> dict:
         self.ensure_single_config_block()
         self.check_main_scene()
         self.check_unique_scene_names()
+
+        self.analyze_scenes_default_labels()
 
         for item in self.ast.body:
             match item:
@@ -29,6 +32,18 @@ class Builder:
         self.post_analysis()
 
         return self.result
+    
+    def analyze_scenes_default_labels(self):
+        for item in self.ast.body:
+            if not isinstance(item, SceneBlock):
+                continue
+
+            if item.default_label:
+                self.scenes_default_labels[item.name] = item.default_label
+            elif isinstance(title := item.fields.get("title", None), str):
+                self.scenes_default_labels[item.name] = title
+            else:
+                self.scenes_default_labels[item.name] = item.name
     
     def post_analysis(self):
         if "timeout" in self.result["config"]:
@@ -122,7 +137,7 @@ class Builder:
         optional: tuple[tuple[str, type | tuple[type, ...], Any], ...] = (
             ("image", str, None),
             ("use_italics", bool, False),
-            ("parse_mode", str, "Markdown")
+            ("parse_mode", (str, type(None)), None)
         )
 
         scene_data: dict[str, Any] = {"name": name}
@@ -157,7 +172,7 @@ class Builder:
         if not scene_data["message"].strip():
             raise BuilderError(f"Scene '@{name}' has an empty message")
         
-        if scene_data["parse_mode"] not in ("Markdown", "HTML"):
+        if scene_data["parse_mode"] and scene_data["parse_mode"].lower() not in ("markdown", "html"):
             raise BuilderError(f"Scene '@{name}' has invalid parse_mode '{scene_data['parse_mode']}'")
 
         scene_data["buttons"] = {}
@@ -165,20 +180,23 @@ class Builder:
         # handle buttons if present
         if "buttons" in fields:
             buttons_block = fields["buttons"]
-            buttons: dict[str, str] = buttons_block.get("buttons", [])
+            buttons: dict[str | NoLabel, str] = buttons_block.get("buttons", [])
 
             width = buttons_block.get("width", 1) # row_width
             scene_data["row_width"] = int(width)
 
             for label, target in buttons.items():
 
+                if isinstance(label, NoLabel):
+                    label = self.scenes_default_labels[target]
+
                 if not label.strip():
                     raise BuilderError(f"Scene '@{name}' contains a button with an empty label")
 
                 if label in scene_data["buttons"]:
                     raise BuilderError(f"Duplicate button label '{label}' in scene '@ {name}'")
-                
-                if label == scene.name:
+                    
+                if target == scene.name:
                     raise BuilderError(f"Button '{label}' in scene '@{scene.name}' points to itself")
 
                 scene_data["buttons"][label] = target

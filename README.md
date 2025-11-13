@@ -2,11 +2,18 @@
 
 # TeleKit Library
 
-Telekit provides the easiest and most convenient way to work with the Telegram Bot API using a declarative interface, offering a wide range of built-in tools and ready-to-use solutions for fast bot development.
+**Telekit** is a declarative, developer-friendly library for building Telegram bots. It streamlines common bot operations, automates routine tasks, and provides a clear, structured way to implement complex logic without boilerplate.
 
-The library is currently in beta and doesn’t yet cover the entire Bot API, but it allows developers to seamlessly integrate telebot to fill in the current gaps. Despite being in early stages, Telekit significantly simplifies bot creation thanks to its clean, declarative design.
+Telekit comes with a built-in DSL for defining scenes, menus, FAQ pages, and multi-step flows, allowing developers to create fully interactive bots with minimal code. The library also handles message formatting, user input, and callback routing automatically, letting you focus on the bot’s behavior instead of repetitive tasks.
 
-It automatically handles message formatting, user input, and potential errors (such as unclosed HTML tags), letting developers focus on building logic instead of boilerplate.
+Even in its beta stage, Telekit accelerates bot development, offering ready-to-use building blocks for commands, user interactions, and navigation. Its declarative design makes bots easier to read, maintain, and extend.
+
+**Key features:**  
+- Declarative bot logic with **chains** for multi-step interactions  
+- Built-in **DSL** for menus, buttons, and FAQ pages  
+- Automatic handling of **message formatting** and **callback routing**  
+- Ready-to-use FAQ system and navigation flows
+- Minimal boilerplate, clean, and maintainable code  
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
@@ -36,10 +43,11 @@ It automatically handles message formatting, user input, and potential errors (s
 
 ## Overview
 
-Telekit focuses on reducing repetitive code and providing a clear, declarative way to define bot logic.
-Instead of manually managing updates, states, or message parsing, you describe the behavior step by step using chains — the core concept that links handlers, messages, and user actions together.
+To get the most out of Telekit, we recommend following the full, [step-by-step tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) that covers everything from installation to advanced features and DSL usage.
 
-Let’s see how it works in practice 👇
+Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts, key building blocks, and basic workflows of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
+
+Let’s see how Telekit works in practice 👇
 
 ```python
 import telekit
@@ -742,54 +750,6 @@ telekit.TelekitDSL.from_string("""...Telekit DSL...""", ["start"])
 telekit.Server(TOKEN).polling()
 ```
 
-```js
-@ main {
-    title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
-    buttons {
-        photo_demo("Image Example");    // Opens @photo_demo
-        navigation("Navigation Demo");  // Opens @navigation
-    }
-}
-
-@ photo_demo {
-    title   = "🖼 Photo Example";
-    message = "This page demonstrates how an image could be placed below this text.";
-    image   = "https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450";
-    buttons {
-        back("⬅️ Back"); // "back" is magic variable (FILO stack)
-    }
-}
-
-@ navigation {
-    title   = "🧭 Navigation Demo";
-    message = "This demonstrates multiple choices and auto-back handling.";
-
-    // `buttons[2]` — Maximum 2 buttons per row (row_width=2)
-    buttons[2] {
-        option_a("A: Path One");
-        option_b("B: Path Two");
-        back("⬅️ Back");
-    }
-}
-
-@ option_a {
-    title   = "Path A";
-    message = "You chose option A.";
-    buttons {
-        back("⬅️ Return");
-    }
-}
-
-@ option_b {
-    title   = "Path B";
-    message = "You chose option B.";
-    buttons {
-        back("⬅️ Return");
-    }
-}
-```
-
 [Telekit DSL Syntax](docs/tutorial/11_telekit_dsl.md)
 
 ## Registration
@@ -835,11 +795,11 @@ class EntryHandler(telekit.Handler):
         """
         Initializes the command handler.
         """
-        cls.on.message(commands=['entry']).invoke(cls.handle)
+        cls.on.command('entry').invoke(cls.handle)
 
         # Or define the handler manually:
 
-        # @cls.on.message(commands=['entry'])
+        # @cls.on.command('entry')
         # def handler(message: telebot.types.Message) -> None:
         #     cls(message).handle()
 

@@ -13,7 +13,7 @@ Next, we define the mandatory attributes for each scene, `title` and `message` -
 ```js
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
+    message = "Here are answers to common questions to help you get started:";
 }
 ```
 
@@ -27,7 +27,7 @@ Let’s add another scene:
 ```js
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
+    message = "Here are answers to common questions to help you get started:";
 }
 
 @ devs {
@@ -41,7 +41,7 @@ And of course, we need to add buttons to switch between scenes:
 ```js
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
+    message = "Here are answers to common questions to help you get started:";
     buttons {
         devs("👨‍💻 Developers");    // Opens @devs
     }
@@ -57,8 +57,6 @@ And of course, we need to add buttons to switch between scenes:
 ```
 
 Now we have two pages and the ability to switch between them.
-
----
 
 But there’s one important problem...
 
@@ -133,7 +131,7 @@ You can use the following attributes for any scene, including `@main` and `@time
     // -- Required --
 
     title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
+    message = "Here are answers to common questions to help you get started:";
 
     // -- Optional --
 
@@ -144,16 +142,14 @@ You can use the following attributes for any scene, including `@main` and `@time
     use_italics = false; // default: false
     
     // change message parse mode
-    parse_mode = "Markdown" // default: "Markdown"
+    parse_mode = "html" // (html | markdown) default: none
 
-    // button row width: `buttons[row_width]`
-    buttons[2] { // default: 1    ↑↑↑↑↑↑↑↑↑
+    // button row width: `buttons(row_width)`
+    buttons(2) { // default: 1    ↑↑↑↑↑↑↑↑↑
         devs("👨‍💻 Developers"); docs("📚 Docs");
     }
 }
 ```
-
----
 
 ## Configuration Block
 
@@ -203,25 +199,27 @@ If you need to write a long text, you can use multiline strings with backticks (
 
 ## Buttons Without Label
 
-In Telekit DSL, you can create buttons without explicitly specifying a label.  
-The button will automatically use the name of the scene as its text.
+In Telekit DSL, you can create buttons without explicitly specifying a label.
+The button will automatically use the scene’s default label if provided, or fall back to the scene’s title
 
 ```js
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are some common examples to help you get started:";
+    message = "Here are answers to common questions to help you get started:";
     buttons {
-        Developers;      // uses scene name as label
-        Documentation;   // uses scene name as label
+        developers;    // "Who are developers"
+        documentation; // "📚 Documentation"
     }
 }
 
-@ Developers {
-    // ...
+@ developers("Who are developers") {
+    title   = "👨‍💻 Developer";
+    message = "This bot was spellcrafted by [Telekit Wizard](https://t.me/+WsZ1SyGYSoI3YWQ8) 🪄✨";
 }
 
-@ docs {
-    // ...
+@ documentation {
+    title   = "📚 Documentation";
+    message = "Here you can find helpful guides and references.";
 }
 ```
 
@@ -229,13 +227,11 @@ If you want a custom label, use parentheses with the text:
 
 ```js
 buttons {
-    Developers("👨‍💻 Devs");
-    docs("📚 Docs");
+    developers("👨‍💻 Devs");
+    documentation("📚 Docs");
 }
 ```
 
 ---
-
-## End
 
 The parser and analyzer provide an excellent system of warnings and errors with examples, so anyone can figure it out!

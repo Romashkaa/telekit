@@ -7,7 +7,7 @@ import telekit
 
 source = """...Telekit DSL..."""
 
-class GuideHandler(telekit.GuideMixin):
+class FAQHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.message(["faq"]).invoke(cls.start_script)
