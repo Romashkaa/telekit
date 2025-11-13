@@ -6,6 +6,13 @@
 
 Telekit comes with a built-in DSL for defining scenes, menus, FAQ pages, and multi-step flows, allowing developers to create fully interactive bots with minimal code. The library also handles message formatting, user input, and callback routing automatically, letting you focus on the bot’s behavior instead of repetitive tasks.
 
+```python
+self.chain.sender.set_text(Bold("Hello world!"))
+self.chain.sender.set_photo("robot.png")
+self.chain.set_inline_keyboard({"👋 Hello, Bot": self.handle_hello_bot})
+self.chain.send()
+```
+
 Even in its beta stage, Telekit accelerates bot development, offering ready-to-use building blocks for commands, user interactions, and navigation. Its declarative design makes bots easier to read, maintain, and extend.
 
 **Key features:**  

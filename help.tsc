@@ -1,0 +1,31 @@
+@ main {
+    title   = "📖 FAQ - Frequently Asked Questions";
+    message = "Here are answers to common questions to help you get started:";
+    buttons {
+        developers;    // "Who are developers"
+        documentation; // "📚 Documentation"
+    }
+}
+
+@ developers("Who are developers") {
+    title   = "👨‍💻 Developer";
+    message = "This bot was spellcrafted by [Telekit Wizard](https://t.me/+WsZ1SyGYSoI3YWQ8) 🪄✨";
+    parse_mode = "markdown";
+    buttons { back("« Back") }
+}
+
+@ documentation {
+    title   = "📚 Documentation";
+    message = "Here you can find helpful guides and references: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md";
+    parse_mode = none; // link
+    buttons { back("« Back") }
+}
+
+
+/*
+
+« Back
+  Next »
+✓ Okay
+
+*/
