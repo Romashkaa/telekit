@@ -9,7 +9,7 @@ Telekit comes with a built-in DSL for defining scenes, menus, FAQ pages, and mul
 ```python
 self.chain.sender.set_text(Bold("Hello world!"))
 self.chain.sender.set_photo("robot.png")
-self.chain.set_inline_keyboard({"👋 Hello, Bot": self.handle_hello_bot})
+self.chain.set_inline_keyboard({"👋 Hello, Bot": self.handle_greeting})
 self.chain.send()
 ```
 
@@ -355,331 +355,13 @@ class NameAgeHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
----
-
-## Chains
-
-A `Chain` is the core element of Telekit, combining a `Sender` and an `InputHandler`.
-(The latter usually works “under the hood,” so you typically don’t interact with it directly)
-
-Proper usage of a Chain is crucial for predictable bot behavior.
-
-### Case 1 — Using the Same Chain Across All Methods
-
-In this approach, the same Chain instance is used throughout all methods of the class:
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def first(self) -> None:
-        self.chain.sender.set_text("1st page")
-        self.chain.set_inline_keyboard(
-            {
-                "Next": self.second
-            }
-        )
-        self.chain.edit()
-
-    def second(self) -> None:
-        self.chain.sender.set_text("2nd page")
-        self.chain.set_inline_keyboard(
-            {
-                "Back": self.first
-            }
-        )
-        self.chain.edit()
-```
-
-Using the same `Chain` can help save memory and automatically replaces the previous message with smooth animations. However, it also retains some previous settings.
-
-### Case 2 — Using Separate Chains for Each Step
-
-In this approach, a new Chain instance is created for each step:
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def first(self) -> None:
-        chain = self.get_local_chain()
-        chain.sender.set_text("1st page")
-        chain.set_inline_keyboard(
-            {
-                "Next": self.second
-            }
-        )
-        chain.edit()
-
-    def second(self) -> None:
-        chain = self.get_local_chain()
-        chain.sender.set_text("2nd page")
-        chain.set_inline_keyboard(
-            {
-                "Back": self.first
-            }
-        )
-        chain.edit()
-```
-
-Using a separate Chain for each step is also fine for memory usage, but it won’t provide automatic animations – you’ll need to call `chain.sender.set_edit_message(...)` yourself. 
-
-On the plus side, it doesn’t retain any previous settings.
-
-### By the way:
-
-- `self.new_chain()` updates the `chain` attribute in the `handler` (`self.chain`):
-
-```python
-old = self.chain
-self.new_chain()
-print(old == self.chain)             # False (the "сhain" object has been replaced)
-
-old2 = self.chain
-local_chain = self.get_local_chain()
-print(local_chain == self.chain)     # False ("local_chain" is local)
-print(old2 == self.chain)            # True  (The "сhain" object remained)
-```
-
----
-
-## Handler
-
-A `Handler` subclass defines how your bot reacts to messages or commands.  
-
-- Each subclass should implement class method `init_handler(cls)` to register the message triggers (example: `cls.on.message(["start"]).invoke(cls.display_start)`).
-- Instance methods like `handle()` or `display_name()` define the logic executed when a message matches a trigger.
-
-> Essentially, you subclass `Handler`, register triggers in `init_handler`, and define responses in instance methods.
-
-
-### Attribute `handler.message`
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def handle(self) -> None:
-        self.message         # First message in the chain (probably the user command / message that started it)
-        self.message.chat.id # Chat ID
-```
-
-### User (`handler.user`)
-
-The User class provides a simple abstraction for working with Telegram users inside your bot.
-It stores the chat_id, the from_user object, and provides convenient methods to get the username.
-
-#### User's Method `handler.user.get_username() -> str | None`
-
-Returns the username of the user.
-- If the user has a Telegram username, it will be returned with an @ prefix.
-- If not, falls back to the user’s first_name.
-- If unable to fetch data, returns None.
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def handle(self) -> None:
-        username = self.user.username
-
-        if username:
-            self.chain.sender.set_text(f"👋 Hello {username}!")
-        else:
-            self.chain.sender.set_text(f"🥴 Hello?")
-
-        self.chain.send()
-```
-
-#### User's Method `handler.user.chat_id: int`
-
-```python
-class MyHandler(telekit.Handler):
-    ...
-    def handle(self) -> None:
-        print(self.user.chat_id == self.message.chat.id) # True
-```
-
----
-
-
-## Listeners
-
-### Decorator `handler.on.text()`
-
-Decorator for handling messages that match a given text pattern with placeholders {}. Each placeholder is passed as a separate argument to the decorated function:
-
-```python
-import telebot.types
-import telekit
-
-class OnTextHandler(telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        """
-        Initializes the message handlers.
-        """
-        @cls.on.text("Name: {name}. Age: {age}")
-        def _(message: telebot.types.Message, name: str, age: str):
-            cls(message).handle(name, age)
-
-        @cls.on.text("My name is {name} and I am {age} years old")
-        def _(message: telebot.types.Message, name: str, age: str):
-            cls(message).handle(name, age)
-
-        @cls.on.text("My name is {name}")
-        def _(message: telebot.types.Message, name: str):
-            cls(message).handle(name, None)
-
-        @cls.on.text("I'm {age}  years old")
-        def _(message: telebot.types.Message, age: str):
-            cls(message).handle(None, age)
-
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
-
-    def handle(self, name: str | None, age: str | None) -> None: 
-
-        if not name: 
-            name = self.user.get_username()
-
-        if not age:
-            age = "An unknown number of"
-
-        self.chain.sender.set_title(f"Hello {name}!")
-        self.chain.sender.set_message(f"{age} years is a wonderful stage of life!")
-        self.chain.send()
-```
-
-This allows you to define multiple on_text handlers with different patterns, each extracting the placeholders automatically.
-
-### Decorator `handler.on.message()`
-
-Decorator for handling any kind of incoming message — text, photo, sticker, etc. The decorated function receives a `telebot.types.Message` object as a parameter. Handlers are executed in the order they are added.
-
-```python
-import telebot.types
-import telekit
-from typing import Callable, Any
-
-class MessageHandlerExample(telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        """
-        Initializes message handlers.
-        """
-
-        @cls.on.message(commands=['help'])
-        def help_handler(message: telebot.types.Message) -> None:
-            cls(message).show_help()
-
-        @cls.on.message(regexp=r"^My name is (.+)$")
-        def name_handler(message: telebot.types.Message) -> None:
-            name = message.text.split("My name is ")[1]
-            cls(message).greet(name)
-
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
-
-    def show_help(self) -> None:
-        self.chain.sender.set_title("Help Menu")
-        self.chain.sender.set_message("Here are some useful commands to get started...")
-        self.chain.send()
-
-    def greet(self, name: str) -> None:
-        self.chain.sender.set_title(f"Hello {name}!")
-        self.chain.sender.set_message("Welcome to the bot!")
-        self.chain.send()
-```
-
-This allows you to define multiple message_handler decorators with different triggers (commands, regex patterns, content types, etc.) for flexible message processing. You can also use optional parameters such as whitelist to restrict handling to specific chat IDs.
-
----
-
-## Senders
-
-Senders in Telekit provide a high-level interface for sending and managing messages in Telegram bots. They wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, and effects.  
-
-### Key Attributes:
-- `bot`: The global TeleBot instance.
-- `chat_id`: Target chat ID.
-- `text`: Message text.
-- `reply_markup`: Inline or keyboard markup.
-- `is_temporary`: Marks the message as temporary.
-- `delele_temporaries`: Deletes previous temporary messages if set.
-- `parse_mode`: Message formatting (`HTML` or `Markdown`).
-- `reply_to_message_id`: Optional message to reply to.
-- `edit_message_id`: Optional message ID to edit.
-- `thread_id`: Thread or topic ID (optional).
-- `message_effect_id`: Optional effect like 🔥 or 🎉.
-- `photo`: Optional photo to send.
-
-### Key Methods:
-- `set_text(text)`: Update the message text.
-    - Or let Telekit handle the layout for you: 
-    - `set_title(title)` + `set_message(message)`
-    - `set_use_italics(flag)` – Enable/disable italics for the message body.
-    - `set_add_new_line(flag)` – Add/remove a blank line between title and message.
-- `set_photo(photo)`: Attach a photo.
-- `set_parse_mode(mode)`: Set formatting mode.
-- `set_reply_to(message)`: Reply to a specific message.
-- `set_effect(effect)`: Apply a visual effect.
-- `set_edit_message(message)`: Set the message to edit.
-- `get_message_id(message)`: Get the ID of a message.
-- `delete_message(message)`: Delete a message.
-- `error(title, message)`: Send a custom error.
-- `pyerror(exception)`: Send exception details.
-- `send()`: Send or edit the message.
-- `try_send()`: Attempt sending, returns `(message, exception)`.
-- `send_or_handle_error()`: Send a message and show a Python exception if it fails.
-- `set_temporary(flag)`: Mark message as temporary.
-- `set_delete_temporaries(flag)`: Delete previous temporary messages.
-- `set_chat_id(chat_id)`: Change target chat.
-- `set_reply_markup(reply_markup)`: Add inline/keyboard markup. Raw.
-
----
-
-## Chapters
-
-TeleKit provides a simple way to organize large texts or structured content in `.txt` files and access them as Python dictionaries. This is ideal for help texts, documentation, or any content that should be separate from your code.
-
-### How It Works
-
-Each section in a `.txt` file starts with a line beginning with `#`, followed by the section title. All subsequent lines until the next `#` are treated as the content for that section.
-
-### Example `help.txt`
-
-```
-# intro
-Welcome to TeleKit library. Here are the available commands:
-
-# commands
-/start — Start command
-/entry — Example command for handling input
-
-# about
-TeleKit is a general-purpose library for Python projects.
-```
-
-You can parse this file in Python:
-
-```python
-import telekit
-
-chapters: dict[str, str] = telekit.chapters.read("help.txt")
-
-print(chapters["intro"])
-# Output: "Welcome to TeleKit library. Here are the available commands:"
-
-print(chapters["commands"])
-# Output: "/start — Start command\n/entry — Example command for handling input"
-```
-
-This method allows you to separate content from code, making it easier to manage large texts or structured help documentation. It's especially useful for commands like `/help`, where each section can be displayed individually in a bot interface.
+For a full walkthrough, [check out our tutorial](docs/tutorial/0_tutorial.md)
 
 ---
 
 # Examples and Solutions
+
+If you're unsure how the examples work, [check out our tutorial](docs/tutorial/0_tutorial.md) for a full walkthrough.
 
 ## Counter
 
@@ -757,7 +439,9 @@ telekit.TelekitDSL.from_string("""...Telekit DSL...""", ["start"])
 telekit.Server(TOKEN).polling()
 ```
 
-[Telekit DSL Syntax](docs/tutorial/11_telekit_dsl.md)
+For more details on the syntax, see the [Telekit DSL Syntax reference](docs/tutorial/11_telekit_dsl.md).  
+
+For a complete, step-by-step walkthrough, [check out our full tutorial](docs/tutorial/0_tutorial.md).
 
 ## Registration
 
@@ -960,6 +644,8 @@ class DialogueHandler(telekit.Handler):
         self.chain.sender.set_text(f"Got it, {self._user_name.title()}! You feel: {feeling}")
         self.chain.send()
 ```
+
+If you're unsure how the examples work, [check out our tutorial](docs/tutorial/0_tutorial.md) for a full walkthrough.
 
 ## Developer 
 
