@@ -80,7 +80,7 @@ telekit.Server("TOKEN").polling()
 
 Let’s examine each element individually...
 
-### Message formatting:
+## Message formatting:
 
 - You can configure everything manually:
 
@@ -120,7 +120,7 @@ self.chain.sender.set_photo("url, bytes or path")
 
 Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatically!
 
-### Text Styling with `Styles`
+## Text Styling with `Styles`
 
 Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender` or manually:
 
@@ -137,7 +137,9 @@ Combine multiple styles:
 text = styles.strike(styles.bold("Hello") + styles.italic("World!"))
 ```
 
-### Handling callbacks and Logic
+For more details, [see our tutorial](docs/tutorial/0_tutorial.md)
+
+## Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
 
 **Inline keyboard** with callback support:
