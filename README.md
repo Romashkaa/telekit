@@ -13,6 +13,8 @@ self.chain.set_inline_keyboard({"👋 Hello, Bot": self.handle_greeting})
 self.chain.send()
 ```
 
+> Example taken out of context
+
 Even in its beta stage, Telekit accelerates bot development, offering ready-to-use building blocks for commands, user interactions, and navigation. Its declarative design makes bots easier to read, maintain, and extend.
 
 **Key features:**  
@@ -24,7 +26,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
-[Telegram](https://t.me/TeleKitLib)
+[Telegram](https://t.me/+wu-dFrOBFIwyNzc0)
 [Tutorial](docs/tutorial/0_tutorial.md)
 
 ## Contents
@@ -34,14 +36,6 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
     - [Text Styling](#text-styling-with-styles)
     - [Handling Callbacks](#handling-callbacks-and-logic)
 - [Quick Guide](#quick-start)
-- [Chains](#chains)
-    - [Case 1 — Using the Same Chain Across All Methods](#case-1--using-the-same-chain-across-all-methods)
-    - [Case 2 — Using Separate Chains for Each Step](#case-2--using-separate-chains-for-each-step)
-- [Handler](#handler)
-    - [User](#attribute-handleruser)
-- [Listeners](#listeners)
-- [Senders](#senders)
-- [Chapters](#chapters)
 - [Examples and Solutions](#examples-and-solutions)
     - [Counter](#counter)
     - [FAQ Pages (Telekit DSL)](#faq-pages-telekit-dsl)
@@ -131,52 +125,32 @@ Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatica
 Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender` or manually:
 
 ```python
-...
 # Automatically detects `parse_mode` from `sender`
 styles = self.chain.sender.styles
 
 text = styles.bold("Bold") + " and " + styles.italic("Italic")
-...
 ```
 
-Manual usage:
+Combine multiple styles:
 
 ```python
-# Manually create a Styles object
-styles = Styles()
-styles.use_html()                 # force HTML
-styles.use_markdown()             # force Markdown
-styles.set_parse_mode("markdown") # force Markdown
-print(styles.bold("Text"))        # print as markdown
-
-# Print directly
-print(Bold("Text").markdown)
-# or:
-print(Bold("Text", parse_mode="markdown"))
-```
-
-Composition:
-
-```python
-# Combine multiple styles
-text = Strikethrough(Bold("...") + Italic("..."))
-text = styles.strike(styles.bold("...") + styles.italic())
+text = styles.strike(styles.bold("Hello") + styles.italic("World!"))
 ```
 
 ### Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
 
-- Inline keyboard:
+**Inline keyboard** with callback support:
 
 ```python
 # Inline keyboard `label-callback`:
 # - label:    `str`
-# - callback: `Chain` | `str` | `Callable[[], Any]` | `Callable[[Message], Any]`
+# - callback: `Chain` | `str` | `func()` | `func(message)`
 self.chain.set_inline_keyboard(
     {
-        "« Change": prompt, # When the user clicks this button, `prompt.send()` will be executed
-        "Yes »": lambda: print("User: Okay!"), # When the user clicks this button, this lambda function will run
-        "Youtube": "https://youtube.com" # Can even be a link
+        "« Change": prompt,  # Executes `prompt.send()` when clicked
+        "Yes »": lambda: print("User: Okay!"),  # Runs this lambda when clicked
+        "Youtube": "https://youtube.com"  # Opens a link
     }, row_width=2
 )
 
@@ -194,7 +168,7 @@ def _(message, value: tuple[int, int, int]) -> None:
     self.chain.edit()
 ```
 
-- Receiving messages and files:
+**Receiving messages** with callback support:
 
 ```python
 # Receive any message type:
@@ -231,7 +205,7 @@ def text_document_handler(message, text_document: telekit.types.TextDocument):
 
 Telekit is lightweight yet powerful, giving you a full set of built-in tools and solutions for building advanced Telegram bots effortlessly.
 
-- You can find information about the new decorators by checking their doc-strings in Python.
+- You can find more information about the decorators by checking their doc-strings in Python.
 
 ---
 
@@ -268,57 +242,13 @@ from . import (
 Here is an example of defining a handler using TeleKit (`handlers/start.py` file):
 
 ```python
-import telebot.types
 import telekit
-import typing
-
 
 class StartHandler(telekit.Handler):
 
-    # ------------------------------------------
-    # Initialization
-    # ------------------------------------------
-
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the message handler for the '/start' command.
-        """
-        cls.on.message(['start']).invoke(cls.counter)
-
-        # Or define the handler manually:
-
-        # @cls.on.message(commands=['start'])
-        # def handler(message: telebot.types.Message) -> None:
-        #     cls(message).counter()
-
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
-
-    def counter(self) -> None:
-        self.chain.sender.set_title("Hello!")
-        self.chain.sender.set_message("Click the button below to start interacting")
-        self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
-        self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
-
-        def counter_factory() -> typing.Callable[[int], int]:
-            count = 0
-            def counter(value: int=1) -> int:
-                nonlocal count
-                count += value
-                return count
-            return counter
-        
-        click_counter = counter_factory()
-
-        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
-        def _(message: telebot.types.Message, value: int) -> None:
-            self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
-            self.chain.edit()
-        self.chain.set_remove_inline_keyboard(False)
-
-        self.chain.send()
+        ...
 ```
 
 **One-file bot example:**
@@ -330,27 +260,7 @@ class NameAgeHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        @cls.on.text("My name is {name} and I am {age} years old")
-        def _(message: telebot.types.Message, name: str, age: str):
-            cls(message).handle(name, age)
-
-        @cls.on.text("My name is {name}")
-        def _(message: telebot.types.Message, name: str):
-            cls(message).handle(name, None)
-
-        @cls.on.text("I'm {age}  years old")
-        def _(message: telebot.types.Message, age: str):
-            cls(message).handle(None, age)
-
-    def handle(self, name: str | None, age: str | None) -> None: 
-        if not name: 
-            name = self.user.username
-
-        if not age:
-            age = "An unknown number of"
-
-        self.chain.sender.set_text(f"👋 Hello {name}! {age} years is a wonderful stage of life!")
-        self.chain.send()
+        ...
 
 telekit.Server("TOKEN").polling()
 ```
