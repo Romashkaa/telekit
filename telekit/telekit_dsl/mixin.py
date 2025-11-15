@@ -5,7 +5,7 @@ from . import parser
 
 import telekit
 
-from typing import NoReturn
+from typing import NoReturn, Any
 
 class TelekitDSLMixin(telekit.Handler):
 
@@ -74,7 +74,7 @@ class TelekitDSLMixin(telekit.Handler):
             raise KeyError("Missing 'scenes' key in guide data.")
         if not isinstance(self.data["scenes"], dict):
             raise TypeError("'scenes' should be a dictionary.")
-        self.scenes = self.data["scenes"]
+        self.scenes: dict[str, dict] = self.data["scenes"]
 
         # check if 'config' exists and is a dictionary
         if "config" not in self.data:
@@ -83,13 +83,26 @@ class TelekitDSLMixin(telekit.Handler):
             raise TypeError("'config' should be a dictionary.")
         self.config = self.data["config"]
 
-        timeout = self.config.get("timeout", 0)
-        if isinstance(timeout, int):
-            self.chain.set_timeout(self.prepare_scene("timeout"), timeout)
+        self._timeout = self.config.get("timeout_time", 0)
+        if isinstance(self._timeout, int):
+            self.chain.set_timeout(self._on_timeout, self._timeout)
         self.chain.set_remove_timeout(False)
 
         # start the main scene
         self.prepare_scene("main")()
+
+    def _on_timeout(self):
+        message = self.config.get("timeout_message", "👋 Are you still there?")
+        message = self.chain.sender.styles.no_sanitize(message)
+        label = self.config.get("timeout_label", "Yes, I'm here ✓")
+        self.chain.set_timeout(None, 7)
+        self.chain.sender.add_message("\n\n", self.chain.sender.styles.bold(message))
+        self.chain.set_inline_keyboard({label: self._continue})
+        self.chain.edit()
+
+    def _continue(self):
+        self.chain.set_timeout(self._on_timeout, self._timeout)
+        self.prepare_scene(self.history.pop())()
 
     def prepare_scene(self, _scene_name: str):
         """Prepare page"""
@@ -104,19 +117,28 @@ class TelekitDSLMixin(telekit.Handler):
                         self.history.pop() # current
                     if self.history:
                         scene_name = self.history.pop()
-                case "timeout":
-                    self.chain.remove_timeout()
             
             self.history.append(scene_name)
 
             # main logic
             scene = self.scenes[scene_name]
 
-            self.chain.sender.set_parse_mode(scene.get("parse_mode", "HTML"))
+            parse_mode = scene.get("parse_mode") or "html"
+
+            self.chain.sender.set_parse_mode(parse_mode)
             self.chain.sender.set_use_italics(scene.get("use_italics", False))
 
-            self.chain.sender.set_title(scene.get("title", "[ Title ]"))
-            self.chain.sender.set_message(scene.get("message", "[ Message ]"))
+            styles = self.chain.sender.styles
+            title = scene.get("title", "[ no title ]")
+            message = scene.get("message", "[ no message ]")
+            do_sanitize = not scene.get("parse_mode") 
+
+            if do_sanitize:
+                self.chain.sender.set_title(styles.sanitize(title))
+                self.chain.sender.set_message(styles.sanitize(message))
+            else:
+                self.chain.sender.set_title(styles.no_sanitize(title))
+                self.chain.sender.set_message(styles.no_sanitize(message))
             self.chain.sender.set_photo(scene.get("image", None))
 
             # keyboard

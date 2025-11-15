@@ -1,4 +1,4 @@
-# 2.0.0 BETA
+# 1.0.0 BETA
 
 Version that introduced a new trigger-handling logic. Reduced confusion and minimized the risk of bugs caused by developer oversight. Workarounds for handling Chain—which could theoretically create recursion when searching for a parent—have been removed.
 
@@ -19,9 +19,12 @@ def name_handler(message, name: str):
 cls.on.command("start").invoke(cls.handle_start)
 cls.on.text("My name is {name}").invoke(cls.handle_name)
 ```
+- Sender:
+    - **Automatic HTML and Markdown handling** – the library now automatically processes HTML tags and Markdown formatting when they are applied via constructs such as `styles.Bold(...)` or within specialized blocks like `styles.Sanitize(...)`.
+    - **Enhanced Sender logic** – the Sender now automatically sanitizes Markdown and HTML content within the aforementioned style blocks, and automatically assigns the appropriate `parse_mode` to these blocks, ensuring safe and consistent message formatting.
+    - New `sender.set_media(...)` method.
+    - New `chain.create_sender(chat_id)` method.
 - New `telekit.enable_file_logging()` function.
-- New `sender.set_media(...)` method.
-- New `chain.create_sender(chat_id)` method.
 - New `handler.new_chain() -> None` method.
 - New `TelekitDSL.from_file(...)` and `TelekitDSL.from_string(...)` methods for creation handlers with Telekit DSL.
 - Renamed `GuideMixin`, now `TelekitDSL.Mixin`.
@@ -30,6 +33,7 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
     - New syntax:
         - new `row_width` syntax: `buttons[2]` -> `buttons(2)`.
         - new “buttons without label” behavior. [See details](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label).
+    - New Telekit DSL Documentation.
 - New `chain.remove_all_handlers()` method. Forces removal of all callback handlers associated with the chain.
     - New `chain.remove_timeout()` — removes active timeout handler.
     - New `chain.remove_entry_handler()` — removes the current entry handler.
@@ -39,7 +43,6 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
         - `chain.set_remove_entry_handler(False)`
         - `chain.set_remove_inline_keyboard(False)`
 - New tutorial ([Tutorial](docs/tutorial/0_tutorial.md))
-- New Telekit DSL Documentation.
 - Other.
 
 ## Breaking Changes
@@ -59,9 +62,22 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
 - changed `buttons[2]` -> `buttons(2)` - DSL
 
 ## Planned:
-- Warning in DSL when there are too many buttons or text in the string.
-- Localization of the method effect `self.user.enable_logging()` (Currently working globally)
+- Display a warning in the DSL when a string contains too many buttons or excessive text.  
+- Add a `restart` button in the DSL for timeouts, which simulates a `self.message.text` message.  
+- Automatically create a `@timeout` block if it is missing, loading the previous scene while replacing buttons:  
 
+$```js
+@timeout {
+    // load previous scene
+    buttons {
+        restart; // uses restart_button_label
+    }
+}
+$```
+
+- Prevent creation of scenes with reserved names: `back` or `restart`.  
+- `restart_button_label = "Restart"` – default label for the restart button (configurable in `$config { }`).  
+- Support localization for the effect of the `self.user.enable_logging()` method (currently applied globally).  
 ---
 
 Old release notes are available in previous commits.

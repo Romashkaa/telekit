@@ -1,0 +1,2 @@
+charset_normalizer==3.4.2
+pyTelegramBotAPI==4.29.1

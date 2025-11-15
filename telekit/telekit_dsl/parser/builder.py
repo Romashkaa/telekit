@@ -13,10 +13,11 @@ class Builder:
             "scenes": {},
             "source": self.src
         }
+        self.config_blocks: list[dict[str, Any]] = []
         self.scenes_default_labels: dict[str, str] = {}
 
     def build(self) -> dict:
-        self.ensure_single_config_block()
+        # self.ensure_single_config_block()
         self.check_main_scene()
         self.check_unique_scene_names()
 
@@ -29,6 +30,7 @@ class Builder:
                 case SceneBlock():
                     self.analyze_scene(item)
 
+        self.finalize_configs()
         self.post_analysis()
 
         return self.result
@@ -46,9 +48,9 @@ class Builder:
                 self.scenes_default_labels[item.name] = item.name
     
     def post_analysis(self):
-        if "timeout" in self.result["config"]:
-            if "timeout" not in self.result["scenes"]:
-                raise BuilderError("`@ timeout {...}` scene is missing, but defined in `$ config {...}`. Add the scene or remove it from config.")
+        # if "timeout" in self.result["config"]:
+        #     if "timeout" not in self.result["scenes"]:
+        #         raise BuilderError("`@ timeout {...}` scene is missing, but defined in `$ config {...}`. Add the scene or remove it from config.")
 
         for scene_name, scene in self.result["scenes"].items():
             for label, target_scene in scene["buttons"].items():
@@ -58,9 +60,9 @@ class Builder:
                             f"Button '{label}' in scene '@{scene_name}' points to non-existent scene '@{target_scene}'"
                         )
                 
-        timeout = self.result["config"].get("timeout")
+        timeout = self.result["config"].get("timeout_time")
         if timeout is not None and timeout <= 0:
-            raise BuilderError("Config 'timeout' cannot be negative or 0")
+            raise BuilderError("Config 'timeout_time' cannot be negative or 0")
 
     def ensure_single_config_block(self):
         config_count = 0
@@ -94,6 +96,20 @@ class Builder:
         return t.__name__
 
     def analyze_config(self, config: ConfigBlock):
+        name = config.name
+        prefix = f"{name}_" if name else ""
+        fields = {f"{prefix}{field}": v for field, v in config.fields.items()}
+        self.config_blocks.append(fields)
+
+    def finalize_configs(self):
+        fields = {}
+
+        for config in self.config_blocks:
+            for key, value in config.items():
+                if key in fields:
+                    raise BuilderError(f"Duplicate config field: {key}")
+                fields[key] = value
+
         result = {}
 
         # requirements = (
@@ -101,7 +117,9 @@ class Builder:
         # )
 
         optional = (
-            ("timeout", int),
+            ("timeout_time", int),
+            ("timeout_message", str),
+            ("timeout_label", str)
         )
 
         # # required fields
@@ -115,8 +133,8 @@ class Builder:
 
         # optional fields
         for key, typ in optional:
-            if key in config.fields:
-                val = config.fields[key]
+            if key in fields:
+                val = fields[key]
                 if not isinstance(val, typ):
                     raise BuilderError(f"Field '{key}' must be of type {self.type_name(typ)}")
                 result[key] = val
@@ -141,6 +159,9 @@ class Builder:
         )
 
         scene_data: dict[str, Any] = {"name": name}
+
+        if name in ("back", "restart"):
+            raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
 
         # check required fields
         for key, typ in required:

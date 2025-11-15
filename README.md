@@ -86,6 +86,7 @@ Let’s examine each element individually...
 
 ```python
 self.chain.sender.set_text("*Hello, user!*\n\nWelcome to the Bot!")
+self.chain.sender.set_parse_mode("markdown")
 ```
 - Or let Telekit handle the layout for you:
 ```python
@@ -122,7 +123,7 @@ Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatica
 
 ## Text Styling with `Styles`
 
-Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender` or manually:
+Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender`:
 
 ```python
 # Automatically detects `parse_mode` from `sender`

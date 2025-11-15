@@ -7,13 +7,15 @@ from telebot import TeleBot
 from telebot.types import (
     Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
+from html import escape
 
 from telekit import buildtext
 
 from .logger import logger
 library = logger.library
 
-from telekit.buildtext.formatter import StyleFormatter
+from telekit.buildtext.formatter import StyleFormatter, Composite
+from telekit.buildtext.styles import NoSanitize
 
 class TempBuffer:
 
@@ -108,7 +110,7 @@ class BaseSender:
                  is_temporary: bool   = False,
                  delele_temporaries: bool = True,
                  
-                 parse_mode: str | None = "HTML",
+                 parse_mode: str | None = None,
                  reply_to_message_id: int | None = None,
 
                  edit_message_id: int | None = None,
@@ -219,8 +221,8 @@ class BaseSender:
     def set_chat_id(self, chat_id: int):
         self.chat_id = chat_id
 
-    def set_text(self, text: str | StyleFormatter):
-        self.text = str(text)
+    def set_text(self, text: str):
+        self.text = text
 
     def set_reply_markup(self, reply_markup):
         self.reply_markup = reply_markup
@@ -233,6 +235,7 @@ class BaseSender:
 
     def set_parse_mode(self, parse_mode: str | None):
         if not parse_mode:
+            self.parse_mode = None
             return
         
         if parse_mode.lower() in ("html", "markdown"):
@@ -486,60 +489,133 @@ class BaseSender:
         """
         if message:
             return message.message_id
-
+        
 
 class TextSender(BaseSender):
     pass
     
+from enum import Enum, unique
+
+@unique
+class ParseMode(Enum):
+    HTML = "html"
+    MARKDOWN = "markdown"
+    NONE = None
 
 class AlertSender(BaseSender):
 
-    _title: str
-    _message: str
+    _title: str | StyleFormatter
+    _message: str | StyleFormatter | tuple[str | StyleFormatter, ...]
+    _text: str | StyleFormatter
+    _parse_mode: ParseMode | None
 
     _use_italics: bool
     _add_new_line: bool
 
     def _compile_text(self) -> None:
-
-        if self.parse_mode == "markdown":
-            _start_bold = "*"
-            _end_bold = "*"
-            _start_italic = "_"
-            _end_italic = "_"
-        else:
-            _start_bold = "<b>"
-            _end_bold = "</b>"
-            _start_italic = "<i>"
-            _end_italic = "</i>"
-
         if not hasattr(self, "_title"):
             self._title = ""
 
         if not hasattr(self, "_message"):
             self._message = ""
 
-        if self.text and not (self._message or self._title):
-            return
+        if not hasattr(self, "_parse_mode"):
+            self._parse_mode = None
+
+        if not hasattr(self, "_add_new_line"):
+            self._add_new_line = True
         
-        if self._message and not self._title:
-            self.set_text(self._message)
-            return
+        if not hasattr(self, "_use_italics"):
+            self._use_italics = True
 
-        separator: str = " \n\n" if getattr(self, "_add_new_line", True) else " "
+        if not hasattr(self, "_text"):
+            self._text = ""
 
-        if getattr(self, "_use_italics", True):
-            text = f"{_start_bold}{self._title}{_end_bold}{separator}{_start_italic}{self._message}{_end_italic}"
+        if self._text:
+            self._compile_plain()
+        elif self._title or self._message:
+            self._compile_alert()
+
+    def _compile_plain(self):
+        if self._parse_mode:
+            super().set_parse_mode(self._parse_mode.value)
+
+        if isinstance(self._text, StyleFormatter):
+            self._text.set_parse_mode(self.parse_mode)
+
+        super().set_text(str(self._text))
+
+    def _compile_alert(self):
+        if self._parse_mode:
+            super().set_parse_mode(self._parse_mode.value)
         else:
-            text = f"{_start_bold}{self._title}{_end_bold}{separator}{self._message}"
+            super().set_parse_mode("html")
 
-        self.set_text(text)
+        title = self.styles.bold(self._title) if self._title else None
+
+        if self._message:
+            if isinstance(self._message, (str, StyleFormatter)):
+                parts = (self._message, )
+            else:
+                parts = self._message
+
+            message = Composite(*parts)
+
+            if self._use_italics:
+                message = self.styles.italic(message)
+        else:
+            message = None
+
+        text_parts = []
+
+        if title:
+            text_parts.append(title)
+        
+        if title and message and self._add_new_line:
+            text_parts.append("\n\n")
+
+        if message:
+            text_parts.append(message)
+
+        text = Composite(*text_parts)
+        text.set_parse_mode(self.parse_mode)
+
+        super().set_text(str(text))
+
+    def set_text(self, text: str | StyleFormatter):
+        self._text = text
+        self._title = ""
+        self._message = ""
 
     def set_title(self, title: str | StyleFormatter):
-        self._title = str(title)
+        self._text = ""
+        self._title = title
 
-    def set_message(self, *message: str | StyleFormatter, sep: str=""):
-        self._message = sep.join(map(str, message))
+    def set_message(self, *message: str | StyleFormatter, sep: str | StyleFormatter=""):
+        self._text = ""
+        self._message = self._interleave(message, sep)
+
+    def add_message(self, *message: str | StyleFormatter, sep: str | StyleFormatter=""):
+        self._text = ""
+
+        previous = self._message
+        
+        if not isinstance(previous, tuple):
+            if previous:
+                previous = (previous, )
+            else:
+                previous = tuple()
+
+        self._message = previous + self._interleave(message, sep)
+
+    def set_parse_mode(self, parse_mode: str | None=None):
+        try:
+            if parse_mode:
+                self._parse_mode = ParseMode(parse_mode.lower())
+            else:
+                self._parse_mode = ParseMode(None)
+        except ValueError:
+            raise ValueError(f"Unknown parse_mode: {parse_mode}")
 
     def set_use_italics(self, use_italics: bool=True):
         self._use_italics = use_italics
@@ -550,3 +626,14 @@ class AlertSender(BaseSender):
     def send(self) -> Message | None:
         self._compile_text()
         return super().send()
+
+    def _interleave(self, message: tuple, sep):
+        if not sep:
+            return message
+        if not message:
+            return tuple()
+        if len(message) == 1:
+            return message
+        
+        result = [item for pair in zip(message, [sep]*(len(message)-1)) for item in pair] + [message[-1]]
+        return tuple(result)

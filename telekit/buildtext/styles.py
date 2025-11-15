@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Ving Studio, Romashka
 # Licensed under the MIT License. See LICENSE file for full terms.
 
-from .formatter import StyleFormatter
+from .formatter import StyleFormatter, Composite
 
 
 class Bold(StyleFormatter):
@@ -43,8 +43,28 @@ class Quote(StyleFormatter):
     markdown_symbol = ('\n', '\n')
     html_tag = ('\n<blockquote>', '</blockquote>\n')
 
+class Sanitize(StyleFormatter):
+    markdown_symbol = ('', '')
+    html_tag = ('', '')
+
+class NoSanitize(StyleFormatter):
+    markdown_symbol = ('', '')
+    html_tag = ('', '')
+
+    def render_markdown(self):
+        return ''.join(
+            c.render_markdown() if isinstance(c, StyleFormatter) else str(c)
+            for c in self.content
+        )
+
+    def render_html(self):
+        return ''.join(
+            c.render_html() if isinstance(c, StyleFormatter) else str(c)
+            for c in self.content
+        )
+
 class Styles:
-    def __init__(self, parse_mode: str = "html"):
+    def __init__(self, parse_mode: str | None = "html"):
         self.parse_mode = parse_mode
 
     def use_markdown(self):
@@ -53,7 +73,7 @@ class Styles:
     def use_html(self):
         self.parse_mode = "html"
 
-    def set_parse_mode(self, parse_mode: str):
+    def set_parse_mode(self, parse_mode: str | None):
         self.parse_mode = parse_mode
 
     def bold(self, *content):
@@ -79,3 +99,12 @@ class Styles:
 
     def quote(self, *content):
         return Quote(*content, parse_mode=self.parse_mode)
+    
+    def group(self, *content):
+        return Composite(*content)
+    
+    def sanitize(self, *content):
+        return Sanitize(*content, parse_mode=self.parse_mode)
+    
+    def no_sanitize(self, *content):
+        return NoSanitize(*content, parse_mode=self.parse_mode)

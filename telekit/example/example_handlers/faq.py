@@ -20,6 +20,11 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
 #
 
 guide = """
+$ timeout {
+    time = 5; // optional
+    message = "🤔 Are you here? (Yes, 5 seconds is very short, but this ensures you can see that the feature works)"; // optional
+}
+
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions";
     message = "Here are answers to common questions to help you get started:";
@@ -39,7 +44,17 @@ guide = """
 @ documentation {
     title   = "📚 Documentation";
     message = "Here you can find helpful guides and references: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md";
-    parse_mode = none; // link
-    buttons { back("« Back") }
+    buttons (2) { 
+        back("« Back");
+        developers("Developers »");
+    }
 }
+
+/*
+
+« Back
+  Next »
+✓ Okay
+
+*/
 """

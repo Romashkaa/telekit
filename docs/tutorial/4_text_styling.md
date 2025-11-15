@@ -1,81 +1,127 @@
-# Text Styling
+# Text Styling in Telekit
 
-Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender` or manually.
+Telekit provides a convenient `Styles` class for creating styled messages in **HTML** or **Markdown**.  
+It allows you to:
 
-## Automatic usage via sender
+- make text **bold, italic, underlined, strikethrough**, and more;
+- combine multiple styles in a single string;
+- **sanitize** user input to prevent breaking HTML/Markdown tags.
+
+`Styles` can be used **through the sender** or **manually**.
+
+---
+
+## 1. Using via sender
+
+The sender already has a `styles` object:
 
 ```python
-...
-# Automatically detects `parse_mode` from `sender`
 styles = self.chain.sender.styles
-
 text = styles.bold("Bold") + " and " + styles.italic("Italic")
-print(text)          # <b>Bold</b> and <i>Italic</i> (auto)
-print(text.html)     # <b>Bold</b> and <i>Italic</i> (force HTML)
-print(text.markdown) # *Bold* and _Italic_           (force Markdown)
 ```
 
-Then pass it to the sender:
+When sending styled text, the sender automatically applies the correct **parse_mode** (`html` or `markdown`) for style objects:
 
 ```python
-class MyHandler(telekit.Handler):
-    ...
-    def greet(self):
-        styles = self.chain.sender.styles
-        text = styles.underline(styles.bold("Bold"), " and ", styles.italic("Italic"))
-        self.chain.sender.set_text(text)
-        self.send()
+styles = self.chain.sender.styles
+self.chain.sender.set_text(
+    styles.underline(
+        styles.bold("Bold"),
+        " and ",
+        styles.italic("Italic")
+    )
+)
+self.chain.sender.set_parse_mode("html")
+self.chain.send()
 ```
 
-`styles.bold()`, `styles.italic()`, and `styles.underline()` apply text formatting. They can be combined for more complex formatting.
+You can easily switch between HTML and Markdown without changing the code:
 
-## Manual usage:
+```python
+print(styles.bold("Text").markdown) # *Text*
+print(styles.bold("Text").html)     # <b>Text</b>
+print(styles.bold("Text").none)     # Text
+```
 
-1. Import all types
+---
+
+## 2. Manual usage
+
+Import all styles:
 
 ```python
 from telekit.buildtext.styles import *
 ```
 
-2.1. Use styles individually:
+Using individual styles:
 
 ```python
-Bold("III") + Italic("///")
+Bold("Bold") + Italic("Italic")
 ```
 
-2.2. (or) Use via a single Styles object:
+Or through a `Styles` object:
 
 ```python
 styles = Styles()
-styles.use_html()                 # force HTML
-styles.use_markdown()             # force Markdown
-styles.set_parse_mode("markdown") # force Markdown ↰
-print(styles.bold("Text"))        # print as markdown
+styles.bold("Text")    # creates bold text
+styles.italic("Text")  # creates italic text
+styles.group("Hello ", styles.bold("Romashka"), "!")  # combining
 ```
-
-Styles() allows switching between HTML and Markdown easily without changing code.
-
-3. The same:
-
-```python
-print(Bold("Text").markdown)
-print(Bold("Text", parse_mode="markdown"))
-```
-
-## Combining styles:
-
-Combine multiple styles
-
-```python
-text = Strikethrough(Bold("...") + Italic("..."))
-text = styles.strike(styles.bold("...") + styles.italic())
-```
-
-"+" joins text objects, and the outer style (Strikethrough) applies to the whole result.
 
 ---
 
-## Example
+## 3. Combining styles
+
+You can combine multiple styles:
+
+```python
+text = Strikethrough(Bold("Bold") + Italic("Italic"))
+text = styles.strike(styles.bold("Bold") + styles.italic("Italic"))
+```
+
+- `+` joins text objects.
+- The outer style applies to the entire result.
+
+Grouping:
+
+```python
+styles.group("Hello ", styles.bold("Romashka"), "!")
+```
+
+---
+
+## 4. Sanitizing text
+
+- **set_text**: strings remain unchanged, HTML/Markdown tags are not modified.  
+  To safely include user input, use `styles.sanitize(...)`.
+
+```python
+# Simple HTML, not sanitized
+self.chain.sender.set_text("<b>Romashka</b>")
+
+# HTML displayed as bold
+self.chain.sender.set_parse_mode("html")
+self.chain.sender.set_text("<b>Romashka</b>")
+
+# Sanitized — HTML tags are escaped
+styles = self.chain.sender.styles
+self.chain.sender.set_text(styles.sanitize("<b>Romashka</b>"))  # &lt;b&gt;Romashka&lt;/b&gt;
+```
+
+- **set_title and set_message**: strings are **sanitized by default**:
+
+```python
+# HTML tags will be escaped
+self.chain.sender.set_title("<i>Hello, user!</i>")
+
+# Without sanitization (tags work)
+styles = self.chain.sender.styles
+self.chain.sender.set_title(styles.no_sanitize("<i>Hello, user!</i>"))
+```
+
+---
+
+## 5. Example
 
 ```python
 import telekit
@@ -84,15 +130,22 @@ class NameHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.text().invoke(cls.greet) # accepts all text messages
+        cls.on.text().invoke(cls.greet)
 
     def greet(self):
         styles = self.chain.sender.styles
-        text = styles.underline(styles.bold("Bold"), " and ", styles.italic("Italic"))
-        self.chain.sender.set_text(text)
+        self.chain.sender.set_text(
+            styles.underline(
+                "Hello, ", styles.bold("Dangerous username")
+            )
+        )
         self.chain.send()
 
 telekit.Server("BOT_TOKEN").polling()
 ```
 
+---
 
+This structure ensures that beginners can safely use HTML or Markdown tags while giving full control over styling and text safety.
+
+[Handler »](5_handler.md)

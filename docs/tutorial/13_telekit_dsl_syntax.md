@@ -153,33 +153,51 @@ You can use the following attributes for any scene, including `@main` and `@time
 
 ## Configuration Block
 
-Block "config" starting with $ is used for global configuration.
+Configuration block starting with $ is used for global configuration.
 Unlike scenes (@), configuration block don’t create a UI — it just set parameters for the whole script.
 
 ```js
-$ config {
-    // set global timeout
-    timeout = 10; // disabled by default
+$ {
+    // set global timeout (optional)
+    timeout_time    = 10; // disabled by default
+    timeout_message = "Are you still here?";
+    timeout_label   = "Yes, i'm here";
+}
+```
+
+You can also save time by creating a named block:
+
+```js
+$ timeout {
+    time    = 10;
+    message = "Are you still here?";
+    label   = "Yes, i'm here";
 }
 ```
 
 ## Timeout
 
-The `@timeout` scene is a special (magic) scene that appears automatically after the specified timeout period.  
-To enable it, define the timeout duration in seconds inside `$config`, and then create a `@timeout` scene.
+Timeouts help prevent unnecessary memory usage when a user stops interacting with your bot for a long period of time.  
+So, you can configure a timeout that clears all callbacks associated with a chat after a specified period of inactivity:
 
 ```js
-$ config {
-    // set timeout time in seconds
-    timeout = 10;
-}
-
-@ timeout {
-    title   = "⏰ Timeout";
-    message = "Send /faq again";
-    // ... you can use any attributes except buttons
+$ timeout {
+    time = 10; // 10 seconds
 }
 ```
+
+But before clearing the callbacks, the bot must confirm that the user is really inactive.
+So when the timeout expires, it will first show a confirmation message:
+
+```js
+$ timeout {
+    time    = 10;
+    message = "Are you still here?"; // optional
+    label   = "Yes, i'm here";       // optional
+}
+```
+
+If the user clicks the "Yes, I’m here" button, they will continue from where they left off.
 
 ---
 

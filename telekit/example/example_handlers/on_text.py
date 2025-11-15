@@ -57,10 +57,10 @@ class OnTextHandler(telekit.Handler):
         #   Strikethrough(Bold("...") + Italic("..."))
         #   styles.strike(styles.bold("...") + styles.italic())
 
-        self.chain.sender.set_title(f"Hello {styles.italic(name)}!")
+        self.chain.sender.set_title(styles.group("Hello, ", styles.italic(name), "!"))
         self.chain.sender.set_message(
-            f"{styles.bold(age)} years is a wonderful stage of life!\n" 
-            f"{styles.quote(f'(You can customize styles using "sender.styles.*")')}"
+            styles.bold(age), " years is a wonderful stage of life!\n", 
+            styles.quote('(You can customize styles using "sender.styles.*")')
         )
         self.chain.send()
 
@@ -69,10 +69,11 @@ class OnTextHandler(telekit.Handler):
         self.chain.sender.set_title(f"🦻 On Text Handler")
         self.chain.sender.set_message(
             "Try sending any of these example phrases to see the handler in action:\n\n"
-            f"- {code('Name: John. Age: 25')}\n"
-            f"- {code('My name is Alice and I am 30 years old')}\n"
-            f"- {code('My name is Romashka')}\n"
-            f"- {code('I\'m 18 years old')}\n\n"
+
+            f"- ", code('Name: John. Age: 25'), "\n"
+            f"- ", code('My name is Alice and I am 30 years old'), "\n"
+            f"- ", code('My name is Romashka'), "\n"
+            f"- ", code('I\'m 18 years old'), "\n\n"
             f"The bot will respond according to the information you provide."
         )
         self.chain.send()

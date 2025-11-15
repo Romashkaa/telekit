@@ -87,7 +87,10 @@ class Parser:
 
     def parse_config_block(self):
         self.expect("op", "$")
-        name = self.expect("kw").value
+        if self.token().type == "kw":
+            name = self.expect("kw").value
+        else:
+            name = ""
         self.expect("punc", "{")
 
         block = ConfigBlock(name=name)
