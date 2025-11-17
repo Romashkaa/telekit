@@ -160,7 +160,7 @@ class Builder:
 
         scene_data: dict[str, Any] = {"name": name}
 
-        if name in ("back", "restart"):
+        if name in ("back",):
             raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
 
         # check required fields

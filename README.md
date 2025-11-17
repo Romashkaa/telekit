@@ -27,7 +27,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
 [Telegram](https://t.me/+wu-dFrOBFIwyNzc0)
-[Tutorial](docs/tutorial/0_tutorial.md)
+[Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
 
 ## Contents
 
@@ -78,7 +78,7 @@ class NameHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-Let’s examine each element individually...
+... and examine each element individually...
 
 ## Message formatting:
 
@@ -138,7 +138,7 @@ Combine multiple styles:
 text = styles.strike(styles.bold("Hello") + styles.italic("World!"))
 ```
 
-For more details, [see our tutorial](docs/tutorial/0_tutorial.md)
+For more details, [see our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
 
 ## Handling callbacks and Logic
 If your focus is on logic and functionality, Telekit is the ideal library:
@@ -268,13 +268,13 @@ class NameAgeHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-For a full walkthrough, [check out our tutorial](docs/tutorial/0_tutorial.md)
+For a full walkthrough, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
 
 ---
 
 # Examples and Solutions
 
-If you're unsure how the examples work, [check out our tutorial](docs/tutorial/0_tutorial.md) for a full walkthrough.
+If you're unsure how the examples work, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) for a full walkthrough.
 
 ## Counter
 
@@ -352,9 +352,9 @@ telekit.TelekitDSL.from_string("""...Telekit DSL...""", ["start"])
 telekit.Server(TOKEN).polling()
 ```
 
-For more details on the syntax, see the [Telekit DSL Syntax reference](docs/tutorial/11_telekit_dsl.md).  
+For more details on the syntax, see the [Telekit DSL Syntax reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md).  
 
-For a complete, step-by-step walkthrough, [check out our full tutorial](docs/tutorial/0_tutorial.md).
+For a complete, step-by-step walkthrough, [check out our full tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md).
 
 ## Registration
 
@@ -558,7 +558,7 @@ class DialogueHandler(telekit.Handler):
         self.chain.send()
 ```
 
-If you're unsure how the examples work, [check out our tutorial](docs/tutorial/0_tutorial.md) for a full walkthrough.
+If you're unsure how the examples work, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) for a full walkthrough.
 
 ## Developer 
 

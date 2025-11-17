@@ -30,6 +30,7 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
 - Renamed `GuideMixin`, now `TelekitDSL.Mixin`.
 - Telekit DSL: 
     - Added three types `none`, `true`, and `false` — accepted in any letter case (NONE, True, fAlSe, etc.).
+    - Parser prevents creation of scenes with reserved name `back`.
     - New syntax:
         - new `row_width` syntax: `buttons[2]` -> `buttons(2)`.
         - new “buttons without label” behavior. [See details](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label).
@@ -61,23 +62,10 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
     - now `none`
 - changed `buttons[2]` -> `buttons(2)` - DSL
 
-## Planned:
-- Display a warning in the DSL when a string contains too many buttons or excessive text.  
-- Add a `restart` button in the DSL for timeouts, which simulates a `self.message.text` message.  
-- Automatically create a `@timeout` block if it is missing, loading the previous scene while replacing buttons:  
+## Delayed until v1.1.0
+- Display a warning in the DSL when a string contains too many buttons or excessive text.
+- Support localization for the effect of the `self.user.enable_logging()` method (currently applied globally).
 
-$```js
-@timeout {
-    // load previous scene
-    buttons {
-        restart; // uses restart_button_label
-    }
-}
-$```
-
-- Prevent creation of scenes with reserved names: `back` or `restart`.  
-- `restart_button_label = "Restart"` – default label for the restart button (configurable in `$config { }`).  
-- Support localization for the effect of the `self.user.enable_logging()` method (currently applied globally).  
 ---
 
 Old release notes are available in previous commits.
