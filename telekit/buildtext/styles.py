@@ -30,8 +30,8 @@ class Code(StyleFormatter):
 
 
 class Python(StyleFormatter):
-    markdown_symbol = ('\n```python', '\n```\n')
-    html_tag = ('\n<pre language="python">', "\n</pre>\n")
+    markdown_symbol = ('```python', '\n```\n')
+    html_tag = ('<pre language="python">', "\n</pre>\n")
 
 
 class Spoiler(StyleFormatter):
@@ -40,8 +40,8 @@ class Spoiler(StyleFormatter):
 
 
 class Quote(StyleFormatter):
-    markdown_symbol = ('\n', '\n')
-    html_tag = ('\n<blockquote>', '</blockquote>\n')
+    markdown_symbol = ('', '\n')
+    html_tag = ('<blockquote>', '</blockquote>\n')
 
 class Sanitize(StyleFormatter):
     markdown_symbol = ('', '')

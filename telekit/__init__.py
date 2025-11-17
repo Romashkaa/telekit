@@ -5,13 +5,13 @@ from .handler import Handler
 from .chain import Chain, TextDocument
 from .callback_query_handler import CallbackQueryHandler
 from .server import Server, example
-from .snapvault import Vault # type: ignore
+from .snapvault import Vault
 from .chapters import chapters
 from .user import User
 from .telekit_dsl.telekit_dsl import TelekitDSL
 from . import senders
+from . import styles
 
-from .buildtext import styles
 Styles = styles.Styles
 
 from .logger import enable_file_logging
@@ -22,17 +22,22 @@ class types:
 
 __all__ = [
     "types", 
+
     "styles",
     "Styles", 
-    "Server", 
-    "Chain", 
-    "Handler", 
+
+    "enable_file_logging",
     "User", 
     "TelekitDSL",
     "Vault", 
     "chapters", 
+
     "example",
+
+    "Server", 
+    "Chain", 
+    "Handler", 
+
     "CallbackQueryHandler", 
     "senders", 
-    "enable_file_logging"
 ]
