@@ -143,9 +143,17 @@ class TelekitDSLMixin(telekit.Handler):
 
             # keyboard
             keyboard: dict = {}
+            has_back_button = False
 
-            for btn_label, btn_scene in scene.get("buttons", {}).items():
-                keyboard[btn_label] = self.prepare_scene(btn_scene)
+            for button_label, button_scene in scene.get("buttons", {}).items():
+                keyboard[button_label] = self.prepare_scene(button_scene)
+
+                if "back" in button_scene:
+                    has_back_button = True
+
+            if not has_back_button:
+                self.history.clear()
+                self.history.append(scene_name)
 
             self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
             self.chain.edit()

@@ -7,15 +7,11 @@ from telebot import TeleBot
 from telebot.types import (
     Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
-from html import escape
-
-from telekit import buildtext
 
 from .logger import logger
 library = logger.library
 
-from telekit.buildtext.formatter import StyleFormatter, Composite
-from telekit.buildtext.styles import NoSanitize
+from telekit.styles import NoSanitize, StyleFormatter, Composite, Styles
 
 class TempBuffer:
 
@@ -151,7 +147,7 @@ class BaseSender:
 
         self.photo = photo
 
-        self.styles = buildtext.Styles()
+        self.styles = Styles()
 
         self.media = []
 
@@ -551,7 +547,7 @@ class AlertSender(BaseSender):
         else:
             super().set_parse_mode("html")
 
-        title = self.styles.bold(self._title) if self._title else None
+        title = self.styles.bold(NoSanitize(self._title)) if self._title else None
 
         if self._message:
             if isinstance(self._message, (str, StyleFormatter)):
@@ -559,7 +555,7 @@ class AlertSender(BaseSender):
             else:
                 parts = self._message
 
-            message = Composite(*parts)
+            message = NoSanitize(*parts)
 
             if self._use_italics:
                 message = self.styles.italic(message)

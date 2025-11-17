@@ -7,7 +7,7 @@ It allows you to:
 - combine multiple styles in a single string;
 - **sanitize** user input to prevent breaking HTML/Markdown tags.
 
-`Styles` can be used **through the sender** or **manually**.
+Styles can be used **through the sender** or **manually**.
 
 ---
 
@@ -35,37 +35,34 @@ self.chain.sender.set_parse_mode("html")
 self.chain.send()
 ```
 
-You can easily switch between HTML and Markdown without changing the code:
-
-```python
-print(styles.bold("Text").markdown) # *Text*
-print(styles.bold("Text").html)     # <b>Text</b>
-print(styles.bold("Text").none)     # Text
-```
-
 ---
 
 ## 2. Manual usage
 
-Import all styles:
+Import `Styles` from `telekit.styles`:
 
 ```python
-from telekit.buildtext.styles import *
+from telekit.styles import Styles
+
+styles = Styles()
+styles.bold("Bold") + styles.italic("Italic")
 ```
 
-Using individual styles:
+Or use individual styles:
 
 ```python
+from telekit.styles import Bold, Italic
 Bold("Bold") + Italic("Italic")
 ```
 
-Or through a `Styles` object:
+You can easily switch between HTML and Markdown without changing the code:
 
 ```python
-styles = Styles()
-styles.bold("Text")    # creates bold text
-styles.italic("Text")  # creates italic text
-styles.group("Hello ", styles.bold("Romashka"), "!")  # combining
+text = Bold("Bold") + " and " + Italic("Italic")
+
+print(text.markdown) # *Bold* and _Italic_
+print(text.html)     # <b>Bold</b> and <i>Italic</i>
+print(text.none)     # Bold and Italic
 ```
 
 ---
@@ -75,8 +72,8 @@ styles.group("Hello ", styles.bold("Romashka"), "!")  # combining
 You can combine multiple styles:
 
 ```python
-text = Strikethrough(Bold("Bold") + Italic("Italic"))
-text = styles.strike(styles.bold("Bold") + styles.italic("Italic"))
+Strikethrough(Bold("Bold") + Italic("Italic"))
+styles.strike(styles.bold("Bold") + styles.italic("Italic"))
 ```
 
 - `+` joins text objects.
@@ -86,6 +83,7 @@ Grouping:
 
 ```python
 styles.group("Hello ", styles.bold("Romashka"), "!")
+Group("Hello ", Bold("Romashka"), "!")
 ```
 
 ---
@@ -96,27 +94,38 @@ styles.group("Hello ", styles.bold("Romashka"), "!")
   To safely include user input, use `styles.sanitize(...)`.
 
 ```python
-# Simple HTML, not sanitized
-self.chain.sender.set_text("<b>Romashka</b>")
+# If parse_mode=None, the text is not sanitized
+# and will be displayed literally as "<b>Romashk</b>" in the chat
+self.chain.sender.set_text("<b>Romashka</b>")       # "<b>Romashk</b>"
+self.chain.sender.set_text("<b>Romashka<i></b>")    # "<b>Romashk<i></b>"
 
-# HTML displayed as bold
+# The text will be displayed literally as "Romashka"
+self.chain.sender.set_text(Bold("Romashka"))     # "Romashka"
+self.chain.sender.set_text(Bold("Romashka<i>"))  # "Romashka<i>"
+
+# HTML formatting enabled; text is not sanitized
+# Any HTML tags will be interpreted by Telegram
 self.chain.sender.set_parse_mode("html")
-self.chain.sender.set_text("<b>Romashka</b>")
+self.chain.sender.set_text("<b>Romashka</b>")    # Bold "Romashka"
+self.chain.sender.set_text("<b>Romashka<i></b>") # Error code: 400.
+
+# HTML formatting enabled; text is sanitized
+self.chain.sender.set_parse_mode("html")
+self.chain.sender.set_text(Bold("Romashka"))     # Bold "Romashka"
+self.chain.sender.set_text(Bold("Romashka<i>"))  # Bold "Romashka<i>"
 
 # Sanitized — HTML tags are escaped
-styles = self.chain.sender.styles
-self.chain.sender.set_text(styles.sanitize("<b>Romashka</b>"))  # &lt;b&gt;Romashka&lt;/b&gt;
+self.chain.sender.set_text(Sanitize("<b>Romashka</b>")) # "<b>Romashka</b>"
 ```
 
-- **set_title and set_message**: strings are **sanitized by default**:
+- **set_title** and **set_message** behave similarly, BUT:
+  1. If `parse_mode` was not set previously, they automatically set it to `"HTML"`.
+  2. **set_title** automatically applies **Bold** to the text.
+  3. **set_message** automatically applies **Italic** to the text.
 
 ```python
-# HTML tags will be escaped
-self.chain.sender.set_title("<i>Hello, user!</i>")
-
-# Without sanitization (tags work)
-styles = self.chain.sender.styles
-self.chain.sender.set_title(styles.no_sanitize("<i>Hello, user!</i>"))
+# HTML tags will be interpreted:
+self.chain.sender.set_title("<i>Hello, user!</i>") # Bold + Italic "Hello, user!"
 ```
 
 ---
@@ -126,6 +135,8 @@ self.chain.sender.set_title(styles.no_sanitize("<i>Hello, user!</i>"))
 ```python
 import telekit
 
+from telekit.styles import Sanitize, Underline
+
 class NameHandler(telekit.Handler):
 
     @classmethod
@@ -133,12 +144,12 @@ class NameHandler(telekit.Handler):
         cls.on.text().invoke(cls.greet)
 
     def greet(self):
-        styles = self.chain.sender.styles
         self.chain.sender.set_text(
-            styles.underline(
-                "Hello, ", styles.bold("Dangerous username")
+            Underline(
+                "Hello, ", Sanitize("Dangerous <i>username")
             )
         )
+        self.chain.sender.set_parse_mode("html")
         self.chain.send()
 
 telekit.Server("BOT_TOKEN").polling()
