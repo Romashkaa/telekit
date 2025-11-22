@@ -34,11 +34,11 @@ For example:
 
 ```python
 self.chain.sender.set_text(
-    f"{Bold("Bold")} and {Italic("Italic")}" # Може використатися різні parse_mode
+    f"{Bold("Bold")} and {Italic("Italic")}"
 )
 ```
 
-Here the styles are already converted to text, so the sender no longer knows which formatting mode each part needs.
+Here the styles are already converted to text, so there is a possible mismatch between the sender and the intended style formatting
 
 ---
 

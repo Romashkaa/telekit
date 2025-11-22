@@ -24,6 +24,12 @@ self.chain.sender.set_title("Hola!")
 self.chain.sender.set_message("Something below...")
 ```
 
+You can also add a line at the end without effort:
+
+```python
+self.chain.sender.add_message("\nNew Line!")
+```
+
 Use structured messages when you want to separate the main title from additional content. Simple messages are best for quick replies.
 
 ## Formatting & Replying
@@ -137,6 +143,42 @@ class NameHandler(telekit.Handler):
         self.chain.sender.set_message(f"Your ad has been sent to {recipients} recipients.")
         self.chain.sender.set_effect(self.chain.sender.Effect.FIRE)
         self.chain.send()
+```
+
+- `add_message` method + styling
+
+```python
+import telekit
+
+from telekit.styles import Group, Sanitize, Quote
+
+class Start(telekit.Handler):
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.command("start").invoke(cls.start)
+
+    def start(self):
+        self.chars = iter("ROMASHKA")
+
+        self.chain.sender.set_title(Group("Hello, ", Sanitize(self.user.first_name), "!"))
+        self.chain.sender.set_message(
+            "Quote of the Day:\n",
+            Quote("The only way out is through."),
+            "- "
+        )
+        self.chain.sender.set_use_italics(False)
+        self.chain.set_timeout(self.update, 1)
+        self.chain.send()
+
+    def update(self):
+        char = next(self.chars, None)
+
+        if not char:
+            return
+        
+        self.chain.set_timeout(self.update, 1)
+        self.chain.sender.add_message(f"{char}")
+        self.chain.edit()
 ```
 
 [Text Styling »](4_text_styling.md) 

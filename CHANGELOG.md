@@ -27,6 +27,7 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
 - New methods:
   - `sender.set_media(...)`
   - `chain.create_sender(chat_id)`
+  - `sender.add_message(...)`
 
 ### Telekit Utilities
 - `telekit.enable_file_logging()`  

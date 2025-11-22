@@ -1,7 +1,7 @@
 from typing import Any
 
-import telebot # type: ignore
-from telebot.types import ( # type: ignore
+import telebot
+from telebot.types import (
     Message, 
     InaccessibleMessage,
     CallbackQuery
@@ -22,8 +22,8 @@ class CallbackQueryHandler:
         """
         cls.bot = bot
 
-        @bot.callback_query_handler(func=lambda call: True) # type: ignore
-        def handle_callback(call: telebot.types.CallbackQuery) -> None: # type: ignore
+        @bot.callback_query_handler(func=lambda call: True)
+        def handle_callback(call: telebot.types.CallbackQuery) -> None:
             CallbackQueryHandler().handle(call)
 
     def handle(self, call: CallbackQuery):
@@ -44,16 +44,16 @@ class CallbackQueryHandler:
         args["content_type"] = "text"
         args["options"]      = {}
 
-        if any(value is None for value in args.values()): # type: ignore
+        if any(value is None for value in args.values()):
             return print("Error: Missing required fields in message simulation.")
         
         original_message = message
 
-        message = Message(**args) # type: ignore
+        message = Message(**args)
         message.message_thread_id = getattr(original_message, "message_thread_id", None)
         message.text = text
 
         if message.from_user:
             message.from_user.is_bot = is_bot
 
-        self.bot.process_new_messages([message]) # type: ignore
+        self.bot.process_new_messages([message])
