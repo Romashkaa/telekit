@@ -173,5 +173,7 @@ class ChainBase:
     def _cancel_timeout(self):
         self._timeout_handler.cancel()
 
+    # Timeout API
+
     def disable_timeout_warnings(self, value: bool = True) -> None:
         self._timeout_warnings_enabled = not value
