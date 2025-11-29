@@ -18,6 +18,8 @@ from . import timeout
 class ChainBase:
 
     bot: telebot.TeleBot
+
+    _timeout_warnings_enabled: bool = True
     
     @classmethod
     def init(cls, bot: telebot.TeleBot):
@@ -165,8 +167,11 @@ class ChainBase:
     def _set_timeout_time(self, seconds: int=0, minutes: int=0, hours: int=0):
         self._timeout_handler.set_time(seconds, minutes, hours)
     
-    def _start_timeout(self):
-        self._timeout_handler.maybe_start()
+    def _start_timeout(self) -> bool:
+        return self._timeout_handler.maybe_start()
 
     def _cancel_timeout(self):
         self._timeout_handler.cancel()
+
+    def disable_timeout_warnings(self, value: bool = True) -> None:
+        self._timeout_warnings_enabled = not value

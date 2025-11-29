@@ -10,7 +10,7 @@ import telebot
 __all__ = ["init"]
 
 def init(bot: telebot.TeleBot) -> None:
-    BaseSender.init(bot)
+    BaseSender._init(bot)
     Handler.init(bot)
     Chain.init(bot)
     InputHandler.init(bot)

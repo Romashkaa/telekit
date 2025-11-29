@@ -206,15 +206,14 @@ class Parser:
             return t.value
         
         if t.type == "kw":
+            self.next()
             if t.value.lower() == "none":
-                self.next()
                 return None
             if t.value.lower() == "false":
-                self.next()
                 return False
             if t.value.lower() == "true":
-                self.next()
                 return True
+            return t.value
 
         if t.value == "[":
             self.next()

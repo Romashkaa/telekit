@@ -11,6 +11,10 @@ from telebot.types import Message
 # Local modules
 from . import senders
 
+# Logging
+from .logger import logger
+library = logger.library
+
 # Chain modules
 from .chain_inline_keyboards_logic import ChainInlineKeyboardLogic
 from .chain_entry_logic import ChainEntryLogic, TextDocument
@@ -103,14 +107,20 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
 
     
     def _send(self)  -> Message | None:
-        self._start_timeout()
-        self.handler.handle_next_message()
+        _timeout = self._start_timeout()
+        _handler = self.handler.handle_next_message()
 
         message = self.sender.send_or_handle_error()
 
         # reset edit target and store new previous message
         self.sender.set_edit_message(None)
         self._previous_message = message
+
+        if self._timeout_warnings_enabled and _handler and not _timeout:
+            library.warning(
+                "Next-message handler is active, but no timeout was set for the chain. "
+                "This may cause the bot to wait indefinitely."
+            )
 
         return message
     

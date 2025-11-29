@@ -11,11 +11,14 @@ def analyze(src: str):
 
     return data
 
+MAGIC_SCENES = builder.MAGIC_SCENES
+
 __all__ = [
     "analyze",
     "lexer",
     "parser",
     "builder",
     "token",
-    "nodes"
+    "nodes",
+    "MAGIC_SCENES"
 ]

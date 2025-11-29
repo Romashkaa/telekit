@@ -1,4 +1,4 @@
-# 1.0.0 (BETA 3)
+# 1.0.0 (BETA 4)
 
 **Overview:**  
 This release makes creating triggers simpler, styling messages easier, and the DSL smarter. We removed tricky `Chain` workarounds that could cause unexpected behavior, improved automatic handling of HTML and Markdown in messages, and added powerful new styles. Everything is now safer, cleaner, and more intuitive for developers.
@@ -21,6 +21,13 @@ cls.on.command("start").invoke(cls.handle_start)
 cls.on.text("My name is {name}").invoke(cls.handle_name)
 ```
 
+- New handlers:
+
+```python
+cls.on.regexp()
+cls.on.photo()
+```
+
 ### Sender Improvements
 - **Automatic HTML and Markdown handling** – processes HTML tags and Markdown formatting applied via `Bold(...)`, `Sanitize(...)`, etc.  
 - **Enhanced Sender logic** – automatically sanitizes content in style blocks and assigns the correct `parse_mode`.  
@@ -34,15 +41,21 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
 
 ### Telekit DSL
 - Added types: `none`, `true`, `false` (case-insensitive)  
-- Parser prevents creation of scenes with reserved name `back`  
+- Parser prevents creation of scenes with reserved name `back`.
+- Added a new magic button `next` that moves to the next scene based on the order in the file, skipping all scenes whose names start with `"_"`. Example: `next("Next »")`.
+  - You can override this order using the `next_order` config variable, e.g. `next_order = [homepage, rules, question_1]`.
 - New syntax:
   - `row_width` syntax: `buttons[2]` → `buttons(2)`  
 - `TelekitDSL.from_file(...)` and `TelekitDSL.from_string(...)`  
 - Renamed `GuideMixin` → `TelekitDSL.Mixin`
   - Buttons without labels supported ([details](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label))  
 - Full Telekit DSL Documentation updated
+- Added `TelekitDSL.MAGIC_SCENES` — a list of reserved scene names.
+- Values placed in contexts where they cannot act as variables (e.g., inside lists) are now automatically treated as string literals.
 
 ### Chain Utilities
+- A warning is now shown if you send a message that expects user interaction (inline keyboard / entry handler) without defining a `timeout`.
+- `self.chain.disable_timeout_warnings()` allows disabling timeout warnings for the current chain instance.
 - `handler.new_chain() -> None` - creates a new chain
 - `chain.remove_all_handlers()` – removes all callback handlers  
 - `chain.remove_timeout()` – removes active timeout  
@@ -77,7 +90,3 @@ cls.on.text("My name is {name}").invoke(cls.handle_name)
 ## ⏳ Delayed until v1.1.0
 - DSL warning for strings with too many buttons or excessive text  
 - Localization support for `self.user.enable_logging()` (currently global)
-
----
-
-Old release notes are available in previous commits.

@@ -54,7 +54,7 @@ class InputHandler:
         """
         self.entry_callback = entry_callback
 
-    def handle_next_message(self) -> None:
+    def handle_next_message(self) -> bool:
         def handler(message: Message) -> None:
             if self.callback_functions:
                 self.handle_callback(message)
@@ -67,6 +67,9 @@ class InputHandler:
         
         if self.callback_functions or self.entry_callback:
             self.bot.register_next_step_handler_by_chat_id(self.chat_id, handler)
+            return True
+        
+        return False
 
     def handle_callback(self, message: Message) -> None:
         """

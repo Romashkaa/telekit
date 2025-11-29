@@ -88,7 +88,7 @@ class BaseSender:
     bot: TeleBot
 
     @classmethod
-    def init(cls, bot: TeleBot):
+    def _init(cls, bot: TeleBot):
         """
         Initializes the bot instance for the class.
 

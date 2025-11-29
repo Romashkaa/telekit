@@ -12,9 +12,10 @@ class TelekitDSL:
     """
 
     Mixin = mixin.TelekitDSLMixin
+    MAGIC_SCENES = mixin.MAGIC_SCENES
 
     @classmethod
-    def from_file(cls, path: str, on_commands: list[str]=["/help"]):
+    def from_file(cls, path: str, on_commands: list[str]=["help"]):
         """
         Creates a handler class that loads a Telekit DSL script from a file.
 
@@ -25,14 +26,14 @@ class TelekitDSL:
             path (str): Path to the DSL script file.
             on_commands (list[str]): List of bot commands that will trigger this DSL.
         """
-        class DefaultTelekitDSLHandler(cls.Mixin):
+        class DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
             @classmethod
             def init_handler(cls) -> None:
                 cls.on.message(on_commands).invoke(cls.start_script)
                 cls.analyze_file(path)
 
     @classmethod
-    def from_string(cls, source: str, on_commands: list[str]=["/help"]):
+    def from_string(cls, source: str, on_commands: list[str]=["help"]):
         """
         Creates a default handler class that loads a Telekit DSL script from a source string.
 
@@ -43,7 +44,7 @@ class TelekitDSL:
             source (str): The DSL script as a string.
             on_commands (list[str]): List of bot commands that will trigger this DSL.
         """
-        class DefaultTelekitDSLHandler(cls.Mixin):
+        class DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
             @classmethod
             def init_handler(cls) -> None:
                 cls.on.message(on_commands).invoke(cls.start_script)

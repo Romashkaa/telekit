@@ -6,6 +6,7 @@ from . import parser
 import telekit
 
 from typing import NoReturn, Any
+MAGIC_SCENES = parser.MAGIC_SCENES
 
 class TelekitDSLMixin(telekit.Handler):
 
@@ -67,26 +68,39 @@ class TelekitDSLMixin(telekit.Handler):
             raise RuntimeError("Guide data not loaded. Call `analyze_file` or `analyze_source` first.")
         
         # initialize history
-        self.history = []
+        self.history: list[str] = []
 
         # check if 'scenes' exists and is a dictionary
         if "scenes" not in self.data:
-            raise KeyError("Missing 'scenes' key in guide data.")
+            raise KeyError("Missing 'scenes' key in script data.")
         if not isinstance(self.data["scenes"], dict):
             raise TypeError("'scenes' should be a dictionary.")
         self.scenes: dict[str, dict] = self.data["scenes"]
 
+        # check if 'order' exists and is a dictionary
+        if "order" not in self.data:
+            raise KeyError("Missing 'order' key in script data.")
+        if not isinstance(self.data["order"], list):
+            raise TypeError("'order' should be a list of strings.")
+        self.order: list[str] = self.data["order"]
+
         # check if 'config' exists and is a dictionary
         if "config" not in self.data:
-            raise KeyError("Missing 'config' key in guide data.")
+            raise KeyError("Missing 'config' key in script data.")
         if not isinstance(self.data["config"], dict):
             raise TypeError("'config' should be a dictionary.")
         self.config = self.data["config"]
 
-        self._timeout = self.config.get("timeout_time", 0)
-        if isinstance(self._timeout, int):
-            self.chain.set_timeout(self._on_timeout, self._timeout)
+        # timeout
+        self._timeout_time = self.config.get("timeout_time", 0)
+        if isinstance(self._timeout_time, int):
+            self.chain.set_timeout(self._on_timeout, self._timeout_time)
         self.chain.set_remove_timeout(False)
+
+        # next_order
+        self._next_order: list[str] | None = self.config.get("next_order")
+        if not isinstance(self._next_order, list):
+            raise TypeError("'next_order' config should be a list of strings.")
 
         # start the main scene
         self.prepare_scene("main")()
@@ -101,8 +115,26 @@ class TelekitDSLMixin(telekit.Handler):
         self.chain.edit()
 
     def _continue(self):
-        self.chain.set_timeout(self._on_timeout, self._timeout)
+        self.chain.set_timeout(self._on_timeout, self._timeout_time)
         self.prepare_scene(self.history.pop())()
+
+    def _get_next_scene_name(self):
+        if not self._next_order:
+            raise ValueError("cannot use Next button: order is not defined")
+
+        for item in self.history[::-1]:
+            if item not in self._next_order:
+                continue
+
+            index = self._next_order.index(item)
+
+            # check that next index exists
+            if index + 1 >= len(self._next_order):
+                raise IndexError("next_order index out of range: no next scene defined")
+
+            return self._next_order[index + 1]
+
+        raise ValueError("cannot determine next scene: no matching history entry")
 
     def prepare_scene(self, _scene_name: str):
         """Prepare page"""
@@ -110,14 +142,17 @@ class TelekitDSLMixin(telekit.Handler):
             # magic scenes logic
 
             scene_name = _scene_name
-
-            match scene_name:
-                case "back":
-                    if self.history:
-                        self.history.pop() # current
-                    if self.history:
-                        scene_name = self.history.pop()
             
+            if scene_name in MAGIC_SCENES:
+                match scene_name:
+                    case "back":
+                        if self.history:
+                            self.history.pop() # current
+                        if self.history:
+                            scene_name = self.history.pop()
+                    case "next":
+                        scene_name = self._get_next_scene_name()
+
             self.history.append(scene_name)
 
             # main logic

@@ -35,10 +35,13 @@ class TimeoutHandler:
     def set_callback(self, callback: Callable):
         self.callback = callback
 
-    def maybe_start(self):
+    def maybe_start(self) -> bool:
         if self.callback and self.total_seconds:
             self.timeout = Timeout(self.callback, self.total_seconds)
             self.timeout.start()
+
+            return True
+        return False
 
     def cancel(self):
         if self.timeout:

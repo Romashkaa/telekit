@@ -4,6 +4,8 @@ from .nodes import *
 class BuilderError(Exception):
     pass
 
+MAGIC_SCENES = ("back", "next")
+
 class Builder:
     def __init__(self, ast: Ast, src: str):
         self.src = src
@@ -11,10 +13,14 @@ class Builder:
         self.result = {
             "config": {},
             "scenes": {},
-            "source": self.src
+            "source": self.src,
+            "order": []
         }
         self.config_blocks: list[dict[str, Any]] = []
-        self.scenes_default_labels: dict[str, str] = {}
+        self.scenes_default_labels: dict[str, str] = {
+            "next": "Next »",
+            "back": "« Back"
+        }
 
     def build(self) -> dict:
         # self.ensure_single_config_block()
@@ -32,6 +38,7 @@ class Builder:
 
         self.finalize_configs()
         self.post_analysis()
+        self.check_last_scene_has_no_next()
 
         return self.result
     
@@ -48,14 +55,10 @@ class Builder:
                 self.scenes_default_labels[item.name] = item.name
     
     def post_analysis(self):
-        # if "timeout" in self.result["config"]:
-        #     if "timeout" not in self.result["scenes"]:
-        #         raise BuilderError("`@ timeout {...}` scene is missing, but defined in `$ config {...}`. Add the scene or remove it from config.")
-
         for scene_name, scene in self.result["scenes"].items():
             for label, target_scene in scene["buttons"].items():
                 if target_scene not in self.result["scenes"]:
-                    if target_scene not in ("back",):
+                    if target_scene not in MAGIC_SCENES:
                         raise BuilderError(
                             f"Button '{label}' in scene '@{scene_name}' points to non-existent scene '@{target_scene}'"
                         )
@@ -63,6 +66,50 @@ class Builder:
         timeout = self.result["config"].get("timeout_time")
         if timeout is not None and timeout <= 0:
             raise BuilderError("Config 'timeout_time' cannot be negative or 0")
+
+        if "next_order" not in self.result["config"]:
+            next_order = ["main"]
+            for scene_name in self.result["order"]:
+                if scene_name != "main" and not scene_name.startswith("_"):
+                    next_order.append(scene_name)
+                
+            self.result["config"]["next_order"] = next_order
+
+        if "main" not in self.result["config"]["next_order"]:
+            self.result["config"]["next_order"] = ["main"] + self.result["config"]["next_order"]
+
+    def check_last_scene_has_no_next(self):
+        next_order = self.result["config"].get("next_order", [])
+        if not next_order:
+            return self.check_next_not_used_when_order_empty()
+
+        last_scene_name = next_order[-1]
+
+        if last_scene_name not in self.result["scenes"]:
+            return
+
+        last_scene = self.result["scenes"][last_scene_name]
+
+        for label, target in last_scene.get("buttons", {}).items():
+            if target == "next":
+                raise BuilderError(
+                    f"Scene '@{last_scene_name}' is last in next_order but contains a Next button ('{label}'). "
+                    f"cannot use 'next' from the final scene in order."
+                )
+            
+    def check_next_not_used_when_order_empty(self):
+        next_order = self.result["config"].get("next_order", [])
+
+        if next_order:
+            return
+
+        for scene_name, scene in self.result["scenes"].items():
+            for label, target in scene.get("buttons", {}).items():
+                if target == "next":
+                    raise BuilderError(
+                        f"Scene '@{scene_name}' uses a Next button ('{label}'), "
+                        f"but next_order is empty. Define next_order or remove the Next button."
+                    )
 
     def ensure_single_config_block(self):
         config_count = 0
@@ -111,33 +158,37 @@ class Builder:
                 fields[key] = value
 
         result = {}
-
-        # requirements = (
-        #     ...
-        # )
-
-        optional = (
+        optional_fields = (
             ("timeout_time", int),
             ("timeout_message", str),
-            ("timeout_label", str)
+            ("timeout_label", str),
+
+            ("next_label", str),
+            ("next_order", list)
         )
 
-        # # required fields
-        # for key, typ in requirements:
-        #     if key not in info.fields:
-        #         raise BuilderError(f"Missing required field '{key}' in info block")
-        #     val = info.fields[key]
-        #     if not isinstance(val, typ):
-        #         raise BuilderError(f"Field '{key}' must be of type {self.type_name(typ)}")
-        #     result[key] = val
+        optional_keys = [key[0] for key in optional_fields]
 
-        # optional fields
-        for key, typ in optional:
+        for key in fields:
+            if key not in optional_keys:
+                raise BuilderError(f"Unknown field: '{key}' — this option is not allowed")
+
+        for key, typ in optional_fields:
             if key in fields:
                 val = fields[key]
                 if not isinstance(val, typ):
                     raise BuilderError(f"Field '{key}' must be of type {self.type_name(typ)}")
                 result[key] = val
+
+        if "next_order" in fields:
+            next_order = fields["next_order"]
+
+            for elem in next_order:
+                if not isinstance(elem, str):
+                    raise BuilderError("Field 'next_order' must be list of strings")
+                
+            if len(next_order) != len(set(next_order)):
+                raise BuilderError("Field 'next_order' must contain only unique values")
 
         self.result["config"] = result
 
@@ -160,7 +211,7 @@ class Builder:
 
         scene_data: dict[str, Any] = {"name": name}
 
-        if name in ("back",):
+        if name in MAGIC_SCENES:
             raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
 
         # check required fields
@@ -223,4 +274,5 @@ class Builder:
                 scene_data["buttons"][label] = target
 
         self.result["scenes"][scene.name] = scene_data
+        self.result["order"].append(scene.name)
 

@@ -11,7 +11,7 @@ from .logger import logger
 library = logger.library
 
 if typing.TYPE_CHECKING:
-    from handler import Handler  # only for type hints
+    from handler import Handler # only for type hints
 
 # --------------------------------------------------------
 # Event Handler
@@ -236,4 +236,102 @@ class On:
 
             return original_decorator(wrapped)
 
+        return Invoker(wrapper, self.handler) 
+       
+    def regexp(
+        self,
+        regexp: str,
+        chat_types: list[str] | None = None,
+        whitelist: list[int] | None = None,
+        **kwargs
+    ):
+        """
+        Registers a handler that triggers when an incoming message matches the given regular expression.
+
+        ---
+        ## Example:
+        ```
+        class MyHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls) -> None:
+                cls.on.regexp(r"^\\d+$").invoke(cls.handle)
+
+                # Or define the handler manually:
+                @cls.on.regexp(r"^\\d+$")
+                def handler(message: telebot.types.Message) -> None:
+                    cls(message).handle()
+        ```
+        ---
+
+        Args:
+            regexp (str): Regular expression that must match the message text.
+            chat_types (list[str] | None): Optional list of allowed chat types (e.g., ['private', 'group']).
+            whitelist (list[int] | None): Optional list of chat IDs allowed to trigger this handler.
+            **kwargs: Additional arguments passed to `telebot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
+        """
+        original_decorator = self.bot.message_handler(
+            regexp=regexp,
+            chat_types=chat_types,
+            **kwargs
+        )
+
+        def wrapper(handler: Callable[..., typing.Any]):
+            def wrapped(message, *args, **kw):
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return
+                return handler(message, *args, **kw)
+
+            return original_decorator(wrapped)
+
         return Invoker(wrapper, self.handler)
+    
+    def photo(
+        self,
+        chat_types: list[str] | None = None,
+        whitelist: list[int] | None = None,
+        **kwargs
+    ):
+        """
+        Handles new incoming commands. All message handlers are tested in the order they were added.
+
+        ---
+        ## Example:
+        ```
+        class MyHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls) -> None:
+            
+                cls.on.command("help").invoke(cls.handle)
+            
+                # Or define the handler manually:
+            
+                @cls.on.command("help")
+                def handler(message: telebot.types.Message) -> None:
+                    cls(message).handle()
+        ```
+
+        ---
+
+        Args:
+            *commands (str): List of command strings (e.g., ['start', 'help']) that trigger the handler.
+            chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
+            whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
+        """
+        original_decorator = self.bot.message_handler(
+            content_types=["photo"],
+            chat_types=chat_types,
+            **kwargs
+        )
+
+        def wrapper(handler: Callable[..., typing.Any]):
+            def wrapped(message, *args, **kw):
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return
+                return handler(message, *args, **kw)
+
+            return original_decorator(wrapped)
+
+        return Invoker(wrapper, self.handler) 
