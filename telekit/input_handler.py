@@ -10,7 +10,7 @@ class InputHandler:
     bot: telebot.TeleBot
     
     @classmethod
-    def init(cls, bot: telebot.TeleBot):
+    def _init(cls, bot: telebot.TeleBot):
         """
         Initializes the bot instance for the class.
 

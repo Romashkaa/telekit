@@ -13,7 +13,11 @@ library = logger.library
 
 from telekit.styles import NoSanitize, StyleFormatter, Composite, Styles
 
-class TempBuffer:
+# ---------------------------------------------------------------------------------
+# Temporary Messages Manager
+# ---------------------------------------------------------------------------------
+
+class TemporaryMsgStore:
 
     _temporary_messages: dict[int, set[int]] = {}
 
@@ -53,35 +57,10 @@ class TempBuffer:
             "v.all_temps": len(cls._temporary_messages),
             "v.user_temps": len(cls._temporary_messages.get(chat_id, "")) # type: ignore
         }
-    
-class PagesBuffer:
 
-    _last_pages: dict[int, str] = {}
-    _pages: dict[int, str] = {}
-
-    @classmethod
-    def set_page(cls, chat_id: int, page: str):
-        cls._last_pages[chat_id] = cls._pages.get(chat_id, "")
-        cls._pages[chat_id] = page
-
-    @classmethod
-    def get_page(cls, chat_id: int) -> str:
-        return cls._pages.get(chat_id, "")
-
-    @classmethod
-    def get_last_page(cls, chat_id: int) -> str:
-        return cls._last_pages.get(chat_id, "")
-    
-    @classmethod
-    def debug(cls, chat_id: int | None=None) -> dict[str, int]:
-        return {
-            "pb.all_pages": len(cls._pages),
-            "pb.user_pages": len(cls._pages.get(chat_id, "")), # type: ignore
-
-            "pb.all_last_pages": len(cls._last_pages),
-            "pb.user_last_pages": len(cls._last_pages.get(chat_id, "")) # type: ignore
-        }
-        
+# ---------------------------------------------------------------------------------
+# Base Sender
+# ---------------------------------------------------------------------------------
 
 class BaseSender:
 
@@ -280,10 +259,10 @@ class BaseSender:
         }
     
     def _add_temporary(self, message_id: int):
-        TempBuffer.add_temporary(self.chat_id, message_id)
+        TemporaryMsgStore.add_temporary(self.chat_id, message_id)
 
     def _remove_temporary(self):
-        TempBuffer.remove_temporary(self.bot, self.chat_id)
+        TemporaryMsgStore.remove_temporary(self.bot, self.chat_id)
 
     def _handle_is_temp(self, message: Message | None):
         if self.is_temporary and message:
@@ -486,9 +465,9 @@ class BaseSender:
         if message:
             return message.message_id
         
-
-class TextSender(BaseSender):
-    pass
+# ---------------------------------------------------------------------------------
+# Alert Sender
+# ---------------------------------------------------------------------------------
     
 from enum import Enum, unique
 

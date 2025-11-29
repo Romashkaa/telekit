@@ -11,8 +11,8 @@ __all__ = ["init"]
 
 def init(bot: telebot.TeleBot) -> None:
     BaseSender._init(bot)
-    Handler.init(bot)
-    Chain.init(bot)
-    InputHandler.init(bot)
-    CallbackQueryHandler.init(bot)
-    User.init(bot)
+    Handler._init(bot)
+    Chain._init(bot)
+    InputHandler._init(bot)
+    CallbackQueryHandler._init(bot)
+    User._init(bot)

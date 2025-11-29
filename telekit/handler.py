@@ -37,7 +37,7 @@ class Handler:
         Handler.handlers.append(cls)
     
     @classmethod
-    def init(cls, bot: telebot.TeleBot):
+    def _init(cls, bot: telebot.TeleBot):
         """
         Initializes the bot instance for the handler class and sets up all registered handlers.
 

@@ -22,7 +22,7 @@ class ChainBase:
     _timeout_warnings_enabled: bool = True
     
     @classmethod
-    def init(cls, bot: telebot.TeleBot):
+    def _init(cls, bot: telebot.TeleBot):
         """
         Initializes the bot instance for the class.
 
