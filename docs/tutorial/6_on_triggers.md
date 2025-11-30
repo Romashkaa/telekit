@@ -64,6 +64,6 @@ cls.on.text("Hello").invoke(cls.say_hello) # only `cls.*`
 
 ---
 
-[See all triggers](../documentation/6_on_triggers.md)
-[Next: Chain »](7_chain.md)
+- [See all triggers](../documentation/6_on_triggers.md)
+- [Next: Chain »](7_chain.md)
 

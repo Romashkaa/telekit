@@ -85,5 +85,5 @@ self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
 
 ---
 
-[Read more about Inline Keyboards](../tutorial/8_inline_keyboards.md)
-[Handling User Input (Entries) »](9_entries.md)
+- [Read more about Inline Keyboards](../tutorial/8_inline_keyboards.md)
+- [Handling User Input (Entries) »](9_entries.md)

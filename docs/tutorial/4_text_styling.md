@@ -160,5 +160,5 @@ telekit.Server("BOT_TOKEN").polling()
 
 ---
 
-[See all Styles](../documentation/4_text_styling.md)
-[Hext: Inline Keyboards »](8_inline_keyboards.md)
+- [See all Styles](../documentation/4_text_styling.md)
+- [Hext: Inline Keyboards »](8_inline_keyboards.md)

@@ -122,7 +122,7 @@ class NameHandler(telekit.Handler):
         self.chain.send()
 ```
 
-## `add_message` method + styling
+## Example: `add_message` method
 
 ```python
 import telekit
@@ -158,5 +158,5 @@ class Start(telekit.Handler):
         self.chain.edit()
 ```
 
-[Senders documentation](../documentation/3_senders.md)
-[Next: Text Styling »](4_text_styling.md) 
+- [Senders documentation](../documentation/3_senders.md)
+- [Next: Text Styling »](4_text_styling.md) 

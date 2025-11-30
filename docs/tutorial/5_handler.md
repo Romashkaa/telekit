@@ -33,5 +33,5 @@ class OnTextHandler(telekit.Handler):
         self.chain.send()
 ```
 
-[Learn more about Handler](../documentation/5_handler.md)
-[Next: Triggers »](6_on_triggers.md)
+- [Learn more about Handler](../documentation/5_handler.md)
+- [Next: Triggers »](6_on_triggers.md)
