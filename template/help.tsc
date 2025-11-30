@@ -139,12 +139,35 @@ $ timeout {
     }
 }
 
-/*
+/* Suggested Emojis
 
-« Back
-  Next »
 ↺ Restart
   What ？
 ✓ Okay
+
+---
+
+  Next »
+« Back
+
+---
+
+  Next →
+← Back
+
+---
+
+★ Starred
+☆ Star
+
+---
+
+✓ Okay
+✕ Cancel
+
+---
+
+⊕ Add
+⊖ Remove
 
 */

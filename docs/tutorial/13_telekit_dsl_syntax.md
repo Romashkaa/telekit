@@ -349,6 +349,24 @@ This is an set of nice emoji labels you can use for buttons in your bot:
 ✓ Okay
 ```
 
+Alternative arrows:
+```
+← Back
+  Next →
+```
+
+Additional:
+```
+★ Starred
+☆ Star
+
+✓ Okay
+✕ Cancel
+
+⊕ Add
+⊖ Remove
+```
+
 Feel free to adapt them for your own scenes.
 
 ---
