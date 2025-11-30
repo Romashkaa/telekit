@@ -124,7 +124,7 @@ Perfect! Let’s move on.
 
 ## Other Scene`s Attributes:
 
-You can use the following attributes for any scene, including `@main` and `@timeout`:
+You can use the following attributes for any scene, like `@main`:
 
 ```js
 @ main {
@@ -144,7 +144,7 @@ You can use the following attributes for any scene, including `@main` and `@time
     // change message parse mode
     parse_mode = "html" // (html | markdown) default: none
 
-    // button row width: `buttons(row_width)`
+    //      ↓ button row width: `buttons(row_width)`
     buttons(2) { // default: 1    ↑↑↑↑↑↑↑↑↑
         devs("👨‍💻 Developers"); docs("📚 Docs");
     }
@@ -318,7 +318,7 @@ When building a linear bot, it can get tedious to repeatedly type out button lab
 ```
 
 - `next` moves to the following scene based on the order of scenes in the file, **skipping all scenes whose names begin with `_`**.
-- Scenes prefixed with `_` are treated as **auxiliary/system scenes**, so the `next` engine ignores them when building the main linear flow.
+- Scenes that start with `_` are **ignored by `next`** and won’t be included in the linear sequence.
 - You can override the default ordering using `next_order`:
 ```js
 $ next {
@@ -336,6 +336,20 @@ $ next {
     label = "Next »";
 }
 ```
+
+## Suggested Emojis
+
+This is an set of nice emoji labels you can use for buttons in your bot:
+
+```
+« Back
+  Next »
+↺ Restart
+  What ？
+✓ Okay
+```
+
+Feel free to adapt them for your own scenes.
 
 ---
 
