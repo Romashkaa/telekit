@@ -250,6 +250,93 @@ buttons {
 }
 ```
 
+## Next
+
+When building a linear bot, it can get tedious to repeatedly type out button labels. Here’s a look at how you can use the magic next scene:
+
+```js
+@ main {
+    title   = "🧪 Quick Science Quiz";
+    message = "Test your knowledge with these 3 fun questions!";
+
+    buttons {
+        next("Start Quiz");
+    }
+}
+
+@ _lose { // ignored by `next` when determining scene order
+    title   = "❌ Wrong Answer!";
+    message = "Oops! That was not correct. Don't worry, you can try again.";
+
+    buttons {
+        back("« Try Again")  // redirect back to the quiz start
+    }
+}
+
+@ question_1 {
+    title   = "🌍 Question 1";
+    message = "What is the largest planet in our Solar System?";
+    buttons {
+    //  question_2("Jupiter")  // without `next` you’d have to write it like this
+        next("Jupiter");       // correct answer
+        _lose("Earth");        // incorrect
+        _lose("Mars");         // incorrect
+        _lose("Venus");        // incorrect
+    }
+}
+
+@ question_2 {
+    title   = "🧬 Question 2";
+    message = "Which gas do plants absorb from the atmosphere during photosynthesis?";
+    buttons {
+        _lose("Oxygen");         // incorrect
+        next("Carbon Dioxide");  // correct answer
+        _lose("Nitrogen");       // incorrect
+        _lose("Hydrogen");       // incorrect
+    }
+}
+
+@ question_3 {
+    title   = "⚛️ Question 3";
+    message = "What particle in an atom has a positive charge?";
+    buttons {
+        _lose("Electron");   // incorrect
+        _lose("Neutron");    // incorrect
+        _end("Proton");      // correct answer
+        _lose("Photon");     // incorrect
+    }
+}
+
+@ _end {
+    title   = "🎉 Quiz Complete!";
+    message = "You've finished the Science Quiz. Great job! 🌟\n\nWant to try again?";
+
+    buttons {
+        main("↺ Restart Quiz");
+    }
+}
+```
+
+- `next` moves to the following scene based on the order of scenes in the file, **skipping all scenes whose names begin with `_`**.
+- Scenes prefixed with `_` are treated as **auxiliary/system scenes**, so the `next` engine ignores them when building the main linear flow.
+- You can override the default ordering using `next_order`:
+```js
+$ next {
+    order = [
+        question_2,
+        question_1,
+        question_3,
+        _end // if you include underscore-scenes manually, they’ll be processed too
+    ]
+}
+```
+- You can change default `next` button label:
+```js
+$ next {
+    label = "Next »";
+}
+```
+
 ---
 
 The parser and analyzer provide an excellent system of warnings and errors with examples, so anyone can figure it out!
