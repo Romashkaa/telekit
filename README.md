@@ -48,8 +48,6 @@ To get the most out of Telekit, we recommend following the full, [step-by-step t
 
 Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts, key building blocks, and basic workflows of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
 
-Let’s see how Telekit works in practice 👇
-
 ```python
 import telekit
 
@@ -78,7 +76,7 @@ class NameHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-... and examine each element individually...
+Let’s see how Telekit works in practice 👇
 
 ## Message formatting:
 
