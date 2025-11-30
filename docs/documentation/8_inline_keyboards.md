@@ -4,7 +4,9 @@ This document describes all methods for creating and managing inline keyboards u
 
 ---
 
-## `set_inline_keyboard(keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1)`
+## `set_inline_keyboard` method
+
+`set_inline_keyboard(keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1)`
 
 Sets an inline keyboard for the chain, where each button triggers the corresponding action.
 
@@ -40,7 +42,9 @@ self.chain.set_inline_keyboard(
 
 ---
 
-## `inline_keyboard[Caption: str, Value](keyboard: dict[Caption, Value], row_width: int = 1) -> Callable`
+## `inline_keyboard` method
+
+`inline_keyboard[Caption: str, Value](keyboard: dict[Caption, Value], row_width: int = 1) -> Callable`
 
 Decorator to attach an inline keyboard to the chain. Each button passes its value to the decorated function.
 
@@ -62,7 +66,9 @@ def _(message, value: tuple[int, int, int]) -> None:
 
 ---
 
-## `set_entry_suggestions(keyboard: dict[str, str] | list[str], row_width: int = 1)`
+## `set_entry_suggestions` method
+
+`set_entry_suggestions(keyboard: dict[str, str] | list[str], row_width: int = 1)`
 
 Sets reply suggestions below the message input as inline buttons.
 
