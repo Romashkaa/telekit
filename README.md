@@ -78,7 +78,7 @@ class NameHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-Let’s see how Telekit works in practice 👇
+Let’s see how it works in practice 👇
 
 ## Message formatting:
 
@@ -100,11 +100,11 @@ Approximate result:
 > 
 > _Welcome to the Bot!_
 
-If you want more control:
+If you want more control, you can use the following methods:
 
 ```python
 self.chain.sender.set_use_italic(False)
-self.chain.sender.set_add_new_line(False)
+self.chain.sender.set_use_newline(False)
 self.chain.sender.set_parse_mode("HTML")
 self.chain.sender.set_reply_to(message)
 self.chain.sender.set_chat_id(chat_id)
@@ -123,20 +123,19 @@ Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatica
 
 ## Text Styling with `Styles`
 
-Telekit provides a convenient `Styles` helper class to create styled text objects for HTML or Markdown. You can use it directly from your `self.chain.sender`:
+Telekit provides a convenient style classes to create styled text objects for HTML or Markdown:
 
 ```python
-# Automatically detects `parse_mode` from `sender`
-styles = self.chain.sender.styles
-
-text = styles.bold("Bold") + " and " + styles.italic("Italic")
+Bold("Bold") + " and " + Italic("Italic")
 ```
 
 Combine multiple styles:
 
 ```python
-text = styles.strike(styles.bold("Hello") + styles.italic("World!"))
+Strikethrough(Bold("Hello") + Italic("World!"))
 ```
+
+Then pass it to set_text, `set_title`, or other sender methods, and the sender will automatically determine the correct `parse_mode`.
 
 For more details, [see our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
 
@@ -254,16 +253,20 @@ class StartHandler(telekit.Handler):
         ...
 ```
 
-**One-file bot example:**
+**One-file bot example (Echo Bot):**
 
 ```python
 import telekit
 
-class NameAgeHandler(telekit.Handler):
+class EchoHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        ...
+        cls.on.text().invoke(cls.echo) # accepts all text messages
+
+    def echo(self) -> None:
+        self.chain.sender.set_text(f"{self.message.text}!")
+        self.chain.send()
 
 telekit.Server("TOKEN").polling()
 ```
