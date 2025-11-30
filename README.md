@@ -48,6 +48,8 @@ To get the most out of Telekit, we recommend following the full, [step-by-step t
 
 Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts, key building blocks, and basic workflows of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
 
+Below is an example of a bot that responds to messages like "My name is {name}":
+
 ```python
 import telekit
 
