@@ -20,4 +20,4 @@ Below is a concise overview of the main attributes and methods available in the 
 - `get_local_chain(self) -> Chain` - creates a new `Chain` object for the current chat and returns it without modifying `self.chain` 
 - `__init__(self, message: Message)` - initializes the handler instance with a message, creates a `User` object and a `Chain`
 
-[See example](../tutorial/5_handler.md)
+[See tutorial](../tutorial/5_handler.md)

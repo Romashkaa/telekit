@@ -2,8 +2,6 @@
 
 Senders in Telekit provide a high-level interface for sending and managing messages in Telegram bots. They wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, adding photos and effects.
 
-[Read more about Senders](../tutorial/3_senders.md)
-
 ## Basic 
 
 You use `self.chain.sender.*` to define how your bot responds.
@@ -68,5 +66,5 @@ These settings are handled automatically, but you can override them if needed:
 
 ---
 
-- [Read more about Senders](../tutorial/3_senders.md)
+- [See tutorial](../tutorial/3_senders.md)
 - [Next: Text Styling »](4_text_styling.md)

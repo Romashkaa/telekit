@@ -36,4 +36,4 @@ cls.on.text("Hello").invoke(cls.say_hello)  # only works with `cls.*`
 - Here, `cls` refers to a subclass of the `Handler` class.
 - Both approaches allow flexible and clean registration of message triggers, making it easy to handle different inputs and commands in your bot.
 
-[See more examples](../tutorial/6_on_triggers.md)
+[See tutorial](../tutorial/6_on_triggers.md)
