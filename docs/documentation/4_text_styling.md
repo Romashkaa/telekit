@@ -74,5 +74,4 @@ self.chain.sender.set_title("<i>Hello, user!</i>") # Bold + Italic "Hello, user!
 
 ---
 
-- [See tutorial](../tutorial/4_text_styling.md)
-- [Hext: Inline Keyboards »](8_inline_keyboards.md)
+[Back to tutorial](../tutorial/4_text_styling.md)

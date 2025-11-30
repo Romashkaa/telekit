@@ -108,5 +108,3 @@ class NameHandler(telekit.Handler):
 
 telekit.Server("TOKEN").polling()
 ```
-
-[Next: Triggers »](6_on_triggers.md)

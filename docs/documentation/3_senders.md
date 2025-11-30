@@ -66,5 +66,4 @@ These settings are handled automatically, but you can override them if needed:
 
 ---
 
-- [See tutorial](../tutorial/3_senders.md)
-- [Next: Text Styling »](4_text_styling.md)
+[Back to tutorial](../tutorial/3_senders.md)
