@@ -33,5 +33,7 @@ If you notice a bug, please report it in the Issues section on GitHub.
     - [Logging](14_logging.md)
     - [Vault](15_vault.md)
     - [Chapters](16_chapters.md)
+- Documentation:
+    - [Documentation](../documentation/0_documentation.md)
 
 (⭐ Important)

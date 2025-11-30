@@ -129,4 +129,4 @@ telekit.Server("BOT_TOKEN").polling()
 
 Your bot is now live and ready to respond. 🎉
 
-[Project structure »](2_project_structure.md)
+[Next: Project structure »](2_project_structure.md)

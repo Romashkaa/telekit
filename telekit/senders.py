@@ -485,7 +485,7 @@ class AlertSender(BaseSender):
     _parse_mode: ParseMode | None
 
     _use_italics: bool
-    _add_new_line: bool
+    _use_newline: bool
 
     def _compile_text(self) -> None:
         if not hasattr(self, "_title"):
@@ -497,8 +497,8 @@ class AlertSender(BaseSender):
         if not hasattr(self, "_parse_mode"):
             self._parse_mode = None
 
-        if not hasattr(self, "_add_new_line"):
-            self._add_new_line = True
+        if not hasattr(self, "_use_newline"):
+            self._use_newline = True
         
         if not hasattr(self, "_use_italics"):
             self._use_italics = True
@@ -546,7 +546,7 @@ class AlertSender(BaseSender):
         if title:
             text_parts.append(title)
         
-        if title and message and self._add_new_line:
+        if title and message and self._use_newline:
             text_parts.append("\n\n")
 
         if message:
@@ -595,8 +595,8 @@ class AlertSender(BaseSender):
     def set_use_italics(self, use_italics: bool=True):
         self._use_italics = use_italics
 
-    def set_add_new_line(self, _add_new_line: bool=True):
-        self._add_new_line = _add_new_line
+    def set_use_newline(self, use_newline: bool=True):
+        self._use_newline = use_newline
 
     def send(self) -> Message | None:
         self._compile_text()

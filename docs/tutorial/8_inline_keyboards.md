@@ -99,4 +99,5 @@ class NameHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-[Handling User Input (Entries) »](9_entries.md)
+[See all Inline Keyboards](../documentation/8_inline_keyboards.md)
+[Hext: Handling User Input (Entries) »](9_entries.md)

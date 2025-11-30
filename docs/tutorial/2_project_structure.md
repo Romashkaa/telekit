@@ -69,4 +69,4 @@ telekit.Server("TOKEN").polling()
 
 You’re free to decide)
 
-[Senders »](3_senders.md)
+[Next: Senders »](3_senders.md)

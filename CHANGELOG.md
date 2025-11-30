@@ -66,9 +66,8 @@ cls.on.photo()
   - `chain.set_remove_entry_handler(False)`
   - `chain.set_remove_inline_keyboard(False)`
 
-### Tutorials
-- New tutorial: [Tutorial](docs/tutorial/0_tutorial.md)  
-- Other miscellaneous improvements
+### Documentation
+- New tutorial: [Tutorial](docs/tutorial/0_tutorial.md)
 
 ---
 

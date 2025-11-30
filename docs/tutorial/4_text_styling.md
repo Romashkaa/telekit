@@ -98,11 +98,11 @@ Group("Hello ", Bold("Romashka"), "!")
 
 ```python
 # If parse_mode=None, the text is not sanitized
-# and will be displayed literally as "<b>Romashk</b>" in the chat
-self.chain.sender.set_text("<b>Romashka</b>")       # "<b>Romashk</b>"
-self.chain.sender.set_text("<b>Romashka<i></b>")    # "<b>Romashk<i></b>"
+# and will be displayed literally as "<b>Romashka</b>" in the chat
+self.chain.sender.set_text("<b>Romashka</b>")       # "<b>Romashka</b>"
+self.chain.sender.set_text("<b>Romashka<i></b>")    # "<b>Romashka<i></b>"
 
-# The text will be displayed literally as "Romashka"
+# The text will be displayed literally, and with no tags
 self.chain.sender.set_text(Bold("Romashka"))     # "Romashka"
 self.chain.sender.set_text(Bold("Romashka<i>"))  # "Romashka<i>"
 
@@ -160,4 +160,5 @@ telekit.Server("BOT_TOKEN").polling()
 
 ---
 
-[Handler »](5_handler.md)
+[See all Styles](../documentation/4_text_styling.md)
+[Hext: Inline Keyboards »](8_inline_keyboards.md)

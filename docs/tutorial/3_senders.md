@@ -13,7 +13,7 @@ There are two main ways to create a message: a simple text message or a structur
 - Or let Telekit handle the layout for you: 
     - `set_title(title)` and `set_message(message)`
     - `set_use_italics(...)` – Enable/disable italics for the message body.
-    - `set_add_new_line(...)` – Add/remove a blank line between title and message.
+    - `set_use_newline(...)` – Add/remove a blank line between title and message.
 
 Example:
 
@@ -38,7 +38,6 @@ Telekit supports text formatting and replying to specific messages:
 
 - `set_parse_mode(mode)`: Set formatting mode.
 - `set_reply_to(message)`: Reply to a specific message.
-- `set_photo(photo)`: Attach a photo to your message:
 
 ## Photos & Effects
 
@@ -56,30 +55,8 @@ self.chain.sender.set_photo("file_id")     # Telegram -> Telegram (super fast)
 - `Effect.*`: Effect to apply:
 
 ```python
-self.chain.sender.set_effect(self.chain.sender.Effect.FIRE) # only 1 from 6
+self.chain.sender.set_effect(self.chain.sender.Effect.FIRE)
 ```
-
-## Under-the-Hood Methods
-
-These settings are handled automatically, but you can override them if needed:
-
-- `set_chat_id(chat_id)`: Change target chat.
-- `set_edit_message(message)`: Set the message to edit.
-- `set_reply_markup(reply_markup)`: Add inline/keyboard markup. Raw.
-
-## Advanced Tools
-
-Telekit provides advanced tools for managing messages and errors:
-
-- `get_message_id(message)`: Get the ID of a message.
-- `delete_message(message)`: Delete a message.
-- `set_temporary(flag)`: Mark message as temporary.
-- `set_delete_temporaries(flag)`: Delete previous temporary messages after a new one is sent.
-- `error(title, message)`: Send a custom error (не впливає на збережені title та message).
-- `pyerror(exception)`: Send exception details.
-- `send_or_handle_error()`: Send a message and show a Python exception if it fails.
-- `try_send()`: Attempt sending, returns `(message, exception)`.
-- `send()`: Send or edit the message. Returns None if it fails.
 
 ## Creating a New Sender
 
@@ -128,8 +105,8 @@ class NameHandler(telekit.Handler):
 
     def ad(self):
         # list of chat IDs to send the ad
-        chat_ids = [123456789, 987654321]
-        recipients  = 0
+        chat_ids: list[int] = [123456789, 987654321]
+        recipients: int     = 0
 
         for chat_id in chat_ids:
             sender = self.chain.create_sender(chat_id)
@@ -145,7 +122,7 @@ class NameHandler(telekit.Handler):
         self.chain.send()
 ```
 
-- `add_message` method + styling
+## `add_message` method + styling
 
 ```python
 import telekit
@@ -181,4 +158,5 @@ class Start(telekit.Handler):
         self.chain.edit()
 ```
 
-[Text Styling »](4_text_styling.md) 
+[Senders documentation](../documentation/3_senders.md)
+[Next: Text Styling »](4_text_styling.md) 
