@@ -91,7 +91,7 @@ Imagine we have a scene that can be accessed from two different places — the q
 
 For such cases, there’s a special magic scene called `back`.
 
-The magic scene `back` automatically determines the previous scene using a FILO stack.
+The magic scene `back` automatically determines the previous scene using a LIFO stack.
 
 Let’s rewrite the previous example using `back`:
 
@@ -115,7 +115,7 @@ Let’s rewrite the previous example using `back`:
 @ docs {
     ...
     buttons {
-        back("« Back");      // Opens @main or @devs (using a FILO stack)
+        back("« Back");      // Opens @main or @devs (using a LIFO stack)
     }
 }
 ```
