@@ -1,4 +1,4 @@
-# 1.0.0 (BETA 4)
+# 1.0.0
 
 **Overview:**  
 This release makes creating triggers simpler, styling messages easier, and the DSL smarter. We removed tricky `Chain` workarounds that could cause unexpected behavior, improved automatic handling of HTML and Markdown in messages, and added powerful new styles. Everything is now safer, cleaner, and more intuitive for developers.
