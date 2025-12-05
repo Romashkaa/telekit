@@ -1,88 +1,13 @@
-# 1.0.0
-
-**Overview:**  
-This release makes creating triggers simpler, styling messages easier, and the DSL smarter. We removed tricky `Chain` workarounds that could cause unexpected behavior, improved automatic handling of HTML and Markdown in messages, and added powerful new styles. Everything is now safer, cleaner, and more intuitive for developers.
+# 1.1.0
 
 ## ✅ New Features
-- The new `on` API provides a cleaner and more intuitive way to declare triggers for messages and commands:
-
-```python
-@cls.on.command('start')
-def start_handler(message):
-    cls(message).handle_start()
-
-@cls.on.text("My name is {name}")
-def name_handler(message, name: str):
-    cls(message).handle_name(name)
-
-# A simpler ways (Automatic instance creation `cls(message)`):
-
-cls.on.command("start").invoke(cls.handle_start)
-cls.on.text("My name is {name}").invoke(cls.handle_name)
-```
-
-- New handlers:
-
-```python
-cls.on.regexp()
-cls.on.photo()
-```
-
 ### Sender Improvements
-- **Automatic HTML and Markdown handling** – processes HTML tags and Markdown formatting applied via `Bold(...)`, `Sanitize(...)`, etc.  
-- **Enhanced Sender logic** – automatically sanitizes content in style blocks and assigns the correct `parse_mode`.  
-- New methods:
-  - `sender.set_media(...)`
-  - `chain.create_sender(chat_id)`
-  - `sender.add_message(...)`
-
-### Telekit Utilities
-- `telekit.enable_file_logging()`  
-
-### Telekit DSL
-- Added types: `none`, `true`, `false` (case-insensitive)  
-- Parser prevents creation of scenes with reserved name `back`.
-- Added a new magic button `next` that moves to the next scene based on the order in the file, skipping all scenes whose names start with `"_"`. Example: `next("Next »")`.
-  - You can override this order using the `next_order` config variable, e.g. `next_order = [homepage, rules, question_1]`.
-- New syntax:
-  - `row_width` syntax: `buttons[2]` → `buttons(2)`  
-- `TelekitDSL.from_file(...)` and `TelekitDSL.from_string(...)`  
-- Renamed `GuideMixin` → `TelekitDSL.Mixin`
-  - Buttons without labels supported ([details](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label))  
-- Full Telekit DSL Documentation updated
-- Added `TelekitDSL.MAGIC_SCENES` — a list of reserved scene names.
-- Values placed in contexts where they cannot act as variables (e.g., inside lists) are now automatically treated as string literals.
-
-### Chain Utilities
-- A warning is now shown if you send a message that expects user interaction (inline keyboard / entry handler) without defining a `timeout`.
-- `self.chain.disable_timeout_warnings()` allows disabling timeout warnings for the current chain instance.
-- `handler.new_chain() -> None` - creates a new chain
-- `chain.remove_all_handlers()` – removes all callback handlers  
-- `chain.remove_timeout()` – removes active timeout  
-- `chain.remove_entry_handler()` – removes current entry handler  
-- `chain.remove_inline_keyboard()` – removes inline keyboard and callback bindings  
-- Automatic removal after `chain.send()` or `.edit()`, but can be disabled:
-  - `chain.set_remove_timeout(False)`
-  - `chain.set_remove_entry_handler(False)`
-  - `chain.set_remove_inline_keyboard(False)`
-
-### Documentation
-- New tutorial: [Tutorial](docs/tutorial/0_tutorial.md)
-
----
-
-## ⚠️ Breaking Changes
-- `GuideKit` and `GuideMixin` renamed → `TelekitDSL` and `TelekitDSL.Mixin`  
-- `GuideKit(...)` replaced → `TelekitDSL.from_file(...)`  
-- Removed methods:
-  - `chain.set_always_edit_previous_message(...)`
-  - `chain.parent` and all related functionality
-  - `handler.get_child()`
-  - `handler.get_chain(...)` → use `handler.new_chain()`
-- Renamed for clarity:
-  - `chain.edit_previous_message()` → `chain.mark_previous_message_for_edit()`
-- Default `parse_mode` in DSL → `none`  
-- DSL syntax updated: `buttons[2]` → `buttons(2)`
+- Context manager:
+```python
+with self.chain.sender as sender:
+    sender.set_title("😃 Welcome!")
+    sender.set_message("It's Telekit v1.1.0")
+```
 
 ---
 
