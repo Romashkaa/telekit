@@ -98,6 +98,8 @@ with self.chain.sender as sender:
     sender.set_message("It's Telekit.")
 ```
 
+You still need to call `self.chain.send()` or `sender.send()` afterward.
+
 More info: [Senders documentation: Context Manager](../documentation/3_senders.md#context-manager)
 
 ---

@@ -8,6 +8,7 @@ with self.chain.sender as sender:
     sender.set_title("😃 Welcome!")
     sender.set_message("It's Telekit v1.1.0")
 ```
+- New `sender.then_send()` method.
 
 ### Handler Improvements
 - Added `handoff` method — allows passing control to another handler by name or class.  

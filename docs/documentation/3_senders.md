@@ -80,13 +80,13 @@ You still need to call `self.chain.send()` afterward.
 If you want the message to be sent automatically at the end of the block, use:
 
 ```python
-with self.chain.sender.send_on_exit() as sender:
+with self.chain.sender.then_send() as sender:
     sender.set_title("Hello!")
     sender.set_message("This message is sent automatically on exit.")
 ```
 
 ⚠️ **Note:**  
-`send_on_exit()` calls the sender’s own `send()` method, *not* `chain.send()`.  
+`then_send()` calls the sender’s own `send()` method, *not* `chain.send()`.  
 Because of this, features that rely on `chain.send()` — such as `inline_keyboard` — will **not** be processed when using this mode.
 
 ---

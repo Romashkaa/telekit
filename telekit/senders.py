@@ -471,7 +471,7 @@ class BaseSender:
     def __exit__(self, exc_type, exc_val, exc_tb):
         return False
     
-    def send_on_exit(self):
+    def then_send(self):
         """
         Returns a context manager that yields the sender instance. 
 
@@ -479,7 +479,7 @@ class BaseSender:
         
         Example usage:
         
-        with self.chain.sender.send_on_exit() as sender:
+        with self.chain.sender.then_send() as sender:
             sender.set_title("Hello!")
             sender.set_message("It's Telekit.")
         # At the end of the block, send() is called automatically.
