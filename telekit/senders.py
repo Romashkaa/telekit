@@ -470,6 +470,32 @@ class BaseSender:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         return False
+    
+    def send_on_exit(self):
+        """
+        Returns a context manager that yields the sender instance. 
+
+        When exiting the context block, the message will be automatically sent.
+        
+        Example usage:
+        
+        with self.chain.sender.send_on_exit() as sender:
+            sender.set_title("Hello!")
+            sender.set_message("It's Telekit.")
+        # At the end of the block, send() is called automatically.
+        """
+        class AutoSendContext:
+            def __init__(self, sender: BaseSender):
+                self.sender = sender
+
+            def __enter__(self):
+                return self.sender
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                self.sender.send()
+                return False
+
+        return AutoSendContext(self)
         
 # ---------------------------------------------------------------------------------
 # Alert Sender

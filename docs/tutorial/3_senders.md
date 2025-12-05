@@ -87,6 +87,19 @@ class NameHandler(telekit.Handler):
 telekit.Server("BOT_TOKEN").polling()
 ```
 
+## Using Sender as a Context Manager
+
+Senders can also be used as context managers. This form **does NOT automatically send** the message.  
+It only groups your setter calls in a clean block:
+
+```python
+with self.chain.sender as sender:
+    sender.set_title("Hello!")
+    sender.set_message("It's Telekit.")
+```
+
+More info: [Senders documentation: Context Manager](../documentation/3_senders.md#context-manager)
+
 ---
 
 ## Example: Sending Ads to Multiple Chats

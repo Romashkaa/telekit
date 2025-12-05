@@ -64,6 +64,31 @@ These settings are handled automatically, but you can override them if needed:
 - `set_edit_message(message)`: Set the message to edit.
 - `set_reply_markup(reply_markup)`: Add inline/keyboard markup. Raw.
 
+## Context Manager
+This form **does not automatically send** the message.  
+It only groups your setter calls in a clean block:
+
+```python
+with self.chain.sender as sender:
+    sender.set_title("😃 Welcome!")
+    sender.set_message("It's Telekit.")
+```
+
+You still need to call `self.chain.send()` afterward.
+
+### Auto‑sending Context Manager
+If you want the message to be sent automatically at the end of the block, use:
+
+```python
+with self.chain.sender.send_on_exit() as sender:
+    sender.set_title("Hello!")
+    sender.set_message("This message is sent automatically on exit.")
+```
+
+⚠️ **Note:**  
+`send_on_exit()` calls the sender’s own `send()` method, *not* `chain.send()`.  
+Because of this, features that rely on `chain.send()` — such as `inline_keyboard` — will **not** be processed when using this mode.
+
 ---
 
 [Back to tutorial](../tutorial/3_senders.md)
