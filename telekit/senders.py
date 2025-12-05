@@ -465,6 +465,12 @@ class BaseSender:
         if message:
             return message.message_id
         
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+        
 # ---------------------------------------------------------------------------------
 # Alert Sender
 # ---------------------------------------------------------------------------------
