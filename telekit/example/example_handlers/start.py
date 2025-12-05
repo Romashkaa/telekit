@@ -22,7 +22,6 @@ class StartHandler(telekit.Handler):
             "Here you can explore some example commands to get started.\n\n"
             "Use the buttons below to try them out:"
         )
-        # self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
 
         @self.chain.inline_keyboard(
             {
@@ -34,6 +33,6 @@ class StartHandler(telekit.Handler):
             }, row_width=2
         )
         def handle_response(message: telebot.types.Message, handler: str):
-            self.handoff(handler).handle() # type: ignore
+            self.handoff(handler).handle()
         
         self.chain.send()

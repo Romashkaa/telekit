@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any
 import inspect
 
 import telebot
@@ -83,6 +83,20 @@ class Handler:
         self.message: Message = message
         self.user = User(self.message.chat.id, self.message.from_user)
         self.new_chain()
+
+    def handle(self) -> Any:
+        """
+        Recommended method _(name)_ to serve as a unified entry point 
+        for your handler. The library does not call this method automatically, 
+        but having a single `handle` method is convenient when delegating 
+        control to another handler via `handoff` or similar mechanisms. 
+
+        Using one `handle` method to start processing the message 
+        avoids the need for multiple custom entry methods 
+        like `start` or `handle_start`.
+        """
+        library.warning("Handler `handle` was called but not overridden; no logic executed.")
+        return
 
     # -----------------------------------------------------
     # Methods
