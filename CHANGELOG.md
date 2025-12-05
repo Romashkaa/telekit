@@ -11,6 +11,6 @@ with self.chain.sender as sender:
 
 ---
 
-## ⏳ Delayed until v1.1.0
+## ⏳ Delayed
 - DSL warning for strings with too many buttons or excessive text  
 - Localization support for `self.user.enable_logging()` (currently global)

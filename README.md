@@ -12,8 +12,24 @@ self.chain.sender.set_photo("robot.png")
 self.chain.set_inline_keyboard({"👋 Hello, Bot": self.handle_greeting})
 self.chain.send()
 ```
-
 > Example taken out of context
+
+```js
+@ main {
+    title   = "🎉 Fun Facts Quiz";
+    message = "Test your knowledge with 10 fun questions!";
+
+    buttons {
+        question_1("Start Quiz");
+    }
+}
+
+@ question_1 {
+    ...
+}
+```
+
+> Telekit DSL example
 
 Even in its beta stage, Telekit accelerates bot development, offering ready-to-use building blocks for commands, user interactions, and navigation. Its declarative design makes bots easier to read, maintain, and extend.
 
