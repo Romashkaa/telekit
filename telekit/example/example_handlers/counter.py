@@ -42,6 +42,6 @@ class CounterHandler(telekit.Handler):
         def _(message: telebot.types.Message, value: int) -> None:
             self.chain.sender.set_message(f"You clicked {click_counter(value)} times")
             self.chain.edit()
+            
         self.chain.set_remove_inline_keyboard(False)
-
-        self.chain.send()
+        self.chain.edit()

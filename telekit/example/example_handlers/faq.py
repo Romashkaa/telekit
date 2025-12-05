@@ -6,6 +6,9 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
         cls.on.message(commands=["faq"]).invoke(cls.start_script)
         cls.analyze_source(guide)
 
+    def handle(self) -> None:
+        self.start_script()
+
     # If you want to add your own bit of logic:
     
     # def start_guide(self):

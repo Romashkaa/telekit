@@ -36,11 +36,14 @@ class PagesHandler(telekit.Handler):
         """
         @cls.bot.message_handler(commands=['pages'])
         def handler(message: telebot.types.Message) -> None:
-            cls(message).display_home_page()
+            cls(message).handle()
 
     # ------------------------------------------
     # Handling Logic
     # ------------------------------------------
+
+    def handle(self) -> None:
+        self.display_home_page()
 
     def display_home_page(self) -> None:
         # `self.user.enable_logging()` enable logging for this user or for additional user IDs.

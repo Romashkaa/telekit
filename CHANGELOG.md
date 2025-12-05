@@ -9,6 +9,19 @@ with self.chain.sender as sender:
     sender.set_message("It's Telekit v1.1.0")
 ```
 
+### Handler Improvements
+- Added `handoff` method — allows passing control to another handler by name or class.  
+  The method creates a new handler instance, passes it the current message, and transfers the previous message context:
+
+```python
+self.handoff("QuizHandler").start_quiz()
+
+# OR
+
+from quiz_handler import QuizHandler
+self.handoff(QuizHandler).start_quiz()
+```
+
 ---
 
 ## ⏳ Delayed

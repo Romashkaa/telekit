@@ -13,27 +13,27 @@ class OnTextHandler(telekit.Handler):
         """
         @cls.on.text("Name: {name}. Age: {age}")
         def _(message: telebot.types.Message, name: str, age: str):
-            cls(message).handle(name, age)
+            cls(message).handle_name_age(name, age)
 
         @cls.on.text("My name is {name} and I am {age} years old")
         def _(message: telebot.types.Message, name: str, age: str):
-            cls(message).handle(name, age)
+            cls(message).handle_name_age(name, age)
 
         @cls.on.text("My name is {name}")
         def _(message: telebot.types.Message, name: str):
-            cls(message).handle(name, None)
+            cls(message).handle_name_age(name, None)
 
         @cls.on.text("I'm {age} years old")
         def _(message: telebot.types.Message, age: str):
-            cls(message).handle(None, age)
+            cls(message).handle_name_age(None, age)
 
-        cls.on.message(["on_text"]).invoke(cls.display_info)
+        cls.on.message(["on_text"]).invoke(cls.handle)
             
     # ------------------------------------------
     # Handling Logic
     # ------------------------------------------
 
-    def handle(self, name: str | None, age: str | None) -> None: 
+    def handle_name_age(self, name: str | None, age: str | None) -> None: 
 
         if not name: 
             name = self.user.username
@@ -64,7 +64,9 @@ class OnTextHandler(telekit.Handler):
         )
         self.chain.send()
 
-    def display_info(self):
+    # command
+
+    def handle(self):
         code = self.chain.sender.styles.code
         self.chain.sender.set_title(f"🦻 On Text Handler")
         self.chain.sender.set_message(
@@ -76,4 +78,4 @@ class OnTextHandler(telekit.Handler):
             f"- ", code('I\'m 18 years old'), "\n\n"
             f"The bot will respond according to the information you provide."
         )
-        self.chain.send()
+        self.chain.edit()

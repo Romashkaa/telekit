@@ -51,10 +51,13 @@ class Handler:
             raise RuntimeError("Do not call `Handler.init` on a subclass. Use the base Handler class only.")
 
         cls.bot = bot
+        cls.handlers_dict = {}
 
         for handler in cls.handlers:
             handler.on = On(handler, bot)
             handler.init_handler()
+
+            cls.handlers_dict[handler.__name__] = handler
     
     @classmethod
     def init_handler(cls) -> None:
@@ -111,6 +114,19 @@ class Handler:
 
     def get_local_chain(self) -> Chain:
         return Chain(self.message.chat.id)
+    
+    def handoff(self, handler: str | type["Handler"]) -> "Handler":
+        if isinstance(handler, str):
+            if handler in self.handlers_dict:
+                handler = self.handlers_dict[handler]
+
+        if not (isinstance(handler, type) and issubclass(handler, Handler)):
+            raise TypeError(f"{type(self).__name__}().handoff(HERE) <- Expected `Handler` type")
+        
+        handler_instance = handler(self.message)
+        handler_instance.chain._set_previous_message(self.chain.get_previous_message())
+        
+        return handler_instance
 
 def accepts_parameter(func: Callable) -> bool:
     """
