@@ -22,6 +22,12 @@ self.handoff("QuizHandler").start_quiz()
 from quiz_handler import QuizHandler
 self.handoff(QuizHandler).start_quiz()
 ```
+- Added `freeze` method — provides a zero-argument wrapper for passing callbacks with bound arguments into inline keyboards:
+
+```python
+btn = self.freeze((lambda a, b: a + b), 2, 3)
+btn() # 5
+```
 
 ---
 

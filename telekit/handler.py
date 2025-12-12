@@ -141,6 +141,27 @@ class Handler:
         handler_instance.chain._set_previous_message(self.chain.get_previous_message())
         
         return handler_instance
+    
+    def freeze(self, func, *args):
+        """
+        Return a zero-argument callback that invokes the given function
+        with the provided arguments.
+
+        Args:
+            func (Callable): The function to be executed when the callback is triggered.
+            *args: Arguments that will be passed to the function upon execution.
+
+        Returns:
+            Callable: A wrapper function that calls `func(*args)` when invoked.
+
+        Example:
+            >>> btn = self.freeze((lambda a, b: a + b), 2, 3)
+            >>> btn() # 5
+        """
+        def wrapper():
+            func(*args)
+
+        return wrapper
 
 def accepts_parameter(func: Callable) -> bool:
     """
