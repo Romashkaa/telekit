@@ -224,12 +224,20 @@ class BaseSender:
         self.edit_message_id = edit_message_id
 
     def set_edit_message(self, edit_message: Message | None):
+        if edit_message is None:
+            self.edit_message_id = None
+            return
+
         if getattr(edit_message, "message_id", None) is not None:
-            self.edit_message_id = edit_message.message_id # type: ignore
+            self.edit_message_id = edit_message.message_id
 
     def set_reply_to(self, reply_to: Message | None):
+        if reply_to is None:
+            self.reply_to = None
+            return
+
         if getattr(reply_to, "message_id", None) is not None:
-            self.reply_to_message_id = reply_to.message_id # type: ignore
+            self.reply_to_message_id = reply_to.message_id
 
     def _get_send_configs(self) -> dict[str, Any]:
         return {
