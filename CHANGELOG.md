@@ -9,6 +9,7 @@ with self.chain.sender as sender:
     sender.set_message("It's Telekit v1.1.0")
 ```
 - New `sender.then_send()` method.
+- Bug Fixed: Fix handling of `None` values in `set_edit_message` and `set_reply_to` methods (Commit `1c1f3fc`)
 
 ### Handler Improvements
 - Added `handoff` method — allows passing control to another handler by name or class.  
@@ -28,6 +29,9 @@ self.handoff(QuizHandler).start_quiz()
 btn = self.freeze((lambda a, b: a + b), 2, 3)
 btn() # 5
 ```
+
+### Chain Improvements
+- `chain.set_default_timeout(seconds, message)` method - Sets a default timeout for user inactivity.
 
 ---
 

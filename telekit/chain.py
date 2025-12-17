@@ -74,6 +74,31 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
         self._set_timeout_callback(callback)
         self._set_timeout_time(seconds, minutes, hours)
 
+    def set_default_timeout(self, seconds: int=90, message: str="\n\nLooks like things went quiet... The session has ended."):
+        """
+        Sets a default timeout for user inactivity.
+
+        If the user does not interact with the bot within the specified time,
+        the session is gracefully closed: the current message is updated, and the timeout message is appended at the end.
+        All active handlers are cleared, and the chain state is updated.
+
+        Args:
+            seconds (int, optional): Number of seconds to wait before triggering the timeout.
+                Defaults to 90.
+            message (str, optional): Message shown to the user when the timeout occurs.
+                Defaults to a friendly inactivity notice.
+
+        Notes:
+            - The timeout is bound to the current chain lifecycle.
+            - All active handlers are removed once the timeout is triggered.
+        """
+        def timeout_handler():
+            self.sender.add_message(message)
+            self.remove_all_handlers()
+            self.edit()
+        
+        self.set_timeout(timeout_handler, seconds)
+
     # -------------------------------------------
     # Sending & Editing API
     # -------------------------------------------
@@ -100,11 +125,10 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
             Message | None: The edited message.
         """
         self.mark_previous_message_for_edit()
-        return self.send()
+        return self._send()
     
     def __call__(self, *args):
         self.send()
-
     
     def _send(self)  -> Message | None:
         _timeout = self._start_timeout()
