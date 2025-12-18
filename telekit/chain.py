@@ -42,7 +42,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
 
         ## Usage:
         ```
-            @chain.timeout(seconds=10)
+            @chain.on_timeout(seconds=10)
             def my_callback():
                 ...
         ```
@@ -90,7 +90,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
 
         Notes:
             - The timeout is bound to the current chain lifecycle.
-            - All active handlers are removed once the timeout is triggered.
+            - All active input handlers are removed once the timeout is triggered.
         """
         def timeout_handler():
             self.sender.add_message(message)

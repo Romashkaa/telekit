@@ -10,6 +10,7 @@ with self.chain.sender as sender:
 ```
 - New `sender.then_send()` method.
 - Bug Fixed: Fix handling of `None` values in `set_edit_message` and `set_reply_to` methods (Commit `1c1f3fc`)
+- Enhance `append` method in Sender
 
 ### Handler Improvements
 - Added `handoff` method — allows passing control to another handler by name or class.  

@@ -523,6 +523,7 @@ class AlertSender(BaseSender):
     _message: str | StyleFormatter | tuple[str | StyleFormatter, ...]
     _text: str | StyleFormatter
     _parse_mode: ParseMode | None
+    _additional: tuple[StyleFormatter | str, ...]
 
     _use_italics: bool
     _use_newline: bool
@@ -546,6 +547,9 @@ class AlertSender(BaseSender):
         if not hasattr(self, "_text"):
             self._text = ""
 
+        if not hasattr(self, "_additional"):
+            self._additional = tuple()
+
         if self._text:
             self._compile_plain()
         elif self._title or self._message:
@@ -557,6 +561,9 @@ class AlertSender(BaseSender):
 
         if isinstance(self._text, StyleFormatter):
             self._text.set_parse_mode(self.parse_mode)
+
+        if self._additional:
+            self._text = NoSanitize(self._text, *self._additional)
 
         super().set_text(str(self._text))
 
@@ -576,8 +583,16 @@ class AlertSender(BaseSender):
 
             message = NoSanitize(*parts)
 
+            if self._additional:
+                message = NoSanitize(message, *self._additional)
+
             if self._use_italics:
                 message = self.styles.italic(message)
+        elif self._additional:
+            if self._use_italics:
+                message = self.styles.italic(NoSanitize(*self._additional))
+            else:
+                message = NoSanitize(*self._additional)
         else:
             message = None
 
@@ -586,7 +601,7 @@ class AlertSender(BaseSender):
         if title:
             text_parts.append(title)
         
-        if title and message and self._use_newline:
+        if self._use_newline and title and message:
             text_parts.append("\n\n")
 
         if message:
@@ -597,33 +612,101 @@ class AlertSender(BaseSender):
 
         super().set_text(str(text))
 
-    def set_text(self, text: str | StyleFormatter):
-        self._text = text
+    def set_text(self, *text: str | StyleFormatter, sep: str | StyleFormatter=""): # pyright: ignore[reportIncompatibleMethodOverride]
+        """
+        Set a plain text message, replacing any previously set title or message.
+
+        Args:
+            *text: One or more text parts or StyleFormatter objects to set.
+            sep (str | StyleFormatter, optional): Separator used between text parts. Defaults to "".
+
+        Returns:
+            None
+
+        Example:
+        ```
+        s.set_text("Hello", Bold("World"), sep=" ")
+        # Result: "Hello <b>World</b>"
+        ```
+        """
+        self._text = NoSanitize(*self._interleave(text, sep))
         self._title = ""
         self._message = ""
+        self._additional = tuple()
 
     def set_title(self, title: str | StyleFormatter):
+        """
+        Set the title of the alert message. Clears plain text content.
+
+        Args:
+            title (str | StyleFormatter): Title of the alert-styled message.
+
+        Returns:
+            None
+        """
         self._text = ""
         self._title = title
+        self._additional = tuple()
 
     def set_message(self, *message: str | StyleFormatter, sep: str | StyleFormatter=""):
+        """
+        Set the main message body for the alert.
+
+        Args:
+            *message: One or more message parts or StyleFormatter objects.
+            sep (str | StyleFormatter, optional): Separator used between message parts. Defaults to "".
+
+        Returns:
+            None
+        """
         self._text = ""
         self._message = self._interleave(message, sep)
+        self._additional = tuple()
 
     def add_message(self, *message: str | StyleFormatter, sep: str | StyleFormatter=""):
-        self._text = ""
+        """
+        Appends text to the end of the current message.
 
-        previous = self._message
+        This method does not replace the existing content.
+        Instead, it adds the provided text after the current message,
+        preserving everything that was already set.
+
+        Works the same way for both `set_text()` and `set_message()`.
+
+        Example:
+        ```
+            s.set_text("Hel")
+            s.append("lo") # add_message == append
+
+            # Result:
+            # "Hello"
+        ```
+        """
+        if hasattr(self, "_additional"):
+            previous = self._additional
+        else:
+            previous = None
         
         if not isinstance(previous, tuple):
-            if previous:
-                previous = (previous, )
-            else:
-                previous = tuple()
+            previous = tuple()
 
-        self._message = previous + self._interleave(message, sep)
+        self._additional = previous + self._interleave(message, sep)
+
+    append = add_message
 
     def set_parse_mode(self, parse_mode: str | None=None):
+        """
+        Set the parse mode for message rendering.
+
+        Args:
+            parse_mode (str | None): Parse mode as 'html', 'markdown', or None.
+
+        Raises:
+            ValueError: If parse_mode is not recognized.
+
+        Returns:
+            None
+        """
         try:
             if parse_mode:
                 self._parse_mode = ParseMode(parse_mode.lower())
@@ -633,12 +716,45 @@ class AlertSender(BaseSender):
             raise ValueError(f"Unknown parse_mode: {parse_mode}")
 
     def set_use_italics(self, use_italics: bool=True):
+        """
+        Enable or disable italics for message body.
+
+        Args:
+            use_italics (bool): True to enable italics, False to disable.
+
+        Returns:
+            None
+        """
         self._use_italics = use_italics
 
     def set_use_newline(self, use_newline: bool=True):
+        """
+        Enable or disable automatic newline between title and message body.
+
+        Args:
+            use_newline (bool): True to insert newline, False to omit.
+
+        Returns:
+            None
+        """
         self._use_newline = use_newline
 
     def send(self) -> Message | None:
+        """
+        Compile and send the current message.
+
+        Resolves internal state into final text before sending through
+        BaseSender's send method.
+
+        Note:
+            This method only sends the message itself. It does not handle inline
+            keyboard interactions, so button presses will not be registered unless
+            they are links. To properly send a message that supports inline buttons,
+            use `chain.send()`.
+
+        Returns:
+            Message | None: The sent message object or None if sending failed.
+        """
         self._compile_text()
         return super().send()
 
