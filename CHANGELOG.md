@@ -11,15 +11,15 @@
 - Added support for {{variables}} in `title=` and `message=`.
   - HTML and Markdown tags in variable values are automatically sanitized.
   - Recursive variable replacement is prevented (only first-level substitution is performed).
-  - For testing purposes, `{{username}}` and `{{first_name}}` variables are currently available.
   - Example: (`<b>username</b>` - bold; `{{first_name}}` and `{{username}}` - sanitized>)
 ```js
 @ main {
-    title = "Welcome, {{first_name}}!";
+    title = "Welcome, {{first_name:user}}!"; // "user" is default value
     message = "Did you know your <b>username</b> is {{username}}? Cool, isn't it?";
     parse_mode = "html";
 }
 ```
+- Improved indentation handling in multiline strings.
 
 ---
 

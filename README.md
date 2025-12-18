@@ -4,7 +4,7 @@
 
 **Telekit** is a declarative, developer-friendly library for building Telegram bots. It streamlines common bot operations, automates routine tasks, and provides a clear, structured way to implement complex logic without boilerplate.
 
-Telekit comes with a built-in DSL for defining scenes, menus, FAQ pages, and multi-step flows, allowing developers to create fully interactive bots with minimal code. The library also handles message formatting, user input, and callback routing automatically, letting you focus on the bot’s behavior instead of repetitive tasks.
+Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for defining scenes, menus, FAQ pages, and multi-step flows, allowing developers to create fully interactive bots with minimal code. The library also handles message formatting, user input, and callback routing automatically, letting you focus on the bot’s behavior instead of repetitive tasks.
 
 ```python
 self.chain.sender.set_text(Bold("Hello world!"))
@@ -34,15 +34,14 @@ self.chain.send()
 Even in its beta stage, Telekit accelerates bot development, offering ready-to-use building blocks for commands, user interactions, and navigation. Its declarative design makes bots easier to read, maintain, and extend.
 
 **Key features:**  
-- Declarative bot logic with **chains** for multi-step interactions  
-- Built-in **DSL** for menus, buttons, and FAQ pages  
-- Automatic handling of **message formatting** and **callback routing**  
-- Ready-to-use FAQ system and navigation flows
-- Minimal boilerplate, clean, and maintainable code  
+- Declarative bot logic with **chains** for effortless handling of complex workflows
+- [Ready-to-use DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for FAQs and other interactive scripts
+- Automatic handling of [message formatting](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/4_text_styling.md) via [Sender](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/3_senders.md) and **callback routing**
+- Lightweight, maintainable, and easy-to-extend code
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
-[Telegram](https://t.me/+wu-dFrOBFIwyNzc0)
+[Community](https://t.me/+wu-dFrOBFIwyNzc0)
 [Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
 
 ## Contents
