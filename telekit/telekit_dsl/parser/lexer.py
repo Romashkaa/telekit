@@ -14,19 +14,43 @@ class TokenizingError(Exception):
 #  Tools
 # ---------------------------
 
-def remove_extra_indentation(text):
-	lines = text.split('\n')
-	min_indent = float('inf')
-
-	lines[0] = '\t'*10 + lines[0]
-
-	for line in lines:
-		if line.strip():
-			indent = len(line) - len(line.lstrip())
-			min_indent = min(min_indent, indent)
-
-	result = '\n'.join(line[min_indent:] if line.strip() else line for line in lines)
-	return result
+def dedent_multiline(message: str) -> str:
+    """
+    Removes leading empty lines and normalizes indentation
+    by removing the minimum common leading whitespace from all lines.
+    
+    Args:
+        message (str): Multiline string with backticks or regular string.
+    
+    Returns:
+        str: Cleaned multiline string with minimal indentation removed.
+    """
+    lines = message.splitlines()
+    
+    # Remove first/last empty lines
+    while lines and lines[0].strip() == "":
+        lines.pop(0)
+    while lines and lines[-1].strip() == "":
+        lines.pop()
+    
+    if not lines:
+        return ""
+    
+    # Determine minimal indentation (only spaces/tabs)
+    min_indent = None
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped:  # ignore empty lines
+            indent = len(line) - len(stripped)
+            if min_indent is None or indent < min_indent:
+                min_indent = indent
+    
+    # Remove minimal indentation from all lines
+    if min_indent is None:
+        min_indent = 0
+    dedented_lines = [line[min_indent:] if len(line) >= min_indent else line for line in lines]
+    
+    return "\n".join(dedented_lines)
 
 # ---------------------------
 #  Main Lexer
@@ -127,7 +151,7 @@ class Lexer:
         if self.current_char != '`':
             raise TokenizingError(f"Unterminated `string` at {start}")
         self.next()
-        value = remove_extra_indentation(value)
+        value = dedent_multiline(value)
         self.add_token('string', value)
 
     def tokenize(self):

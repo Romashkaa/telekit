@@ -215,6 +215,33 @@ If you need to write a long text, you can use multiline strings with backticks (
 }
 ```
 
+The Telekit parser automatically normalizes indentation in multiline strings.  
+
+- The minimal common leading whitespace from all lines is removed.
+- Leading and trailing empty lines are automatically trimmed.
+
+For example:
+
+```js
+message = `
+    - Home Tasks:
+        - Task 1.
+        - Task 2.
+    - Watchlist:
+        - Movie 1.
+`;
+```
+
+Will be transformed into:
+
+```js
+- Home Tasks:
+    - Task 1.
+    - Task 2.
+- Watchlist:
+    - Movie 1.
+```
+
 ## Buttons Without Label
 
 In Telekit DSL, you can create buttons without explicitly specifying a label.
@@ -337,7 +364,63 @@ $ next {
 }
 ```
 
-## Suggested Emojis
+## Template Variables
+
+As your bot grows, you’ll often want messages to feel more personal instead of being fully static.  
+For example, greeting a user by name or referencing their username.
+
+Telekit DSL supports **template variables** using double curly braces: `{{variable}}`.
+
+These variables can be used directly inside `title` and `message` fields.
+
+```js
+@ main {
+    title   = "Welcome, {{first_name}}!";
+    message = "Your username is {{username}}.";
+}
+```
+
+- Variables are replaced **at render time**, right before the message is sent.
+- Only **first-level substitution** is performed.
+    - Variables inside variable values are **not** processed again.
+    - This prevents infinite recursion and keeps rendering predictable.
+- All variable values are **automatically sanitized**:
+    - HTML and Markdown inside variable values are escaped.
+    - This prevents accidental formatting issues and injection problems.
+    - Formatting must always be written explicitly in the DSL:
+```js
+message = "Your username is <b>{{username}}</b>";
+parse_mode = "html";
+```
+
+### Available Variables
+
+You can use the following variables in your Telekit DSL scripts to personalize messages:
+
+- `{{first_name}}` – the first name of the user as provided by Telegram.  
+- `{{last_name}}` – the last name of the user as provided by Telegram.  
+- `{{full_name}}` – the full name of the user (first name + last name).  
+- `{{username}}` – the Telegram username of the user (with the `@` symbol).
+- `{{user_id}}` – the unique Telegram ID of the user.
+- `{{chat_id}}` – the ID of the chat where the message originated.
+
+### Default Values
+
+If a variable is missing or has no value (for example, `{{last_name}}` for a user who has not set a last name), you can provide a default value using the `:` syntax:
+
+```js
+@ main {
+    title = "Hello, {{first_name:User}}!";
+    message = "Welcome, {{last_name:there}}!";
+}
+```
+
+- In this example, if `first_name` is missing, it will use `User` as a fallback.  
+- If `last_name` is missing, it will use `there` as a fallback.  
+
+This ensures that your messages always display meaningful text even when some user data is unavailable.
+
+## Suggested Emojis for Buttons
 
 This is an set of nice emoji labels you can use for buttons in your bot:
 

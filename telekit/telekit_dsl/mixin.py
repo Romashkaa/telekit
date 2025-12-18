@@ -168,13 +168,8 @@ class TelekitDSLMixin(telekit.Handler):
 
             # variables
             if "{{" in title or "{{" in message:
-                variables = {
-                    "username": lambda: self.user.username,
-                    "first_name": lambda: self.user.first_name,
-                }
-
-                title = safe_replace(title, variables, real_parse_mode)
-                message = safe_replace(message, variables, real_parse_mode)
+                title = self._parse_variables(title, real_parse_mode)
+                message = self._parse_variables(message, real_parse_mode)
 
             # title and message
             if do_sanitize:
@@ -226,6 +221,59 @@ class TelekitDSLMixin(telekit.Handler):
         self.prepare_scene(self.history.pop())()
 
     # ----------------------------------------------------------------------------
+    # Variables
+    # ----------------------------------------------------------------------------
+
+    def _get_variable(self, name: str) -> str | None:
+        match name:
+            case "first_name":
+                return self.user.first_name
+            case "last_name":
+                return self.user.last_name
+            case "full_name":
+                return str(self.user.full_name)
+            case "chat_id":
+                return str(self.message.chat.id)
+            case "user_id":
+                return str(self.user.id)
+            case "username":
+                return getattr(self.message.from_user, "username", None)
+            case _:
+                return
+
+    def _parse_variables(self, template_str: str, parse_mode: str | None=None):
+        """
+        Replace {{variables}} in template_str with values from the dict or callables.
+        Supports optional default values using the syntax {{variable|default text}}.
+        Non-recursive: {{…}} inside values are left as-is.
+
+        Args:
+            template_str (str): The template string containing {{variables}}.
+            parse_mode (str | None): Optional parse mode for sanitization.
+
+        Returns:
+            str: The template string with variables replaced.
+        """
+
+        # match {{variable:default}} or {{variable}}
+        pattern = re.compile(r'\{\{(\w+)(?::([^}]+))?\}\}')
+
+        def replacer(match: re.Match):
+            var_name = match.group(1)
+            default = match.group(2)
+
+            value = self._get_variable(var_name)
+
+            if value:
+                return str(Sanitize(value, parse_mode=parse_mode))
+            elif default:
+                return str(default)
+            else:
+                return match.group(0)
+
+        return pattern.sub(replacer, template_str)
+
+    # ----------------------------------------------------------------------------
     # Other
     # ----------------------------------------------------------------------------
 
@@ -246,21 +294,3 @@ class TelekitDSLMixin(telekit.Handler):
             return self._next_order[index + 1]
 
         raise ValueError("cannot determine next scene: no matching history entry")
-
-def safe_replace(template_str, values, parse_mode: str | None=None):
-    """
-    Replace {{variables}} in template_str with values from the dict or callables.
-    Non-recursive: {{…}} inside values are left as-is.
-    """
-    pattern = re.compile(r'\{\{(\w+)\}\}')
-
-    def replacer(match):
-        var_name = match.group(1)
-        if var_name in values:
-            value = values[var_name]
-            if callable(value):
-                value = value()
-            return str(Sanitize(str(value), parse_mode=parse_mode))
-        return match.group(0)
-
-    return pattern.sub(replacer, template_str)
