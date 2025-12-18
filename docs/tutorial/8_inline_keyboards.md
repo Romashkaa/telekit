@@ -20,7 +20,7 @@ To add a Label-Callback keyboard, call `chain.set_inline_keyboard()` with a dict
 ```python
 self.chain.set_inline_keyboard(
     {
-        "« Change": prompt,  # Executes `prompt.send()` when clicked
+        "« Change": prompt,  # Executes `prompt()` when clicked
         "Yes »": lambda: print("User: Okay!"),  # Runs this lambda when clicked
         "Youtube": "https://youtube.com"  # Opens a link
     }, row_width=2

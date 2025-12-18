@@ -1,38 +1,25 @@
-# 1.1.0
+# 1.1.1
 
 ## ✅ New Features
 ### Sender Improvements
-- Context manager:
-```python
-with self.chain.sender as sender:
-    sender.set_title("😃 Welcome!")
-    sender.set_message("It's Telekit v1.1.0")
-```
-- New `sender.then_send()` method.
-- Bug Fixed: Fix handling of `None` values in `set_edit_message` and `set_reply_to` methods (Commit `1c1f3fc`)
-- Enhance `append` method in Sender
 
 ### Handler Improvements
-- Added `handoff` method — allows passing control to another handler by name or class.  
-  The method creates a new handler instance, passes it the current message, and transfers the previous message context:
-
-```python
-self.handoff("QuizHandler").start_quiz()
-
-# OR
-
-from quiz_handler import QuizHandler
-self.handoff(QuizHandler).start_quiz()
-```
-- Added `freeze` method — provides a zero-argument wrapper for passing callbacks with bound arguments into inline keyboards:
-
-```python
-btn = self.freeze((lambda a, b: a + b), 2, 3)
-btn() # 5
-```
 
 ### Chain Improvements
-- `chain.set_default_timeout(seconds, message)` method - Sets a default timeout for user inactivity.
+
+### DSL Improvements
+- Added support for {{variables}} in `title=` and `message=`.
+  - HTML and Markdown tags in variable values are automatically sanitized.
+  - Recursive variable replacement is prevented (only first-level substitution is performed).
+  - For testing purposes, `{{username}}` and `{{first_name}}` variables are currently available.
+  - Example: (`<b>username</b>` - bold; `{{first_name}}` and `{{username}}` - sanitized>)
+```js
+@ main {
+    title = "Welcome, {{first_name}}!";
+    message = "Did you know your <b>username</b> is {{username}}? Cool, isn't it?";
+    parse_mode = "html";
+}
+```
 
 ---
 

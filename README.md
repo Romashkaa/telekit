@@ -119,7 +119,7 @@ Approximate result:
 If you want more control, you can use the following methods:
 
 ```python
-self.chain.sender.set_use_italic(False)
+self.chain.sender.set_use_italics(False)
 self.chain.sender.set_use_newline(False)
 self.chain.sender.set_parse_mode("HTML")
 self.chain.sender.set_reply_to(message)
@@ -166,7 +166,7 @@ If your focus is on logic and functionality, Telekit is the ideal library:
 # - callback: `Chain` | `str` | `func()` | `func(message)`
 self.chain.set_inline_keyboard(
     {
-        "« Change": prompt,  # Executes `prompt.send()` when clicked
+        "« Change": prompt,  # Executes `prompt()` when clicked
         "Yes »": lambda: print("User: Okay!"),  # Runs this lambda when clicked
         "Youtube": "https://youtube.com"  # Opens a link
     }, row_width=2

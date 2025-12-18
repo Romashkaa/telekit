@@ -5,7 +5,11 @@ from . import parser
 
 import telekit
 
+from telekit.styles import Sanitize, NoSanitize
+
 from typing import NoReturn, Any
+import re
+
 MAGIC_SCENES = parser.MAGIC_SCENES
 
 class TelekitDSLMixin(telekit.Handler):
@@ -139,10 +143,10 @@ class TelekitDSLMixin(telekit.Handler):
     def prepare_scene(self, _scene_name: str):
         """Prepare page"""
         def render():
-            # magic scenes logic
 
             scene_name = _scene_name
-            
+
+            # magic scenes logic
             if scene_name in MAGIC_SCENES:
                 match scene_name:
                     case "back":
@@ -158,7 +162,8 @@ class TelekitDSLMixin(telekit.Handler):
             # main logic
             scene = self.scenes[scene_name]
 
-            parse_mode = scene.get("parse_mode") or "html"
+            real_parse_mode: str | None = scene.get("parse_mode")
+            parse_mode = real_parse_mode or "html"
 
             self.chain.sender.set_parse_mode(parse_mode)
             self.chain.sender.set_use_italics(scene.get("use_italics", False))
@@ -166,14 +171,27 @@ class TelekitDSLMixin(telekit.Handler):
             styles = self.chain.sender.styles
             title = scene.get("title", "[ no title ]")
             message = scene.get("message", "[ no message ]")
-            do_sanitize = not scene.get("parse_mode") 
+            do_sanitize = not real_parse_mode
 
+            # variables
+            if "{{" in title or "{{" in message:
+                variables = {
+                    "username": lambda: self.user.username,
+                    "first_name": lambda: self.user.first_name,
+                }
+
+                title = safe_replace(title, variables, real_parse_mode)
+                message = safe_replace(message, variables, real_parse_mode)
+
+            # title and message
             if do_sanitize:
                 self.chain.sender.set_title(styles.sanitize(title))
                 self.chain.sender.set_message(styles.sanitize(message))
             else:
                 self.chain.sender.set_title(styles.no_sanitize(title))
                 self.chain.sender.set_message(styles.no_sanitize(message))
+            
+            # image
             self.chain.sender.set_photo(scene.get("image", None))
 
             # keyboard
@@ -194,3 +212,21 @@ class TelekitDSLMixin(telekit.Handler):
             self.chain.edit()
 
         return render
+
+def safe_replace(template_str, values, parse_mode: str | None=None):
+    """
+    Replace {{variables}} in template_str with values from the dict or callables.
+    Non-recursive: {{…}} inside values are left as-is.
+    """
+    pattern = re.compile(r'\{\{(\w+)\}\}')
+
+    def replacer(match):
+        var_name = match.group(1)
+        if var_name in values:
+            value = values[var_name]
+            if callable(value):
+                value = value()
+            return str(Sanitize(str(value), parse_mode=parse_mode))
+        return match.group(0)
+
+    return pattern.sub(replacer, template_str)
