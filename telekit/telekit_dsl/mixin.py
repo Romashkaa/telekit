@@ -5,26 +5,26 @@ from . import parser
 
 import telekit
 
-from telekit.styles import Sanitize, NoSanitize
+from telekit.styles import Sanitize
 
-from typing import NoReturn, Any
+from typing import NoReturn
 import re
 
 MAGIC_SCENES = parser.MAGIC_SCENES
 
 class TelekitDSLMixin(telekit.Handler):
-
     """
-    TelekitDSLMixin — Mixin for creating interactive FAQ or guide flows inside a Telekit handler.
+    TelekitDSLMixin — Mixin for creating interactive FAQ inside a Telekit handler.
 
     This class allows you to:
     - Load guide data from a Telekit DSL file or string.
-    - Automatically handle user navigation between scenes (including "back" functionality).
+    - Automatically handle user navigation between scenes.
     - Render scenes with inline keyboards and formatting.
 
     Requirements:
-    - The handler using this mixin must have `self.chain` available (Telekit Chain instance).
-    - Must call `analyze_file()` or `analyze_source()` before `start_script()`.
+    - The handler using this mixin must call `analyze_file()` or `analyze_source()` before `start_script()`.
+
+    [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
 
     ## Usage:
     ```
@@ -34,11 +34,8 @@ class TelekitDSLMixin(telekit.Handler):
         class MyFAQHandler(telekit.TelekitDSL.Mixin):
             @classmethod
             def init_handler(cls) -> None:
-                @cls.message_handler(commands=["faq"])
-                def handler(message: telebot.types.Message) -> None:
-                    cls(message).start_script()
-
                 cls.analyze_source(guide)
+                cls.on.command("faq").invoke(cls.start_script)
 
             # If you want to add your own bit of logic:
 
@@ -47,29 +44,49 @@ class TelekitDSLMixin(telekit.Handler):
             #     super().start_script()
     ```
 
-    Notes:
-    - Scenes support backtracking via a 'back' button.
-    - All chain rendering is handled automatically; developers only provide scene data.
+    [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
     """
 
     data: dict | None = None
 
     @classmethod
     def analyze_file(cls, path: str, encoding: str="utf-8")  -> None | NoReturn:
-        """Analyze an FML file and store parsed data in the class. (any file extension)"""
+        """
+        Analyze an script file and store parsed data in the class.
+
+        Raises an error if there are syntax errors or analyzer warnings.
+
+        :param path: Path to the script. Supports any file extension
+        :type path: str
+        :param encoding: Encoding
+        :type encoding: str
+        """
         with open(path, "r", encoding=encoding) as f:
             content = f.read()
             cls.analyze_source(content)
 
     @classmethod
-    def analyze_source(cls, source: str) -> None | NoReturn:
-        """Analyze FML source string and store parsed data."""
-        cls.data = parser.analyze(source)
+    def analyze_source(cls, script: str) -> None | NoReturn:
+        """
+        Analyze an script from string and store parsed data in the class.
+
+        Raises an error if there are syntax errors or analyzer warnings.
+        
+        :param script: Telekit DSL script
+        :type script: str
+        """
+        cls.data = parser.analyze(script)
+
+    # ----------------------------------------------------------------------------
+    # Preparation
+    # ----------------------------------------------------------------------------
 
     def start_script(self) -> None | NoReturn:
-        """Start the guide; raises an error if data is not loaded."""
+        """
+        Start the guide; Raises an error if data is not loaded.
+        """
         if not self.data:
-            raise RuntimeError("Guide data not loaded. Call `analyze_file` or `analyze_source` first.")
+            raise RuntimeError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
         
         # initialize history
         self.history: list[str] = []
@@ -108,40 +125,16 @@ class TelekitDSLMixin(telekit.Handler):
 
         # start the main scene
         self.prepare_scene("main")()
-
-    def _on_timeout(self):
-        message = self.config.get("timeout_message", "👋 Are you still there?")
-        message = self.chain.sender.styles.no_sanitize(message)
-        label = self.config.get("timeout_label", "Yes, I'm here ✓")
-        self.chain.set_timeout(None, 7)
-        self.chain.sender.add_message("\n\n", self.chain.sender.styles.bold(message))
-        self.chain.set_inline_keyboard({label: self._continue})
-        self.chain.edit()
-
-    def _continue(self):
-        self.chain.set_timeout(self._on_timeout, self._timeout_time)
-        self.prepare_scene(self.history.pop())()
-
-    def _get_next_scene_name(self):
-        if not self._next_order:
-            raise ValueError("cannot use Next button: order is not defined")
-
-        for item in self.history[::-1]:
-            if item not in self._next_order:
-                continue
-
-            index = self._next_order.index(item)
-
-            # check that next index exists
-            if index + 1 >= len(self._next_order):
-                raise IndexError("next_order index out of range: no next scene defined")
-
-            return self._next_order[index + 1]
-
-        raise ValueError("cannot determine next scene: no matching history entry")
+    
+    # ----------------------------------------------------------------------------
+    # Scene Rendering
+    # ----------------------------------------------------------------------------
 
     def prepare_scene(self, _scene_name: str):
-        """Prepare page"""
+        """
+        Prepare the scene renderer
+        """
+
         def render():
 
             scene_name = _scene_name
@@ -212,6 +205,47 @@ class TelekitDSLMixin(telekit.Handler):
             self.chain.edit()
 
         return render
+    
+    # ----------------------------------------------------------------------------
+    # Timeout Logic
+    # ----------------------------------------------------------------------------
+
+    def _on_timeout(self):
+        message = self.config.get("timeout_message", "👋 Are you still there?")
+        message = self.chain.sender.styles.no_sanitize(message)
+        label   = self.config.get("timeout_label", "Yes, I'm here ✓")
+
+        self.chain.set_timeout(None, 7)
+        self.chain.sender.add_message("\n\n", self.chain.sender.styles.bold(message))
+        self.chain.set_inline_keyboard({label: self._continue})
+
+        self.chain.edit()
+
+    def _continue(self):
+        self.chain.set_timeout(self._on_timeout, self._timeout_time)
+        self.prepare_scene(self.history.pop())()
+
+    # ----------------------------------------------------------------------------
+    # Other
+    # ----------------------------------------------------------------------------
+
+    def _get_next_scene_name(self):
+        if not self._next_order:
+            raise ValueError("cannot use Next button: order is not defined")
+
+        for item in self.history[::-1]:
+            if item not in self._next_order:
+                continue
+
+            index = self._next_order.index(item)
+
+            # check that next index exists
+            if index + 1 >= len(self._next_order):
+                raise IndexError("next_order index out of range: no next scene defined")
+
+            return self._next_order[index + 1]
+
+        raise ValueError("cannot determine next scene: no matching history entry")
 
 def safe_replace(template_str, values, parse_mode: str | None=None):
     """

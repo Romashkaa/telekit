@@ -9,6 +9,8 @@ class TelekitDSL:
     
     This class provides convenient methods to load scripts either from a file or from a source string,
     and automatically binds them to bot commands.
+
+    [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
     """
 
     Mixin = mixin.TelekitDSLMixin
@@ -25,8 +27,10 @@ class TelekitDSL:
         Args:
             path (str): Path to the DSL script file.
             on_commands (list[str]): List of bot commands that will trigger this DSL.
+
+        [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
         """
-        class DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
+        class _DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
             @classmethod
             def init_handler(cls) -> None:
                 cls.on.message(on_commands).invoke(cls.start_script)
@@ -43,8 +47,10 @@ class TelekitDSL:
         Args:
             source (str): The DSL script as a string.
             on_commands (list[str]): List of bot commands that will trigger this DSL.
+
+        [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
         """
-        class DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
+        class _DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
             @classmethod
             def init_handler(cls) -> None:
                 cls.on.message(on_commands).invoke(cls.start_script)
