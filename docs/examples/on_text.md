@@ -1,3 +1,4 @@
+```py
 import telekit
 
 from telekit.styles import *
@@ -54,3 +55,6 @@ class OnTextHandler(telekit.Handler):
             f"The bot will respond according to the information you provide."
         )
         self.chain.edit()
+
+telekit.Server(TOKEN).polling()
+```

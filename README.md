@@ -50,7 +50,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
     - [Message Formatting](#message-formatting)
     - [Text Styling](#text-styling-with-styles)
     - [Handling Callbacks](#handling-callbacks-and-logic)
-- [Quick Guide](#quick-start)
+- [Quick Start](#quick-start)
 - [Examples and Solutions](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
     - [Dialogue](https://github.com/Romashkaa/telekit/blob/main/docs/examples/dialogue.md)
     - [Risk Game](https://github.com/Romashkaa/telekit/blob/main/docs/examples/risk_game.md)
