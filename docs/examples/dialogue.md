@@ -3,7 +3,6 @@
 ```python
 import telebot.types
 import telekit
-import typing
 
 class DialogueHandler(telekit.Handler):
 
@@ -13,7 +12,7 @@ class DialogueHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        @cls.on_text("Hello!", "hello!", "Hello", "hello")
+        @cls.on.text("Hello!", "hello!", "Hello", "hello")
         def _(message: telebot.types.Message):
             cls(message).handle_hello()
 

@@ -10,7 +10,7 @@ you can copy them, modify them, or use them as a starting point for your own bot
 ## Contents
 
 - Basic:
-    - [Dialogue](dialogue.md)
+    - [Dialogue](dialogue.md) – on.text, entry_text.
     - [Risk Game](risk_game.md) – inline_keyboard, set_remove_timeout, set_default_timeout.
     - [Counter](counter.md) – set_photo, set_effect.
     - [On Text](on_text.md) – on.text, styles.
