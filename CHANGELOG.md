@@ -20,6 +20,8 @@
 }
 ```
 - Improved indentation handling in multiline strings.
+- `display_script_data()` method. Prints the semantic model of the script to the console.
+- Mixin refactor.
 
 ---
 

@@ -4,9 +4,9 @@
 from . import parser
 
 import telekit
-
 from telekit.styles import Sanitize
 
+import json
 from typing import NoReturn
 import re
 
@@ -47,7 +47,8 @@ class TelekitDSLMixin(telekit.Handler):
     [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
     """
 
-    data: dict | None = None
+    script_data: dict | None = None
+    script_analyzed: bool = False
 
     @classmethod
     def analyze_file(cls, path: str, encoding: str="utf-8")  -> None | NoReturn:
@@ -61,9 +62,13 @@ class TelekitDSLMixin(telekit.Handler):
         :param encoding: Encoding
         :type encoding: str
         """
+        cls.script_analyzed = False
+
         with open(path, "r", encoding=encoding) as f:
             content = f.read()
             cls.analyze_source(content)
+
+        cls.prepare_script()
 
     @classmethod
     def analyze_source(cls, script: str) -> None | NoReturn:
@@ -75,53 +80,97 @@ class TelekitDSLMixin(telekit.Handler):
         :param script: Telekit DSL script
         :type script: str
         """
-        cls.data = parser.analyze(script)
+        cls.script_analyzed = False
+        cls.script_data = parser.analyze(script)
+        cls.prepare_script()
+
+    @classmethod
+    def display_script_data(cls):
+        """
+        Prints the semantic model of the script to the console.
+        """
+        if not cls.script_data:
+            print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_source` first.")
+            return
+
+        print(
+            json.dumps(
+                cls.script_data,
+                indent=4,
+                ensure_ascii=False
+            )
+        )
+
+    @classmethod
+    def prepare_script(cls):
+        """
+        Prepares the script; raises an error if the script data is not loaded or invalid
+        """
+        cls.script_analyzed = False
+
+        if not cls.script_data:
+            raise ValueError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
+
+        # scenes
+        if "scenes" not in cls.script_data:
+            missing("scenes")
+        if not isinstance(cls.script_data["scenes"], dict):
+            raise TypeError("'scenes' should be a dictionary.")
+        cls.scenes: dict[str, dict] = cls.script_data["scenes"]
+
+        # scene order
+        if "order" not in cls.script_data:
+            missing("order")
+        if not isinstance(cls.script_data["order"], list):
+            raise TypeError("'order' should be a list of strings.")
+        cls.scene_order: list[str] = cls.script_data["order"]
+
+        # config
+        if "config" not in cls.script_data:
+            missing("config")
+        if not isinstance(cls.script_data["config"], dict):
+            raise TypeError("'config' should be a dictionary.")
+        cls.config = cls.script_data["config"]
+
+        # next order
+        cls.next_order: list[str] | None = cls.config.get("next_order")
+        if not isinstance(cls.next_order, list):
+            raise TypeError("'next_order' config should be a list of strings.")
+        
+        # timeout
+        cls.timeout_time = cls.config.get("timeout_time", 0)
+
+        # end
+        cls.script_analyzed = True
 
     # ----------------------------------------------------------------------------
-    # Preparation
+    # Instance Attributes
     # ----------------------------------------------------------------------------
 
     def start_script(self) -> None | NoReturn:
         """
-        Start the guide; Raises an error if data is not loaded.
+        Starts the script; raises an error if the script has not been analyzed
         """
-        if not self.data:
-            raise RuntimeError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
+        # quick check
+        if not self.script_analyzed:
+            message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_source() before starting it."
+            print(message)
+            self.chain.sender.pyerror(RuntimeError(message))
+            return
         
         # initialize history
         self.history: list[str] = []
 
-        # check if 'scenes' exists and is a dictionary
-        if "scenes" not in self.data:
-            raise KeyError("Missing 'scenes' key in script data.")
-        if not isinstance(self.data["scenes"], dict):
-            raise TypeError("'scenes' should be a dictionary.")
-        self.scenes: dict[str, dict] = self.data["scenes"]
+        # localize attributes
+        self.config = self.config
+        self.scenes = self.scenes
+        self.scene_order = self.scene_order
+        self.next_order = self.next_order
 
-        # check if 'order' exists and is a dictionary
-        if "order" not in self.data:
-            raise KeyError("Missing 'order' key in script data.")
-        if not isinstance(self.data["order"], list):
-            raise TypeError("'order' should be a list of strings.")
-        self.order: list[str] = self.data["order"]
-
-        # check if 'config' exists and is a dictionary
-        if "config" not in self.data:
-            raise KeyError("Missing 'config' key in script data.")
-        if not isinstance(self.data["config"], dict):
-            raise TypeError("'config' should be a dictionary.")
-        self.config = self.data["config"]
-
-        # timeout
-        self._timeout_time = self.config.get("timeout_time", 0)
-        if isinstance(self._timeout_time, int):
-            self.chain.set_timeout(self._on_timeout, self._timeout_time)
+        # set timeout
+        if isinstance(self.timeout_time, int):
+            self.chain.set_timeout(self._on_timeout, self.timeout_time)
         self.chain.set_remove_timeout(False)
-
-        # next_order
-        self._next_order: list[str] | None = self.config.get("next_order")
-        if not isinstance(self._next_order, list):
-            raise TypeError("'next_order' config should be a list of strings.")
 
         # start the main scene
         self.prepare_scene("main")()
@@ -217,7 +266,7 @@ class TelekitDSLMixin(telekit.Handler):
         self.chain.edit()
 
     def _continue(self):
-        self.chain.set_timeout(self._on_timeout, self._timeout_time)
+        self.chain.set_timeout(self._on_timeout, self.timeout_time)
         self.prepare_scene(self.history.pop())()
 
     # ----------------------------------------------------------------------------
@@ -278,19 +327,22 @@ class TelekitDSLMixin(telekit.Handler):
     # ----------------------------------------------------------------------------
 
     def _get_next_scene_name(self):
-        if not self._next_order:
+        if not self.next_order:
             raise ValueError("cannot use Next button: order is not defined")
 
         for item in self.history[::-1]:
-            if item not in self._next_order:
+            if item not in self.next_order:
                 continue
 
-            index = self._next_order.index(item)
+            index = self.next_order.index(item)
 
             # check that next index exists
-            if index + 1 >= len(self._next_order):
+            if index + 1 >= len(self.next_order):
                 raise IndexError("next_order index out of range: no next scene defined")
 
-            return self._next_order[index + 1]
+            return self.next_order[index + 1]
 
         raise ValueError("cannot determine next scene: no matching history entry")
+    
+def missing(name: str):
+    raise KeyError(f"Missing '{name}' key in script data.")
