@@ -27,7 +27,7 @@ self.chain.sender.set_message("Something below...")
 You can also add a line at the end without effort:
 
 ```python
-self.chain.sender.add_message("\nNew Line!")
+self.chain.sender.append("\nNew Line!")
 ```
 
 Use structured messages when you want to separate the main title from additional content. Simple messages are best for quick replies.

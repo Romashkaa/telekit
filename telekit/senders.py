@@ -134,23 +134,59 @@ class BaseSender:
             self.styles.set_parse_mode(self.parse_mode)
 
     class Effect(Enum):
-        FIRE = "5104841245755180586"   # 🔥
-        PARTY = "5046509860389126442"  # 🎉
-        HEART = "5159385139981059251"  # ❤️
-        THUMBS_UP = "5107584321108051014"  # 👍
-        THUMBS_DOWN = "5104858069142078462"  # 👎
-        POOP = "5046589136895476101"  # 💩
+        """
+        Enum representing message effects:
+        
+        - FIRE - 🔥 
+        - PARTY - 🎉 
+        - HEART - ❤️ 
+        - THUMBS_UP - 👍 
+        - THUMBS_DOWN - 👎 
+        - POOP - 💩 
+
+        Use the `set_effect` method to use it
+        """
+        FIRE = "5104841245755180586"        # 🔥
+        PARTY = "5046509860389126442"       # 🎉
+        HEART = "5159385139981059251"       # ❤️
+        THUMBS_UP = "5107584321108051014"   # 👍
+        THUMBS_DOWN = "5104858069142078462" # 👎
+        POOP = "5046589136895476101"        # 💩
 
         def __str__(self) -> str:
             return self.value
 
     def set_message_effect_id(self, effect: str):
+        """
+        Sets the message effect by string ID. Low-level version of the `set_effect` method
+        
+        :param effect: Effect ID
+        :type effect: str
+        """
         self.message_effect_id = effect
 
     def set_effect(self, effect: Effect | str | int):
+        """
+        Sets a message effect using enum, string, or integer.
+        
+        :param effect: Integer, String, or Enum representing the message effect
+        :type effect: Effect | str | int
+        """
         self.message_effect_id = str(effect)
 
     def set_photo(self, photo: str | None | Any):
+        """
+        Sets the photo for the message.
+         
+        Accepts:
+            - URL string (`"http://..."` or `"https://..."`)
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set photo
+        
+        :param photo: The photo for the message
+        :type photo: str | None | Any
+        """
         self.media = []
         if not isinstance(photo, str):
             self.photo = photo
@@ -164,7 +200,15 @@ class BaseSender:
             self.photo = photo.read()
 
     def set_media(self, *media: str | Any):
-        """Sets the photos to be sent as InputMediaPhoto objects."""
+        """
+        Sets the photos to be sent as InputMediaPhoto objects.
+        
+        Accepts:
+            - URLs
+            - local file paths
+            - bytes or file-like objects
+            - instances of `InputMediaPhoto`
+        """
         self.photo = None
         self.media: list[InputMediaPhoto] = []
 
@@ -194,21 +238,48 @@ class BaseSender:
             self.media = list(map(f, self.media))
 
     def set_chat_id(self, chat_id: int):
+        """
+        Sets the chat ID for sending messages
+        
+        :param chat_id: The telegram chat ID
+        :type chat_id: int
+        """
         self.chat_id = chat_id
 
     def set_text(self, text: str):
+        """
+        Sets the plain text of the message.
+        
+        :param text: A simple text message. Not sanitized. HTML and Markdown tags are allowed
+        :type text: str
+        """
         self.text = text
 
     def set_reply_markup(self, reply_markup):
+        """
+        Sets Inline keyboards, reply keyboards, or other markup objects
+        """
         self.reply_markup = reply_markup
 
     def set_temporary(self, is_temp: bool):
+        """
+        Marks message as temporary; will be deleted later if `delete_temporaries` is True.  
+        """
         self.is_temporary = is_temp
 
     def set_delete_temporaries(self, del_temps: bool):
+        """
+        Whether to delete temporary messages in the chat.  
+        """
         self.delele_temporaries = del_temps
 
     def set_parse_mode(self, parse_mode: str | None):
+        """
+        Sets the parse mode to the message
+        
+        :param parse_mode: `html`, `markdown` or `None`.  
+        :type parse_mode: str | None
+        """
         if not parse_mode:
             self.parse_mode = None
             return
@@ -218,12 +289,21 @@ class BaseSender:
             self.styles.set_parse_mode(self.parse_mode)
 
     def set_reply_to_message_id(self, reply_to_message_id: int | None):
+        """
+        Reply to specific message by ID.
+        """
         self.reply_to_message_id = reply_to_message_id
 
     def set_edit_message_id(self, edit_message_id: int | None):
+        """
+        Edit an existing message by ID.
+        """
         self.edit_message_id = edit_message_id
 
     def set_edit_message(self, edit_message: Message | None):
+        """
+        Edit a specific message by its `Message` object.  
+        """
         if edit_message is None:
             self.edit_message_id = None
             return
@@ -232,6 +312,9 @@ class BaseSender:
             self.edit_message_id = edit_message.message_id
 
     def set_reply_to(self, reply_to: Message | None):
+        """
+        Reply to a specific message by its `Message` object.  
+        """
         if reply_to is None:
             self.reply_to = None
             return
@@ -373,6 +456,9 @@ class BaseSender:
             return False
         
     def delete_message(self, message: Message | None, only_user_messages: bool=False) -> bool:
+        """
+        Deletes a message optionally ignoring bot messages.  
+        """
         if only_user_messages and message and message.from_user and message.from_user.is_bot:
             return False
 
@@ -617,7 +703,7 @@ class AlertSender(BaseSender):
         Set a plain text message, replacing any previously set title or message.
 
         Args:
-            *text: One or more text parts or StyleFormatter objects to set.
+            *text: One or more text parts or StyleFormatter objects to set. Not sanitized. HTML and Markdown tags are allowed
             sep (str | StyleFormatter, optional): Separator used between text parts. Defaults to "".
 
         Returns:
@@ -639,7 +725,7 @@ class AlertSender(BaseSender):
         Set the title of the alert message. Clears plain text content.
 
         Args:
-            title (str | StyleFormatter): Title of the alert-styled message.
+            title (str | StyleFormatter): Title of the alert-styled message. Not sanitized. HTML and Markdown tags are allowed
 
         Returns:
             None
@@ -653,7 +739,7 @@ class AlertSender(BaseSender):
         Set the main message body for the alert.
 
         Args:
-            *message: One or more message parts or StyleFormatter objects.
+            *message: One or more message parts or StyleFormatter objects. Not sanitized. HTML and Markdown tags are allowed
             sep (str | StyleFormatter, optional): Separator used between message parts. Defaults to "".
 
         Returns:
@@ -672,6 +758,8 @@ class AlertSender(BaseSender):
         preserving everything that was already set.
 
         Works the same way for both `set_text()` and `set_message()`.
+
+        Not sanitized. HTML and Markdown tags are allowed
 
         Example:
         ```

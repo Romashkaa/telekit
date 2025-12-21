@@ -29,11 +29,11 @@ You use `self.chain.sender.*` to define how your bot responds.
 - `set_text(text: str)` - Sets the plain text of the message.  
 - `set_reply_markup(reply_markup)` - Inline keyboards, reply keyboards, or other markup objects.  
 - `set_temporary(is_temp: bool)` - Marks message as temporary; will be deleted later if `delete_temporaries` is True.  
-- `set_delete_temporaries(del_temps: bool)` - Whether to automatically delete temporary messages in the chat.  
+- `set_delete_temporaries(del_temps: bool)` - Whether to delete temporary messages in the chat.  
 - `set_parse_mode(parse_mode: str | None)` - `"html"`, `"markdown"` or `None`.  
 - `set_reply_to_message_id(reply_to_message_id: int | None)` - Reply to specific message by ID.  
 - `set_edit_message_id(edit_message_id: int | None)` - Edit an existing message by ID.  
-- `set_edit_message(edit_message: Message | None)` - Edit a specific `Message` object.  
+- `set_edit_message(edit_message: Message | None)` - Edit a specific message by its `Message` object.
 - `set_reply_to(reply_to: Message | None)` - Reply to a specific `Message` object.  
 - `delete_message(message: Message | None, only_user_messages: bool=False) -> bool` - Deletes a message optionally ignoring bot messages.  
 - `pyerror(exception: BaseException) -> Message | None` - Sends a Python exception as a message.  
@@ -41,16 +41,16 @@ You use `self.chain.sender.*` to define how your bot responds.
 - `try_send() -> tuple[Message | None, Exception | None]` - Attempts to send a message with error handling.  
 - `send_or_handle_error() -> Message | None` - Sends a message and handles errors if they occur.  
 - `send() -> Message | None` - Sends or edits a message, managing temporary state.  
-- `get_message_id(message: Message | None) -> int | None` - Retrieves the message ID from a Message object.  
+- `get_message_id(message: Message | None) -> int | None` - Retrieves the message ID from a Message object.
 
 ## Alert Sender
 
 AlertSender is a special sender that sends a message and automatically formats its style (title, message body, italics, etc.).
 
-- `set_text(text: str | StyleFormatter)` - Sets the full text of the alert, clears title and message.  
-- `set_title(title: str | StyleFormatter)` - Sets the alert title, clears text and message.  
+- `set_text(*text: str | StyleFormatter)` - Sets the full text of the message, clears title and message.  
+- `set_title(title: str | StyleFormatter)` - Sets the message title, clears text and message.  
 - `set_message(*message: str | StyleFormatter, sep: str | StyleFormatter="")` - Sets the alert message body, clearing text.  
-- `add_message(*message: str | StyleFormatter, sep: str | StyleFormatter="")` - Appends to the alert message body.  
+- `append(*message: str | StyleFormatter, sep: str | StyleFormatter="")` - Appends to the alert message body.  
 - `set_parse_mode(parse_mode: str | None=None)` - Sets the parse mode for the alert message.  
 - `set_use_italics(use_italics: bool=True)` - Sets whether to use italics in the message.  
 - `set_use_newline(_use_newline: bool=True)` - Sets whether to add a newline between title and message.  
