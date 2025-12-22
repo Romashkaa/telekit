@@ -7,9 +7,7 @@ It allows you to:
 - combine multiple styles in a single string;
 - **sanitize** user input to prevent breaking HTML/Markdown tags.
 
----
-
-## 1. Don’t Convert Styles to Strings
+## 1. Introduction
 
 You can freely combine different style objects in a single expression:
 
@@ -29,8 +27,7 @@ self.chain.sender.set_parse_mode("html")  # applied to all styles
 self.chain.send()
 ```
 
-If a style reaches the sender as a plain string, the sender can’t assign the correct parse_mode.
-For example:
+**The main rule**: If a style reaches the sender as a plain string, the sender can’t assign the correct parse_mode:
 
 ```python
 self.chain.sender.set_text(
@@ -38,9 +35,7 @@ self.chain.sender.set_text(
 )
 ```
 
-Here the styles are already converted to text, so there is a possible mismatch between the sender and the intended style formatting
-
----
+Here, the styles are already converted to text, so there may be a mismatch between the sender and the intended style formatting, which is HTML by default.
 
 ## 2. Import & Use Styles
 
@@ -70,8 +65,6 @@ print(text.html)     # <b>Bold</b> and <i>Italic</i>
 print(text.none)     # Bold and Italic
 ```
 
----
-
 ## 3. Combining styles
 
 You can combine multiple styles:
@@ -89,12 +82,10 @@ Grouping:
 Group("Hello ", Bold("Romashka"), "!")
 ```
 
----
-
 ## 4. Sanitizing text
 
 - **set_text**: strings remain unchanged, HTML/Markdown tags are not modified.  
-  To safely include user input, use `Sanitize(...)`.
+  To safely include user input, use `Sanitize("user input...")`.
 
 ```python
 # If parse_mode=None, the text is not sanitized
@@ -110,14 +101,17 @@ self.chain.sender.set_text(Bold("Romashka<i>"))  # "Romashka<i>"
 # Any HTML tags will be interpreted by Telegram
 self.chain.sender.set_parse_mode("html")
 self.chain.sender.set_text("<b>Romashka</b>")    # Bold "Romashka"
-self.chain.sender.set_text("<b>Romashka<i></b>") # Error code: 400.
+self.chain.sender.set_text("<b>Romashka<i></b>") # Error code: 400. (unclosed <i>)
 
 # HTML formatting enabled; text is sanitized
 self.chain.sender.set_parse_mode("html")
 self.chain.sender.set_text(Bold("Romashka"))     # Bold "Romashka"
 self.chain.sender.set_text(Bold("Romashka<i>"))  # Bold "Romashka<i>"
+self.chain.sender.set_text(Sanitize("Romashka<i>"))  # "Romashka<i>"
+
 
 # Sanitized — HTML tags are escaped
+self.chain.sender.set_parse_mode("html")
 self.chain.sender.set_text(Sanitize("<b>Romashka</b>")) # "<b>Romashka</b>"
 ```
 
@@ -131,9 +125,7 @@ self.chain.sender.set_text(Sanitize("<b>Romashka</b>")) # "<b>Romashka</b>"
 self.chain.sender.set_title("<i>Hello, user!</i>") # Bold + Italic "Hello, user!"
 ```
 
----
-
-## 5. Example
+## Example
 
 ```python
 import telekit

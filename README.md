@@ -81,8 +81,8 @@ class NameHandler(telekit.Handler):
         self.chain.edit()
 
     def change_name(self):
-        self.chain.sender.set_title("⌨️ Enter your new name")
-        self.chain.sender.set_message("Please type your new name below:")
+        self.chain.sender.set_title("⌨️ Enter your name...")
+        self.chain.sender.set_message("Please, type your new name below:")
 
         @self.chain.entry_text(delete_user_response=True)
         def name_handler(message, name: str):
@@ -228,6 +228,12 @@ Telekit is lightweight yet powerful, giving you a full set of built-in tools and
 
 ## Quick Start
 
+Telekit is published in [PyPI](https://pypi.org/project/telekit/), so it can be installed with one command:
+
+```
+pip install telekit
+```
+
 You can write the entire bot in a single file, but it’s recommended to organize your project using a simple structure like this one:
 
 ```
@@ -286,7 +292,7 @@ class EchoHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-For a full walkthrough, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
+For a full walkthrough, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) or see [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
 
 ---
 
@@ -295,3 +301,5 @@ For a full walkthrough, [check out our tutorial](https://github.com/Romashkaa/te
 Telegram: [Romashka](https://t.me/NotRomashka)
 
 Gravatar: [Romashka](https://gravatar.com/notromashka)
+
+[Community](https://t.me/+wu-dFrOBFIwyNzc0)

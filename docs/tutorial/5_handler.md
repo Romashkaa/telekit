@@ -5,8 +5,6 @@ It provides a structured way to manage incoming messages, commands, and user int
 
 Each subclass of `Handler` should implement its own logic by overriding `init_handler(cls)` to register triggers and defining instance methods to handle the responses. 
 
----
-
 ### Example: Text Pattern Handling
 
 ```python
