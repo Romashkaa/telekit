@@ -3,15 +3,16 @@
 
 from typing import Any
 from enum import Enum
+import io
+
 from telebot import TeleBot
 from telebot.types import (
     Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
 
+from telekit.styles import NoSanitize, StyleFormatter, Composite, Styles
 from .logger import logger
 library = logger.library
-
-from telekit.styles import NoSanitize, StyleFormatter, Composite, Styles
 
 # ---------------------------------------------------------------------------------
 # Temporary Messages Manager
@@ -76,25 +77,32 @@ class BaseSender:
         """
         cls.bot = bot
 
-    def __init__(self,
-                 chat_id: int,
+    def __init__(
+            self,
+            chat_id: int,
 
-                 text: str       = "",
-                 reply_markup = None, # type: ignore
+            text: str = "",
+            reply_markup = None,
 
-                 is_temporary: bool   = False,
-                 delele_temporaries: bool = True,
-                 
-                 parse_mode: str | None = None,
-                 reply_to_message_id: int | None = None,
+            is_temporary: bool = False,
+            delele_temporaries: bool = True,
+            
+            parse_mode: str | None = None,
+            reply_to_message_id: int | None = None,
 
-                 edit_message_id: int | None = None,
+            edit_message_id: int | None = None,
 
-                 thread_id: int | None = None,
-                 effect_id: str | None = None,
+            thread_id: int | None = None,
+            effect_id: str | None = None,
 
-                 photo: str | None = None
-                 ):
+            photo: str | None = None,
+            document: str | Any = None,
+            video_note: str | Any = None,  
+            animation: str | Any = None,
+            video: str | Any = None,
+            audio: str | Any = None,
+            voice: str | Any = None,
+            ):
         """
         Initializes the BaseSender object with message details.
 
@@ -125,6 +133,14 @@ class BaseSender:
         self.message_effect_id = effect_id
 
         self.photo = photo
+        self.document = document
+        self.video = video
+        self.animation = animation
+        self.audio = audio
+        self.voice = voice  
+        self.video_note = video_note
+
+        self.venue = []
 
         self.styles = Styles()
 
@@ -132,6 +148,10 @@ class BaseSender:
 
         if self.parse_mode:
             self.styles.set_parse_mode(self.parse_mode)
+
+    # --------------------------------------------------------
+    # Enums for message effects and chat actions
+    # --------------------------------------------------------
 
     class Effect(Enum):
         """
@@ -155,24 +175,54 @@ class BaseSender:
 
         def __str__(self) -> str:
             return self.value
+    
+    class ChatAction(Enum):
+        """
+        Represents chat actions (status indicators) that a bot can send,
+        e.g., 'typing', 'upload_document', 'record_voice', etc.
+        """
+        TYPING = "typing"
+        UPLOAD_PHOTO = "upload_photo"
+        UPLOAD_DOCUMENT = "upload_document"
+        UPLOAD_AUDIO = "upload_audio"
+        UPLOAD_VIDEO = "upload_video"
+        RECORD_VIDEO = "record_video"
+        RECORD_VOICE = "record_voice"
+        UPLOAD_VOICE = "upload_voice"
+        CHOOSE_STICKER = "choose_sticker"
+        FIND_LOCATION = "find_location"
+        RECORD_VIDEO_NOTE = "record_video_note"
+        UPLOAD_VIDEO_NOTE = "upload_video_note"
 
-    def set_message_effect_id(self, effect: str):
-        """
-        Sets the message effect by string ID. Low-level version of the `set_effect` method
-        
-        :param effect: Effect ID
-        :type effect: str
-        """
-        self.message_effect_id = effect
+        def __str__(self) -> str:
+            return self.value
 
-    def set_effect(self, effect: Effect | str | int):
+    # --------------------------------------------------------
+    # Setter methods for configuring media attachments
+    # --------------------------------------------------------
+
+    def remove_attachments(self):
         """
-        Sets a message effect using enum, string, or integer.
-        
-        :param effect: Integer, String, or Enum representing the message effect
-        :type effect: Effect | str | int
+        Clear all attachments from the sender:
+        - `photo`
+        - `document`
+        - `animation`
+        - `video_note`
+        - `video`
+        - `audio`
+        - `voice`
+        - `media`
+        - `venue`
         """
-        self.message_effect_id = str(effect)
+        self.media: list[InputMediaPhoto] = []
+        self.video_note: str | Any = None
+        self.animation: str | Any = None
+        self.document: str | Any = None
+        self.photo: str | Any = None
+        self.video: str | Any = None
+        self.audio: str | Any = None
+        self.voice: str | Any = None
+        self.venue: list[Any] = []
 
     def set_photo(self, photo: str | None | Any):
         """
@@ -187,17 +237,194 @@ class BaseSender:
         :param photo: The photo for the message
         :type photo: str | None | Any
         """
-        self.media = []
-        if not isinstance(photo, str):
-            self.photo = photo
-            return 
+        if photo is None:
+            self.photo = None
+            return
 
-        if photo.startswith(("http://", "https://")):
-            self.photo = photo
+        self.remove_attachments()
+        self.photo = self._load_item(photo)
+
+    def set_document(self, document: str | None | Any):
+        """
+        Sets the document for the message.
+         
+        Accepts:
+            - URL string (`"http://..."` or `"https://..."`)
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set document
+        
+        :param document: File to send.
+        :type document: str | None | Any
+        """
+        if document is None:
+            self.document = None
+            return
+
+        self.remove_attachments()
+        self.document = self._load_item(document)
+
+    def set_text_as_document(self, text: str | None, name: str="text.txt", encoding: str="utf-8"):
+        """
+        Set a text string as a document to be sent.
+
+        This method converts the given text into an in-memory file-like object (`BytesIO`) 
+        and sets it as a document. The provided `name` is only a **placeholder filename** 
+        for Telegram; no actual file is created on disk.
+            
+        :param text: The text content to convert into a document. If None, removes any previously set document.
+        :type text: str | None
+        :param name: The placeholder filename for the document (default "text.txt").
+        :type name: str
+        :param encoding: The text encoding used to convert the string to bytes (default "utf-8").
+        :type encoding: str
+        """
+        if text is None:
+            self.set_document(None)
             return
         
-        with open(photo, "rb") as photo:
-            self.photo = photo.read()
+        document = io.BytesIO(text.encode(encoding))
+        document.name = name
+
+        self.set_document(document)
+
+    def set_video(self, video: str | None | Any):
+        """
+        Sets the video for the message.
+         
+        Accepts:
+            - URL string (`"http://..."` or `"https://..."`)
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set video
+        
+        :param video: The video for the message
+        :type video: str | None | Any
+        """
+        if video is None:
+            self.video = None
+            return
+
+        self.remove_attachments()
+        self.video = self._load_item(video)
+
+    def set_animation(self, animation: str | None | Any):
+        """
+        Sets the animation for the message.
+         
+        Accepts:
+            - URL string (`"http://..."` or `"https://..."`)
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set animation
+        
+        :param animation: The animation for the message
+        :type animation: str | None | Any
+        """
+        if animation is None:
+            self.animation = None
+            return
+
+        self.remove_attachments()
+        self.animation = self._load_item(animation)
+
+    def set_audio(self, audio: str | None | Any):
+        """
+        Sets the audio for the message.
+         
+        Accepts:
+            - URL string (`"http://..."` or `"https://..."`)
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set audio
+        
+        :param audio: The audio for the message
+        :type audio: str | None | Any
+        """
+        if audio is None:
+            self.audio = None
+            return
+
+        self.remove_attachments()
+        self.audio = self._load_item(audio)
+
+    def set_voice(self, voice: str | None | Any):
+        """
+        Sets the voice for the message.
+         
+        Accepts:
+            - URL string (`"http://..."` or `"https://..."`)
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set voice
+        
+        :param voice: The voice for the message
+        :type voice: str | None | Any
+        """
+        if voice is None:
+            self.voice = None
+            return
+
+        self.remove_attachments()
+        self.voice = self._load_item(voice)
+
+    def set_video_note(self, video_note: str | None | Any):
+        """
+        Sets the video note for the message.
+         
+        Accepts:
+            - local file path
+            - bytes or file-like object
+            - `None` to remove any previously set video note
+            
+        Sending video notes by a URL is currently unsupported.
+        
+        :param video_note: The video note for the message
+        :type video_note: str | None | Any
+
+        """
+        if video_note is None:
+            self.video_note = None
+            return
+
+        self.remove_attachments()
+        video_note = self._load_item(video_note)
+
+        if isinstance(video_note, str) and video_note.startswith(("http://", "https://")):
+            raise ValueError("Sending video notes by a URL is currently unsupported")
+
+        self.video_note = video_note
+
+    def set_venue(
+            self, 
+            latitude: float | None, 
+            longitude: float | None, 
+            title: str,
+            address: str,
+            foursquare_id: str | None = None,
+            foursquare_type: str | None = None,
+        ):
+        """
+        Sets the venue for the message.
+        """
+        self.bot.send_venue
+        
+        self.remove_attachments()
+        self.venue = [
+            latitude, longitude, 
+            address, title,
+            foursquare_id, foursquare_type
+        ]
+
+    def _load_item(self, item: str | Any):
+        if not isinstance(item, str):
+            return item
+
+        if item.startswith(("http://", "https://")):
+            return item
+        
+        with open(item, "rb") as item:
+            return item.read()
 
     def set_media(self, *media: str | Any):
         """
@@ -209,8 +436,11 @@ class BaseSender:
             - bytes or file-like objects
             - instances of `InputMediaPhoto`
         """
-        self.photo = None
-        self.media: list[InputMediaPhoto] = []
+        if not media:
+            self.media: list[InputMediaPhoto] = []
+            return
+
+        self.remove_attachments()
 
         for m in media:
             if isinstance(m, InputMediaPhoto):
@@ -236,6 +466,28 @@ class BaseSender:
                 return media
             self.media[0].caption = self.text
             self.media = list(map(f, self.media))
+
+    # --------------------------------------------------------
+    # Setter methods for configuring message properties
+    # --------------------------------------------------------
+
+    def set_message_effect_id(self, effect: str):
+        """
+        Sets the message effect by string ID. Low-level version of the `set_effect` method
+        
+        :param effect: Effect ID
+        :type effect: str
+        """
+        self.message_effect_id = effect
+
+    def set_effect(self, effect: Effect | str | int):
+        """
+        Sets a message effect using enum, string, or integer.
+        
+        :param effect: Integer, String, or Enum representing the message effect
+        :type effect: Effect | str | int
+        """
+        self.message_effect_id = str(effect)
 
     def set_chat_id(self, chat_id: int):
         """
@@ -322,6 +574,10 @@ class BaseSender:
         if getattr(reply_to, "message_id", None) is not None:
             self.reply_to_message_id = reply_to.message_id
 
+    # --------------------------------------------------------
+    # Methods for preparing send and edit message configurations
+    # --------------------------------------------------------
+
     def _get_send_configs(self) -> dict[str, Any]:
         return {
             "chat_id": self.chat_id,
@@ -349,6 +605,10 @@ class BaseSender:
             "message_id": self.edit_message_id,
         }
     
+    # --------------------------------------------------------
+    # Internal methods for managing temporary messages
+    # --------------------------------------------------------
+    
     def _add_temporary(self, message_id: int):
         TemporaryMsgStore.add_temporary(self.chat_id, message_id)
 
@@ -369,9 +629,27 @@ class BaseSender:
         
         self._handle_is_temp(message)
 
+    # --------------------------------------------------------
+    # Internal send dispatcher
+    # --------------------------------------------------------
+
     def _send(self) -> Message | None:
         if self.photo:
             return self._send_photo()
+        elif self.document:
+            return self._send_document()
+        elif self.video:
+            return self._send_video()
+        elif self.animation:
+            return self._send_animation()
+        elif self.audio:
+            return self._send_audio()
+        elif self.voice:
+            return self._send_voice()
+        elif self.video_note:
+            return self._send_video_note()
+        elif self.venue:
+            return self._send_venue()
         elif self.media:
             return self._send_media()
         else:
@@ -384,6 +662,64 @@ class BaseSender:
             **self._get_send_args()
         )
     
+    def _send_document(self) -> Message | None:
+        return self.bot.send_document(
+            document=self.document,
+            caption=self.text,
+            **self._get_send_args()
+        )
+    
+    def _send_video(self) -> Message | None:
+        return self.bot.send_video(
+            video=self.video,
+            caption=self.text,
+            **self._get_send_args()
+        )
+    
+    def _send_animation(self) -> Message | None:
+        return self.bot.send_animation(
+            animation=self.animation,
+            caption=self.text,
+            **self._get_send_args()
+        )
+    
+    def _send_audio(self) -> Message | None:
+        return self.bot.send_audio(
+            audio=self.audio,
+            caption=self.text,
+            **self._get_send_args()
+        )
+    
+    def _send_voice(self) -> Message | None:
+        return self.bot.send_voice(
+            voice=self.voice,
+            caption=self.text,
+            **self._get_send_args()
+        )
+    
+    def _send_video_note(self) -> Message | None:
+        return self.bot.send_video_note(
+            data=self.video_note,
+            chat_id=self.chat_id,
+            reply_to_message_id=self.reply_to_message_id,
+            reply_markup=self.reply_markup,
+            message_effect_id=self.message_effect_id
+        )
+    
+    def _send_venue(self) -> Message | None:
+        return self.bot.send_venue(
+            latitude=self.venue[0],
+            longitude=self.venue[1],
+            title=self.venue[2],
+            address=self.venue[3],
+            foursquare_id=self.venue[4],
+            foursquare_type=self.venue[5],
+            chat_id=self.chat_id,
+            reply_to_message_id=self.reply_to_message_id,
+            reply_markup=self.reply_markup,
+            message_effect_id=self.message_effect_id
+        )
+    
     def _send_media(self) -> Message | None:
         self._prepare_media()
         media: list[InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo] = list(self.media)
@@ -393,6 +729,10 @@ class BaseSender:
             reply_to_message_id=self.reply_to_message_id,
             chat_id=self.chat_id
         )[0]
+    
+    # --------------------------------------------------------
+    # Internal methods for sending and editing messages
+    # --------------------------------------------------------
 
     def _send_text(self) -> Message | None:
         return self.bot.send_message(
@@ -439,6 +779,10 @@ class BaseSender:
         
         return self._send(), False
     
+    # --------------------------------------------------------
+    # Metods for deleting messages
+    # --------------------------------------------------------
+    
     def _delete_message(self, message_id: int | None) -> bool:
         """
         Deletes a message by its ID.
@@ -463,6 +807,10 @@ class BaseSender:
             return False
 
         return self._delete_message(self.get_message_id(message))
+    
+    # --------------------------------------------------------
+    # Methods for sending and editing messages 
+    # --------------------------------------------------------
 
     def pyerror(self, exception: BaseException) -> Message | None: # type: ignore
         """
@@ -545,6 +893,26 @@ class BaseSender:
         self._handle_temporary(message, edited)
 
         return message
+    
+    # --------------------------------------------------------
+    # Methods for sending chat actions and retrieving message IDs
+    # --------------------------------------------------------
+    
+    def send_chat_action(self, action: str | ChatAction, timeout: int | None = None):
+        """
+        Send a chat action to a chat.
+
+        ```
+        self.chain.sender.send_chat_action(self.chain.sender.ChatAction.UPLOAD_AUDIO)
+        self.chain.sender.send_chat_action("upload_audio")
+        ```
+        
+        :param action: Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages, upload_photo for photos, record_video or upload_video for videos, record_voice or upload_voice for voice notes, upload_document for general files, choose_sticker for stickers, find_location for location data, record_video_note or upload_video_note for video notes.
+        :type action: str | ChatAction
+        :param timeout: Timeout in seconds for the request.
+        :type timeout: int | None
+        """
+        self.bot.send_chat_action(self.chat_id, str(action), timeout)
 
     def get_message_id(self, message: Message | None) -> int | None: # type: ignore
         """
@@ -558,6 +926,10 @@ class BaseSender:
         """
         if message:
             return message.message_id
+        
+    # --------------------------------------------------------
+    # Context manager support methods
+    # --------------------------------------------------------
         
     def __enter__(self):
         return self
@@ -613,6 +985,10 @@ class AlertSender(BaseSender):
 
     _use_italics: bool
     _use_newline: bool
+
+    # --------------------------------------------------------
+    # Internal methods for compiling and formatting message text
+    # --------------------------------------------------------
 
     def _compile_text(self) -> None:
         if not hasattr(self, "_title"):
@@ -697,6 +1073,21 @@ class AlertSender(BaseSender):
         text.set_parse_mode(self.parse_mode)
 
         super().set_text(str(text))
+
+    def _interleave(self, message: tuple, sep):
+        if not sep:
+            return message
+        if not message:
+            return tuple()
+        if len(message) == 1:
+            return message
+        
+        result = [item for pair in zip(message, [sep]*(len(message)-1)) for item in pair] + [message[-1]]
+        return tuple(result)
+
+    # --------------------------------------------------------
+    # Setter methods for configuring alert-styled message properties
+    # --------------------------------------------------------
 
     def set_text(self, *text: str | StyleFormatter, sep: str | StyleFormatter=""): # pyright: ignore[reportIncompatibleMethodOverride]
         """
@@ -827,6 +1218,10 @@ class AlertSender(BaseSender):
         """
         self._use_newline = use_newline
 
+    # --------------------------------------------------------
+    # Method to compile and send the message
+    # --------------------------------------------------------
+
     def send(self) -> Message | None:
         """
         Compile and send the current message.
@@ -845,14 +1240,3 @@ class AlertSender(BaseSender):
         """
         self._compile_text()
         return super().send()
-
-    def _interleave(self, message: tuple, sep):
-        if not sep:
-            return message
-        if not message:
-            return tuple()
-        if len(message) == 1:
-            return message
-        
-        result = [item for pair in zip(message, [sep]*(len(message)-1)) for item in pair] + [message[-1]]
-        return tuple(result)

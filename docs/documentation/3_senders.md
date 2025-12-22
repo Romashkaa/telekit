@@ -2,7 +2,7 @@
 
 Senders in Telekit provide a high-level interface for sending and managing messages in Telegram bots. They wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, adding photos and effects.
 
-## Basic 
+## Basic Methods 
 
 You use `self.chain.sender.*` to define how your bot responds.
 
@@ -20,11 +20,20 @@ You use `self.chain.sender.*` to define how your bot responds.
     - local file path
     - bytes or file-like object
     - `None` to remove any previously set photo
-- `set_media(*media: str | Any)` - Sets multiple media items. Accepts:
+- `set_document(document: str | None | Any)` - Sets the document for the message.
+- `set_text_as_document(text: str | None, name: str="text.txt", encoding: str="utf-8")` - Converts the given text into an in-memory file-like object and sets it as a document to be sent.  The provided `name` is only a **placeholder filename** for Telegram; no actual file is created on disk.
+- `set_video(video: str | None | Any)` - Sets the video for the message.
+- `set_video_note(video_note: str | None | Any)` — Sets a video note (round video) for the message. Ignores set_text, set_title, and set_message.
+- `set_animation(animation: str | None | Any)` - Sets the animation for the message.
+- `set_audio(audio: str | None | Any)` — Sets an audio file (music) for the message.
+- `set_voice(voice: str | None | Any)` — Sets a voice message (OGG) for the message.
+- `set_venue(...)` - Sets a venue for the message. Ignores set_text, set_title, and set_message.
+- `set_media(*media: str | Any)` - Sets multiple media items. Ignores inline keyboards. Accepts:
     - URLs
     - local file paths
     - bytes or file-like objects
     - instances of `InputMediaPhoto`
+- `remove_attachments()` method - clears all attachments from the message or object, resetting photo, media, and document.
 - `set_chat_id(chat_id: int)` - Sets the chat ID for sending messages.  
 - `set_text(text: str)` - Sets the plain text of the message.  
 - `set_reply_markup(reply_markup)` - Inline keyboards, reply keyboards, or other markup objects.  
@@ -38,6 +47,11 @@ You use `self.chain.sender.*` to define how your bot responds.
 - `delete_message(message: Message | None, only_user_messages: bool=False) -> bool` - Deletes a message optionally ignoring bot messages.  
 - `pyerror(exception: BaseException) -> Message | None` - Sends a Python exception as a message.  
 - `error(title: str | StyleFormatter, message: str | StyleFormatter) -> Message | None` - Sends a custom error message.  
+- `send_chat_action` - Send a chat action to a chat. String or `ChatAction` object:
+```py
+self.chain.sender.send_chat_action(self.chain.sender.ChatAction.UPLOAD_AUDIO)
+self.chain.sender.send_chat_action("upload_audio")
+```
 - `try_send() -> tuple[Message | None, Exception | None]` - Attempts to send a message with error handling.  
 - `send_or_handle_error() -> Message | None` - Sends a message and handles errors if they occur.  
 - `send() -> Message | None` - Sends or edits a message, managing temporary state.  

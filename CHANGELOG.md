@@ -2,6 +2,15 @@
 
 ## ✅ New Features
 ### Sender Improvements
+- `set_document` method - sets a file object (any document) to be sent to the user.
+- `set_text_as_document` method - converts text into a temporary document (BytesIO) and sets it for sending.
+- `set_video` method - sets the video for the message.
+- `set_video_note` method — sets a video note (round video) for the message.
+- `set_animation` method - sets the animation for the message.
+- `set_audio` method — sets an audio file (music) for the message.
+- `set_voice` method — sets a voice message (OGG) for the message.
+- `remove_attachments` method - clears all attachments from the message or object, resetting photo, media, and document
+- `ChatAction` and `send_chat_action` for chat action support.
 
 ### Handler Improvements
 
