@@ -48,17 +48,13 @@ class StartHandler(telekit.Handler):
 
     def get_counter(self):
         i = 0
-
         def counter():
             nonlocal i
-
             if i and not random.randint(0, 2):
                 i = 0
             else:
                 i += 1
-
             return i
-
         return counter
 
 telekit.Server(TOKEN).polling()

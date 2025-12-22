@@ -111,7 +111,7 @@ This example shows how to send an announcement to several chats and notify the a
 ```python
 import telekit
 
-class NameHandler(telekit.Handler):
+class AdHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
@@ -137,7 +137,7 @@ class NameHandler(telekit.Handler):
         self.chain.send()
 ```
 
-## Example: `add_message` method
+## Example: `append` method
 
 ```python
 import telekit
@@ -169,7 +169,7 @@ class Start(telekit.Handler):
             return
         
         self.chain.set_timeout(self.update, 1)
-        self.chain.sender.add_message(f"{char}")
+        self.chain.sender.append(f"{char}")    # HERE
         self.chain.edit()
 ```
 
