@@ -13,7 +13,7 @@ import telekit
 class FAQHandler(telekit.GuideMixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.analyze_source(source)
+        cls.analyze_source(source) # from string
         cls.on.command("faq").invoke(cls.start_script)
 
 source = """...Telekit DSL..."""

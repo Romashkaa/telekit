@@ -1,10 +1,9 @@
+# Redirect
+
+```py
 import telekit
 
 class StartHandler(telekit.Handler):
-
-    # ------------------------------------------
-    # Initialization
-    # ------------------------------------------
 
     @classmethod
     def init_handler(cls) -> None:
@@ -19,6 +18,7 @@ class StartHandler(telekit.Handler):
 
         @self.chain.inline_keyboard(
             {
+                # mapping of button labels to their corresponding handlers for redirection
                 "🧮 Counter": "CounterHandler",
                 "⌨️ Entry":     "EntryHandler",
                 "📚 FAQ":         "FAQHandler",
@@ -30,3 +30,6 @@ class StartHandler(telekit.Handler):
             self.handoff(handler).handle()
         
         self.chain.send()
+
+telekit.Server(TOKEN).polling()
+```
