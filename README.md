@@ -29,7 +29,7 @@ self.chain.send()
 }
 ```
 
-> Telekit DSL example
+> Basic Telekit DSL example
 
 Even in its beta stage, Telekit accelerates bot development, offering ready-to-use building blocks for commands, user interactions, and navigation. Its declarative design makes bots easier to read, maintain, and extend.
 
@@ -61,7 +61,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 
 To get the most out of Telekit, we recommend following the full, [step-by-step tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) that covers everything from installation to advanced features and DSL usage.
 
-Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts, key building blocks, and basic workflows of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
+Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
 
 Below is an example of a bot that responds to messages like "My name is {name}":
 

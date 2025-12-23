@@ -3,7 +3,7 @@
 Telekit makes building Telegram bots fast and clean.  
 Even if you’ve never written one before, this guide will take you from zero to a working bot in minutes.
 
-## 0. Installation
+## Installation
 
 Telekit is published in [PyPI](https://pypi.org/project/telekit/), so it can be installed with command:
 
