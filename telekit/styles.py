@@ -16,6 +16,9 @@ __all__ = [
     "Code",
     "Spoiler",
 
+    "Link",
+    "UserLink",
+
     "Quote",
     "Python",
 

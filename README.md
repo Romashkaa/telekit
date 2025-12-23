@@ -127,11 +127,13 @@ self.chain.sender.set_chat_id(chat_id)
 # And this is just the beginning...
 ```
 
-Want to add an image or an effect in a single line?
+Want to add an image, document or an effect in a single line?
 
 ```python
 self.chain.sender.set_effect(self.chain.sender.Effect.HEART)
 self.chain.sender.set_photo("url, bytes or path")
+self.chain.sender.set_document("url, bytes or path")
+self.chain.sender.set_text_as_document("Hello, this is a text document!")
 ```
 
 Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatically!

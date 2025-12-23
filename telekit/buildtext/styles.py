@@ -1,7 +1,9 @@
 # Copyright (c) 2025 Ving Studio, Romashka
 # Licensed under the MIT License. See LICENSE file for full terms.
 
-from .formatter import StyleFormatter, Composite
+from urllib.parse import quote
+
+from .formatter import StyleFormatter, Composite, sanitize_text
 
 
 class Bold(StyleFormatter):
@@ -62,6 +64,50 @@ class NoSanitize(StyleFormatter):
             c.render_html() if isinstance(c, StyleFormatter) else str(c)
             for c in self.content
         )
+    
+class Link(StyleFormatter):
+    markdown_symbol = ''
+    html_tag = ''
+
+    def __init__(self, *content, url: str, parse_mode: str | None = "html"):
+        self.content = list(content)
+        self.set_parse_mode(parse_mode)
+        self.url = url
+
+    def render_markdown(self):
+        label = ''.join(
+            c.render_markdown() if isinstance(c, StyleFormatter) else sanitize_text(str(c), "markdown")
+            for c in self.content
+        )
+        return f"[{label}]({self.url})"
+
+    def render_html(self):
+        label = ''.join(
+            c.render_html() if isinstance(c, StyleFormatter) else sanitize_text(str(c), "html")
+            for c in self.content
+        )
+        return f'<a href="{self.url}">{label}</a>'
+    
+    def render_none(self):
+        label = ''.join(
+            c.render_none() if isinstance(c, StyleFormatter) else str(c)
+            for c in self.content
+        )
+        return f"{label} ({self.url})"
+    
+class UserLink(Link):
+    markdown_symbol = ''
+    html_tag = ''
+
+    def __init__(self, *content, username: str, text: str | None=None, parse_mode: str | None = "html"):
+        self.content = list(content)
+        self.set_parse_mode(parse_mode)
+
+        if text is None:
+            self.url = f"https://t.me/{username}"
+        else:
+            encoded_text = quote(text, safe="")
+            self.url = f"https://t.me/{username}?text={encoded_text}"
 
 class Styles:
     def __init__(self, parse_mode: str | None = "html"):

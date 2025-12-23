@@ -16,6 +16,8 @@ This document lists all available style classes and their purpose.
 - `Quote` - formats text as a quote block (`text\n` in Markdown (nothing), and `<blockquote>text</blockquote>` in HTML)
 - `Sanitize` - escapes HTML/Markdown tags to safely include user input
 - `NoSanitize` - prevents escaping of HTML/Markdown tags
+- `Link` - creates a clickable link (`[text](url)` in Markdown, `<a href="url">text</a>` in HTML)
+- `UserLink` - creates a link to a user with an optional pre-filled (default) message
 - `Styles.*`:
     - `Styles.bold(*content)` - creates a `Bold` object
     - `Styles.italic(*content)` - creates an `Italic` object

@@ -1,14 +1,5 @@
-# 1.2.0
+# 1.2.1
 
-## ✅ New Features
-### Sender Improvements
-
-### Handler Improvements
-
-### Chain Improvements
-
-### DSL Improvements
-
-## ⏳ Delayed
-- DSL warning for strings with too many buttons or excessive text  
-- Localization support for `self.user.enable_logging()` (currently global)
+## New Styles
+- `Link` - creates a clickable link (`[text](url)` in Markdown, `<a href="url">text</a>` in HTML)
+- `UserLink` - creates a link to a user with an optional pre-filled (default) message
