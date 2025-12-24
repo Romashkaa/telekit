@@ -1,4 +1,4 @@
-import telebot.types
+from telekit.styles import Sanitize
 import telekit
 
 class StartHandler(telekit.Handler):
@@ -12,23 +12,16 @@ class StartHandler(telekit.Handler):
         cls.on.message(["start"]).invoke(cls.start)
     
     def start(self):
-        self.chain.sender.set_title(f"👋 Welcome, {self.user.first_name}!")
+        self.chain.sender.set_title(f"👋 Welcome, {Sanitize(self.user.first_name)}!")
         self.chain.sender.set_message(
-            "Here you can explore some example commands to get started.\n\n"
-            "Use the buttons below to try them out:"
+            "I can help you get started. If you're new to this bot, please, stop, get some help! 😅"
         )
-        self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
-
-        @self.chain.inline_keyboard(
+        self.chain.set_inline_keyboard(
             {
-                "🧮 Counter": "/counter",
-                "⌨️ Entry": "/entry",
-                "📚 FAQ": "/faq",
-                "📄 Pages": "/pages",
-                "🦻 On Text": "/on_text",
-            }, row_width=2
+                "Help": self.help
+            }
         )
-        def handle_response(message: telebot.types.Message, command: str):
-            self.simulate_user_message(command)
-        
         self.chain.send()
+    
+    def help(self):
+        self.handoff("HelpHandler").handle()

@@ -2,7 +2,6 @@
 # Licensed under the MIT License. See LICENSE file for full terms.
 
 # Standard library
-import random
 import inspect
 from typing import Callable
 
