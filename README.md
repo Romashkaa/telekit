@@ -46,7 +46,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 
 ## Contents
 
-- [Overview](#overview)
+- [Overview](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#overview)
     - [Message Formatting](#message-formatting)
     - [Text Styling](#text-styling-with-styles)
     - [Handling Callbacks](#handling-callbacks-and-logic)

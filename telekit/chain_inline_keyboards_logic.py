@@ -17,7 +17,7 @@ from telebot.types import (
 from .chain_base import ChainBase
 
 if typing.TYPE_CHECKING:
-    from .chain import Chain  # only for type hints
+    from .chain import Chain # only for type hints
 
 class ChainInlineKeyboardLogic(ChainBase):
     def set_inline_keyboard(
@@ -34,7 +34,7 @@ class ChainInlineKeyboardLogic(ChainBase):
         ```
         self.chain.set_inline_keyboard(
             {   
-                # When the user clicks this button, `prompt.send()` will be executed
+                # When the user clicks this button, `prompt()` will be executed
                 "« Change": prompt,
                 # When the user clicks this button, this lambda function will run
                 "Yes »": lambda: print("User: Okay!"),
@@ -60,8 +60,9 @@ class ChainInlineKeyboardLogic(ChainBase):
             - `Callable[[], Any]` — takes no arguments.
         ---
         Args:
-            keyboard (dict[str, Callable[[Message], Any] | str]): A dictionary where keys are button captions
+            keyboard (dict[str, Callable[..., Any] | str]): A dictionary where keys are button captions
                 and values are functions to be called when the button is clicked.
+            row_width (int | Iterable[int]): Number of buttons per row; can be a single value or an iterable that defines the number of buttons in each row in order (default = 1).
         """
         callback_functions: dict[str, Callable[[Message], Any]] = {}
         buttons: list[InlineKeyboardButton] = []
@@ -128,7 +129,7 @@ class ChainInlineKeyboardLogic(ChainBase):
         ---
         Args:
             keyboard (dict[str, Value]): A dictionary mapping button captions to values.
-            row_width (int): Number of buttons per row (default = 1).
+            row_width (int | Iterable[int]): Number of buttons per row; can be a single value or an iterable that defines the number of buttons in each row in order (default = 1).
         """
         def wrapper(func: Callable[[Message, Value], None]) -> None:
             callback_functions: dict[str, Callable[[Message], Any]] = {}
@@ -179,12 +180,17 @@ class ChainInlineKeyboardLogic(ChainBase):
         # Inline keyboard with suggested options:
         self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
         ```
+
+        ```
+        # (OR) Inline keyboard with suggested options and custom labels:
+        self.chain.set_entry_suggestions({"Label": "Suggestion"})
+        ```
         ---
 
         Args:
             keyboard (dict[Caption, Value]): A dictionary where each key is the button's visible text (caption),
                                             and each value is the string to send as callback_data.
-            row_width (int, optional): Number of buttons per row. Defaults to 1.
+            row_width (int | Iterable[int]): Number of buttons per row; can be a single value or an iterable that defines the number of buttons in each row in order (default = 1).
         """
         
         buttons: list[InlineKeyboardButton] = []
