@@ -24,7 +24,7 @@ class StartHandler(telekit.Handler):
                 "📚 FAQ":         "FAQHandler",
                 "📄 Pages":     "PagesHandler",
                 "🦻 On Text":  "OnTextHandler",
-            }, row_width=2
+            }, row_width=[2, 1, 2]
         )
         def handle_response(message, handler: str):
             self.handoff(handler).handle()

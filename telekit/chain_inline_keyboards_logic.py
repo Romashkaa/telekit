@@ -5,6 +5,7 @@
 import random
 import typing
 from typing import Callable, Any
+from collections.abc import Iterable
 
 # Third-party packages
 from telebot.types import (
@@ -19,7 +20,11 @@ if typing.TYPE_CHECKING:
     from .chain import Chain  # only for type hints
 
 class ChainInlineKeyboardLogic(ChainBase):
-    def set_inline_keyboard(self, keyboard: dict[str, 'Chain' | Callable[..., Any] | str], row_width: int = 1) -> None:
+    def set_inline_keyboard(
+            self, 
+            keyboard: dict[str, 'Chain' | Callable[..., Any] | str], 
+            row_width: int | Iterable[int] = 1
+        ) -> None:
         """
         Sets an inline keyboard for the chain, where each button triggers the corresponding action.
         Every button calls its associated function with the message as an argument (if applicable).
@@ -89,14 +94,17 @@ class ChainInlineKeyboardLogic(ChainBase):
                     )
                 )
 
-        rows = [buttons[i:i + row_width] for i in range(0, len(buttons), row_width)]
         markup = InlineKeyboardMarkup()
-        markup.keyboard = rows
+        markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
         self.handler.set_callback_functions(callback_functions)
 
-    def inline_keyboard[Caption: str, Value](self, keyboard: dict[Caption, Value], row_width: int = 1) -> Callable[[Callable[[Message, Value], None]], None]:
+    def inline_keyboard[Caption: str, Value](
+            self, 
+            keyboard: dict[Caption, Value], 
+            row_width: int | Iterable[int] = 1
+        ) -> Callable[[Callable[[Message, Value], None]], None]:
         """
         Decorator to attach an inline keyboard to the chain.
 
@@ -142,16 +150,19 @@ class ChainInlineKeyboardLogic(ChainBase):
                     )
                 )
 
-            rows = [buttons[i:i + row_width] for i in range(0, len(buttons), row_width)]
             markup = InlineKeyboardMarkup()
-            markup.keyboard = rows
+            markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
             self.sender.set_reply_markup(markup)
             self.handler.set_callback_functions(callback_functions)
 
         return wrapper
     
-    def set_entry_suggestions(self, keyboard: dict[str, str] | list[str], row_width: int = 1) -> None:
+    def set_entry_suggestions(
+            self, 
+            keyboard: dict[str, str] | list[str], 
+            row_width: int | Iterable[int] = 1
+        ) -> None:
         """
         Sets reply suggestions as inline buttons below the message input field.
         These buttons act as quick replies, and send the corresponding `callback_data` when clicked.
@@ -189,8 +200,38 @@ class ChainInlineKeyboardLogic(ChainBase):
                 )
             )
 
-        rows = [buttons[i:i + row_width] for i in range(0, len(buttons), row_width)]
         markup = InlineKeyboardMarkup()
-        markup.keyboard = rows
+        markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
-        self.sender.set_reply_markup(markup)  # type: ignore
+        self.sender.set_reply_markup(markup)
+
+    def _build_keyboard_rows(
+        self,
+        buttons: list[InlineKeyboardButton],
+        row_width: int | Iterable[int],
+    ) -> list[list[InlineKeyboardButton]]:
+        rows: list[list[InlineKeyboardButton]] = []
+
+        if isinstance(row_width, int):
+            return [
+                buttons[i:i + row_width]
+                for i in range(0, len(buttons), row_width)
+            ]
+
+        index = 0
+        widths = list(row_width)
+
+        for width in widths:
+            if index >= len(buttons):
+                break
+            rows.append(buttons[index:index + width])
+            index += width
+
+        # use the last width for remaining buttons
+        if index < len(buttons):
+            last_width = widths[-1]
+            while index < len(buttons):
+                rows.append(buttons[index:index + last_width])
+                index += last_width
+
+        return rows

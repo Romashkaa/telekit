@@ -1,14 +1,16 @@
 # Copyright (c) 2025 Ving Studio, Romashka
 # Licensed under the MIT License. See LICENSE file for full terms.
 
-from . import parser
+import re
+import json
+from typing import NoReturn
 
 import telekit
 from telekit.styles import Sanitize
+from . import parser
 
-import json
-from typing import NoReturn
-import re
+from ..logger import logger
+library = logger.library
 
 MAGIC_SCENES = parser.MAGIC_SCENES
 
@@ -140,6 +142,17 @@ class TelekitDSLMixin(telekit.Handler):
         # timeout
         cls.timeout_time = cls.config.get("timeout_time", 0)
 
+        if not cls.timeout_time:
+            library.warning(
+                "No timeout configured for this DSL script. "
+                "It is recommended to add a timeout to automatically clear callbacks "
+                "after a period of inactivity.\n\n"
+                "Example:\n\n"
+                "$ timeout {\n"
+                "    time = 30; // seconds\n"
+                "}\n\n"
+            )
+
         # end
         cls.script_analyzed = True
 
@@ -154,7 +167,7 @@ class TelekitDSLMixin(telekit.Handler):
         # quick check
         if not self.script_analyzed:
             message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_source() before starting it."
-            print(message)
+            library.error(message)
             self.chain.sender.pyerror(RuntimeError(message))
             return
         
