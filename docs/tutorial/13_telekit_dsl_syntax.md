@@ -132,12 +132,12 @@ You can use the following attributes for any scene, like `@main`:
 @ main {
     // -- Required --
 
-    title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are answers to common questions to help you get started:";
+    title   = "Bold title text";
+    message = "Regular text below";
 
     // -- Optional --
 
-    // image file, URL, or reference ID
+    // path to local file, URL, or Telegram file ID
     image = "path / reference / file_id";
 
     // enable or disable italics in message
@@ -385,7 +385,7 @@ These variables can be used directly inside `title` and `message` fields.
 - Variables are replaced **at render time**, right before the message is sent.
 - Only **first-level substitution** is performed.
     - Variables inside variable values are **not** processed again.
-    - This prevents infinite recursion and keeps rendering predictable.
+    - This prevents infinite recursion and keeps rendering safe from injecting.
 - All variable values are **automatically sanitized**:
     - HTML and Markdown inside variable values are escaped.
     - This prevents accidental formatting issues and injection problems.
@@ -406,16 +406,17 @@ You can use the following variables in your Telekit DSL scripts to personalize m
 - `{{user_id}}` – the unique Telegram ID of the user.
 - `{{chat_id}}` – the ID of the chat where the message originated.
 
-## Custom Variables
+### Custom Variables
 
 In addition to the built-in template variables like `{{first_name}}` or `{{username}}`, Telekit allows you to define **your own variables**.  
 
 Custom variables are resolved by implementing the `get_variable` method in your handler class. When rendering a DSL script:  
 
-1. The DSL engine calls `get_variable(name)`.  
-2. If it returns a string, that value will be used for the variable.  
-3. If it returns `None`, the engine falls back to the built-in variables.  
-
+1. The DSL engine encounters a `{{variable}}` in your script.  
+2. It calls your handler’s `get_variable(name)` method:  
+   - If it returns a string, that value replaces the variable.  
+   - If it returns `None`, the engine uses the built-in variables instead.
+   
 This allows you to add **dynamic, personalized content** to your messages.
 
 ```python
