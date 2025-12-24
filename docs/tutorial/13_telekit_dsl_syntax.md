@@ -20,7 +20,7 @@ Next, we define the mandatory attributes for each scene, `title` and `message` -
 If we now load this code using the methods shown on the [Telekit DSL Integration](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/12_telekit_dsl_integration.md) page, we’ll see the message: 
 > <b>📖 FAQ - Frequently Asked Questions</b>
 >
-> Here....
+> Here are answers to common questions to help you get started:
 
 ---
 
