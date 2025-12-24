@@ -24,6 +24,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 |-----------|--------------|-------------------------|
 | [FAQ](faq.md) | FAQ generation from string | `analyze_source`, `from_string` |
 | [Quiz](quiz.md) | Example of DSL code | `analyze_source` |
+| [Custom Variables](custom_variables.md) | Example of custom variables in the script | `get_variable`, `analyze_source` |
 
 ## Complex
 
