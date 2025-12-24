@@ -404,6 +404,52 @@ You can use the following variables in your Telekit DSL scripts to personalize m
 - `{{user_id}}` – the unique Telegram ID of the user.
 - `{{chat_id}}` – the ID of the chat where the message originated.
 
+## Custom Variables
+
+In addition to the built-in template variables like `{{first_name}}` or `{{username}}`, Telekit allows you to define **your own variables**.  
+
+Custom variables are resolved by implementing the `get_variable` method in your handler class. When rendering a DSL script:  
+
+1. The DSL engine calls `get_variable(name)`.  
+2. If it returns a string, that value will be used for the variable.  
+3. If it returns `None`, the engine falls back to the built-in variables.  
+
+This allows you to add **dynamic, personalized content** to your messages.
+
+```python
+...
+import random
+
+class FAQHandler(telekit.TelekitDSL.Mixin):
+    ...
+    def get_variable(self, name: str) -> str | None:
+        match name:
+            case "random_lose_phrase":
+                phrases = [
+                    "Keep going, you're doing great!",
+                    "Don't give up!",
+                    "Almost there, try again!",
+                ]
+                return random.choice(phrases)
+            case _:
+                return None
+```
+
+Then in your DSL script, you can reference the custom variable just like a built-in one:
+
+```js
+@ _lose {
+    title   = "❌ Wrong Answer!";
+    message = "Oops! {{random_lose_phrase}}"; // here
+
+    buttons {
+        back("« Retry");
+    }
+}
+```
+
+Each time a user hits a wrong answer, the `random_lose_phrase` variable is dynamically chosen, making the quiz experience more engaging.
+
 ### Default Values
 
 If a variable is missing or has no value (for example, `{{last_name}}` for a user who has not set a last name), you can provide a default value using the `:` syntax:
@@ -415,8 +461,8 @@ If a variable is missing or has no value (for example, `{{last_name}}` for a use
 }
 ```
 
-- In this example, if `first_name` is missing, it will use `User` as a fallback.  
-- If `last_name` is missing, it will use `there` as a fallback.  
+- In this example, if `first_name` is missing, it will use `"User"` as a fallback.  
+- If `last_name` is missing, it will use `"there"` as a fallback.  
 
 This ensures that your messages always display meaningful text even when some user data is unavailable.
 

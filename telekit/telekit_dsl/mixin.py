@@ -273,7 +273,32 @@ class TelekitDSLMixin(telekit.Handler):
     # Variables
     # ----------------------------------------------------------------------------
 
+    def get_variable(self, name: str) -> str | None:
+        """
+        Return a custom variable value for use in Telekit DSL scripts.
+
+        Telekit DSL supports **template variables** using double curly braces: `{{variable}}`.
+
+        This method is called by the DSL engine when rendering template variables.
+        If you return a string, that value will be used in place of the variable 
+        `{{name}}` in the DSL script. If you return None, the engine will fallback 
+        to the built-in variables. If the variable is not found there either, the 
+        default value (if provided using the `:` syntax) will be used.
+
+        :param name: The name of the variable to retrieve.
+        :type name: str
+        :return: The value of the variable to use in the DSL, or None to fallback 
+                to built-in variables/defaults.
+        :rtype: str | None
+        """
+        return
+
     def _get_variable(self, name: str) -> str | None:
+        value = self.get_variable(name)
+
+        if isinstance(value, str):
+            return value
+
         match name:
             case "first_name":
                 return self.user.first_name

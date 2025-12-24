@@ -1,3 +1,5 @@
+import random
+
 import telekit
 
 class FAQHandler(telekit.TelekitDSL.Mixin):
@@ -10,6 +12,19 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
 
     def handle(self) -> None:
         self.start_script()
+
+    def get_variable(self, name: str) -> str | None:
+        match name:
+            case "random_lose_phrase":
+                phrases = [
+                    "Keep going, you're doing great!",
+                    "Don't give up!",
+                    "Almost there, try again!",
+                ]
+                return random.choice(phrases)
+            case _:
+                # fallback to built-in variables if None
+                return None
 
     # If you want to add your own bit of logic:
     
@@ -31,7 +46,7 @@ $ timeout {
 
 @ main {
     title   = "🎉 Fun Facts Quiz";
-    message = "Test your knowledge with 10 fun questions!";
+    message = "Hello, {{first_name}}. Test your knowledge with 10 fun questions!";
 
     buttons {
         next("Start Quiz");
@@ -150,7 +165,7 @@ $ timeout {
 
 @ _lose {
     title   = "❌ Wrong Answer!";
-    message = "Oops! That was not correct. Try again from the start.";
+    message = "Oops! {{random_lose_phrase}}";
 
     buttons {
         back("« Retry");
