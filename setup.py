@@ -12,7 +12,7 @@ def changelog():
 
 setup(
     name='telekit',
-    version='1.2.0',
+    version='1.2.1',
     author='romashka',
     author_email='notromashka@gmail.com',
     description='Declarative, developer-friendly library for building Telegram bots',
