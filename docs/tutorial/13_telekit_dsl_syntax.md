@@ -416,14 +416,14 @@ Custom variables are resolved by implementing the `get_variable` method in your 
 2. It calls your handler’s `get_variable(name)` method:  
    - If it returns a string, that value replaces the variable.  
    - If it returns `None`, the engine uses the built-in variables instead.
-   
+
 This allows you to add **dynamic, personalized content** to your messages.
 
 ```python
 ...
 import random
 
-class FAQHandler(telekit.TelekitDSL.Mixin):
+class QuizHandler(telekit.TelekitDSL.Mixin):
     ...
     def get_variable(self, name: str) -> str | None:
         match name:
@@ -450,6 +450,8 @@ Then in your DSL script, you can reference the custom variable just like a built
     }
 }
 ```
+
+[See the full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/custom_variables.md)
 
 Each time a user hits a wrong answer, the `random_lose_phrase` variable is dynamically chosen, making the quiz experience more engaging.
 

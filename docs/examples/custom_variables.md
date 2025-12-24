@@ -5,10 +5,10 @@ import random
 
 import telekit
 
-class FAQHandler(telekit.TelekitDSL.Mixin):
+class QuizHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.message(commands=["faq"]).invoke(cls.start_script)
+        cls.on.message(commands=["quiz"]).invoke(cls.start_script)
         cls.analyze_source(guide)
 
     def handle(self) -> None:
