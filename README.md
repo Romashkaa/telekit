@@ -37,6 +37,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 - Declarative bot logic with **chains** for effortless handling of complex workflows
 - [Ready-to-use DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for FAQs and other interactive scripts
 - Automatic handling of [message formatting](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/4_text_styling.md) via [Sender](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/3_senders.md) and **callback routing**
+- Seamless integration with [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
 - Lightweight, maintainable, and easy-to-extend code
 
 [GitHub](https://github.com/Romashkaa/telekit)
@@ -47,10 +48,10 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 ## Contents
 
 - [Overview](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#overview)
-    - [Message Formatting](#message-formatting)
-    - [Text Styling](#text-styling-with-styles)
-    - [Handling Callbacks](#handling-callbacks-and-logic)
-- [Quick Start](#quick-start)
+    - [Message Formatting](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#message-formatting)
+    - [Text Styling](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#text-styling-with-styles)
+    - [Handling Callbacks](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#handling-callbacks-and-logic)
+- [Quick Start](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#quick-start)
 - [Examples and Solutions](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
     - [Dialogue](https://github.com/Romashkaa/telekit/blob/main/docs/examples/dialogue.md)
     - [Risk Game](https://github.com/Romashkaa/telekit/blob/main/docs/examples/risk_game.md)
