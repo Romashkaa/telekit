@@ -3,10 +3,12 @@
 
 from typing import Callable
 import typing
+import shlex
 import re
 
 import telebot
 
+from . import parameters
 from .logger import logger
 library = logger.library
 
@@ -112,15 +114,15 @@ class On:
             **kwargs
         )
 
-        def wrapper(handler: Callable[..., typing.Any]):
-            def wrapped(message, *args, **kw):
+        def decorator(handler: Callable[..., typing.Any]):
+            def wrapped(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
-                return handler(message, *args, **kw)
+                return handler(message)
 
             return original_decorator(wrapped)
 
-        return Invoker(wrapper, self.handler)
+        return Invoker(decorator, self.handler)
 
     def text(
             self, 
@@ -192,6 +194,7 @@ class On:
     def command(
         self,
         *commands: str,
+        params: list[parameters.Parameter] | None=None,
         chat_types: list[str] | None = None,
         whitelist: list[int] | None = None,
         **kwargs
@@ -228,15 +231,30 @@ class On:
             **kwargs
         )
 
-        def wrapper(handler: Callable[..., typing.Any]):
-            def wrapped(message, *args, **kw):
+        def decorator(handler: Callable[..., typing.Any]):
+            def wrapped(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
-                return handler(message, *args, **kw)
+                if params:
+                    return handler(message, *self._analyze_params(message.text, params))
+                else:
+                    return handler(message)
 
             return original_decorator(wrapped)
 
-        return Invoker(wrapper, self.handler) 
+        return Invoker(decorator, self.handler)
+    
+    def _analyze_params(self, text: str, types: list[parameters.Parameter]) -> list:
+        values: list[str] = shlex.split(text)[1:] # skip the command name
+        args: list = []
+
+        for i, ptype in enumerate(types):
+            if len(values) <= i:
+                break
+            
+            args.append(ptype(values[i]))
+
+        return args
        
     def regexp(
         self,
@@ -278,15 +296,15 @@ class On:
             **kwargs
         )
 
-        def wrapper(handler: Callable[..., typing.Any]):
-            def wrapped(message, *args, **kw):
+        def decorator(handler: Callable[..., typing.Any]):
+            def wrapped(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
-                return handler(message, *args, **kw)
+                return handler(message)
 
             return original_decorator(wrapped)
 
-        return Invoker(wrapper, self.handler)
+        return Invoker(decorator, self.handler)
     
     def photo(
         self,
@@ -326,12 +344,12 @@ class On:
             **kwargs
         )
 
-        def wrapper(handler: Callable[..., typing.Any]):
-            def wrapped(message, *args, **kw):
+        def decorator(handler: Callable[..., typing.Any]):
+            def wrapped(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
-                return handler(message, *args, **kw)
+                return handler(message)
 
             return original_decorator(wrapped)
 
-        return Invoker(wrapper, self.handler) 
+        return Invoker(decorator, self.handler) 

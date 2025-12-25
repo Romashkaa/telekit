@@ -37,6 +37,8 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 - Declarative bot logic with **chains** for effortless handling of complex workflows
 - [Ready-to-use DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for FAQs and other interactive scripts
 - Automatic handling of [message formatting](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/4_text_styling.md) via [Sender](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/3_senders.md) and **callback routing**
+- **Deep Linking** support with type-checked [Command Parameters](https://github.com/Romashkaa/telekit/blob/main/docs/examples/command_parameters.md) for flexible user input
+- Built-in **Permission** and **Logging** system for user and event management  
 - Seamless integration with [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
 - Lightweight, maintainable, and easy-to-extend code
 
