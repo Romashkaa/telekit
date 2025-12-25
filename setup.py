@@ -12,7 +12,7 @@ def changelog():
 
 setup(
     name='telekit',
-    version='1.2.1',
+    version='1.2.2',
     author='romashka',
     author_email='notromashka@gmail.com',
     description='Declarative, developer-friendly library for building Telegram bots',
@@ -31,7 +31,7 @@ setup(
     keywords='files speedfiles ',
     project_urls={
         "GitHub": "https://github.com/Romashkaa/telekit",
-        "Telegram": "https://t.me/TelekitCommunity"
+        "Telegram": "https://t.me/TelekitLib"
     },
     python_requires=">=3.13.7"
 )

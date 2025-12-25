@@ -1,4 +1,4 @@
-import telebot.types # type: ignore
+import telebot.types
 import telekit
 
 source = """

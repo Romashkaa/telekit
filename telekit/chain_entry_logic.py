@@ -2,12 +2,12 @@
 # Licensed under the MIT License. See LICENSE file for full terms.
 
 # Standard library
-import charset_normalizer
 import typing
 import telebot
 from typing import Callable, Any
 
 # Third-party packages
+import charset_normalizer
 from telebot.types import Message
 from .chain_base import ChainBase
 
