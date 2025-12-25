@@ -70,7 +70,8 @@ def text_document_handler(message, text_document: telekit.types.TextDocument):
 
 ---
 
-> **Tip:** All these decorators integrate seamlessly with Telekit’s `Chain`, so you can combine message handling, inline keyboards, and suggested replies to create interactive and responsive bot flows effortlessly.
+> [!TIP]
+> Entries and inline keyboards (or suggestions) can be combined to build more intuitive bots.
 
 ## Example
 
