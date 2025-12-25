@@ -32,7 +32,8 @@ Explanation:
 - **Callback** – function or object executed when the button is pressed.  
 - **row_width** – maximum number of buttons per row (from pyTelegramBotAPI).
 
-> Note: Callback functions remain in memory until the user clicks a button or navigates away. To forcibly terminate waiting, see [Timeouts](10_timeouts.md).
+> [!CAUTION] 
+> Callback functions remain in memory until the user clicks a button or navigates away. To forcibly terminate waiting, see [Timeouts](10_timeouts.md).
 
 ## Label-Value Keyboard
 
@@ -59,7 +60,18 @@ Explanation:
 - **Value** – data passed to the callback when the button is clicked.  
 - **row_width** – maximum number of buttons per row.
 
-> Note: Values remain stored in memory until the user clicks a button or switches commands. To forcibly end waiting, see [Timeouts](10_timeouts.md).
+> [!CAUTION] 
+> Values remain stored in memory until the user clicks a button or switches commands. To forcibly end waiting, see [Timeouts](10_timeouts.md).
+
+## Row Width
+
+`row_width` controls the number of buttons displayed per row in inline keyboards.
+
+**Value types**:
+- `int` - all rows will have the same number of buttons.
+- `Iterable[int]` - allows specifying different numbers of buttons per row.
+    - Each number in the iterable defines the number of buttons in the corresponding row.
+    - If the total number of buttons exceeds the sum of the iterable, the remaining buttons are placed in additional rows using the last number in the iterable as the row width.
 
 ## Suggested Inline Options
 

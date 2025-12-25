@@ -1,11 +1,11 @@
 # Text Styling in Telekit
 
-Telekit provides a convenient `Styles` class for creating styled messages in **HTML** or **Markdown**.  
+Telekit provides a convenient styles for creating styled messages in **HTML** or **Markdown**.  
 It allows you to:
 
 - make text **Bold, Italic, Underlined, Strikethrough**, and more;
 - combine multiple styles in a single string;
-- **sanitize** user input to prevent breaking HTML/Markdown tags.
+- **Sanitize** user input to prevent breaking HTML/Markdown tags.
 
 ## 1. Introduction
 
@@ -27,7 +27,9 @@ self.chain.sender.set_parse_mode("html")  # applied to all styles
 self.chain.send()
 ```
 
-**The main rule**: If a style reaches the sender as a plain string, the sender can’t assign the correct parse_mode:
+### The main rule
+
+If a style reaches the sender as a plain string, the sender can’t assign the correct parse_mode:
 
 ```python
 self.chain.sender.set_text(

@@ -73,16 +73,12 @@ class NameHandler(telekit.Handler):
         cls.on.text().invoke(cls.greet)
 
     def greet(self):
-        sender = self.chain.create_sender() # 1st way
-        sender.set_text("✅ First sender")
+        sender = self.chain.create_sender()
+        sender.set_text("✅ Message sent")
         sender.send_or_handle_error()
 
-        sender2 = telekit.senders.AlertSender(self.chain.chat_id) # 2nd way
-        sender2.set_text("✅ Second sender")
-        sender2.send_or_handle_error()
-
-        sender2.set_text("🔴 Second sender <b>Unclosed tag")
-        sender2.send_or_handle_error()
+        sender.set_text("🔴 Second message <b>Unclosed tag") # automatically handles the error
+        sender.send_or_handle_error()
 
 telekit.Server("BOT_TOKEN").polling()
 ```
