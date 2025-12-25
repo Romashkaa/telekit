@@ -1,4 +1,4 @@
-# Deep Linking: Command Parameters
+# Command Parameters
 
 ```py
 import telekit
@@ -21,6 +21,33 @@ class StartHandler(telekit.Handler):
             self.chain.sender.set_text("Name is missing. Please provide your name:\n\n", Code(f"/start {age} \"Lois Lane\""))
         else:
             self.chain.sender.set_text(f"Hey {Sanitize(name)}! {age} years already? Time flies, huh 😅")
+
+        self.chain.sender.set_parse_mode("html")
+        self.chain.send()
+
+telekit.Server(TOKEN).polling()
+```
+
+# Deep Link: Invite Code
+
+```py
+import telekit
+from telekit.parameters import Str
+
+class StartHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        # one string parameter from deep link
+        cls.on.command("start", params=[Str()]).invoke(cls.handle)
+    
+    def handle(self, invite_code: str | None = None):
+        if invite_code is None:
+            self.chain.sender.set_text("This link is missing an invite code.")
+        else:
+            self.chain.sender.set_text(
+                f"You joined via invite code: {invite_code}"
+            )
 
         self.chain.sender.set_parse_mode("html")
         self.chain.send()

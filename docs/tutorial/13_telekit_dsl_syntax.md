@@ -22,9 +22,7 @@ If we now load this code using the methods shown on the [Telekit DSL Integration
 >
 > Here are answers to common questions to help you get started:
 
----
-
-Let’s add another scene:
+## Let’s add another scene:
 
 ```js
 @ main {
@@ -200,8 +198,6 @@ $ timeout {
 ```
 
 If the user clicks the "Yes, I’m here" button, they will continue from where they left off.
-
----
 
 ## Multiline Strings
 

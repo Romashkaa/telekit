@@ -24,6 +24,7 @@ If you notice a bug, please report it in the Issues section on GitHub.
     - [Chain](7_chain.md) ⭐
     - [Timeouts](10_timeouts.md) ⭐
     - [Handler](5_handler.md) ⭐
+    - [Command Parameters (Deep Linking)](command_parameters.md)
     - [User](14_user.md)
 - How to Easily Build an FAQ:
     - [Telekit DSL](11_telekit_dsl.md) ⭐
