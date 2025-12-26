@@ -153,5 +153,5 @@ self.chain.disable_timeout_warnings()
 - Only one timeout can exist per chain
 - Timeouts are cancelled automatically on user interaction
 - Examples:
-    - [Append](append_method.md) - Appending messages with timeout control
-    - [Risk Game](risk_game.md) - Interactive game
+    - [Append](https://github.com/Romashkaa/telekit/blob/main/docs/examples/append_method.md) - Appending messages with timeout control
+    - [Risk Game](https://github.com/Romashkaa/telekit/blob/main/docs/examples/risk_game.md) - Interactive game
