@@ -4,11 +4,9 @@ Telekit provides a simple way to work with incoming messages using decorators.
 Below are two main types, but there are many more:
 
 - `on.text` — handle messages based on text patterns  
-- `on.command` — handle commands (like `/start`, `/help`)  
+- `on.command` — handle commands (like `/start`, `/help`)
 
----
-
-## `on.text(*patterns, chat_types=None, whitelist=None)`
+## On-Text Trigger
 
 Handles messages that match one or more text patterns.
 You can pass a simple string, e.g., `"hello"`, and the bot will respond to exact matches.
@@ -44,8 +42,6 @@ Other parameters:
 - **chat_types** — list of chat types (`'private'`, `'group'`)  
 - **whitelist** — list of chat IDs where the handler is active  
 
----
-
 ## Using as a Decorator or Method
 
 Triggers can be used in two ways:
@@ -61,8 +57,6 @@ def say_hello(message):
 ```python
 cls.on.text("Hello").invoke(cls.say_hello) # only `cls.*`
 ```
-
----
 
 - [See all triggers](../documentation/6_on_triggers.md)
 - [Next: Chain »](7_chain.md)

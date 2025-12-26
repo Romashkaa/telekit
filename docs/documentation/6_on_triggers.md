@@ -12,6 +12,9 @@ This section lists all triggers available in Telekit for handling messages and c
 - `on.regexp(self, regexp, chat_types=None, whitelist=None, **kwargs)` - registers a handler triggered when a message matches a regular expression  
 - `on.photo(self, chat_types=None, whitelist=None, **kwargs)` - registers a handler for incoming photos
 
+> [!NOTE]
+> This list may not be updated immediately
+
 ---
 
 ## Usage

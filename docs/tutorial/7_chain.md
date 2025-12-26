@@ -79,3 +79,36 @@ local_chain = self.get_local_chain()
 print(local_chain == self.chain)     # False ("local_chain" is local)
 print(old2 == self.chain)            # True  (The "сhain" object remained)
 ```
+
+## Attribute Cleanup
+
+Each time `.send()` or `.edit()` is called, the chain **automatically clears** its state:
+- timeouts  
+- entry handlers  
+- inline keyboards  
+
+This behavior ensures predictability between steps.
+
+### Disabling automatic cleanup
+
+You can selectively disable this behavior:
+
+- `set_remove_timeout(False)`
+- `set_remove_entry_handler(False)`
+- `set_remove_inline_keyboard(False)`
+
+Most often, timeout cleanup is disabled to avoid reconfiguring it on every step.
+
+### Manual cleanup
+
+You can also clear handlers explicitly:
+
+```python
+self.remove_timeout()
+self.remove_entry_handler()
+self.remove_inline_keyboard()
+```
+
+Or remove **all handlers at once**:
+
+- `remove_all_handlers()` — forcibly removes all handlers associated with the chain.
