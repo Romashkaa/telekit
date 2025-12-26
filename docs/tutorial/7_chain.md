@@ -112,3 +112,5 @@ self.remove_inline_keyboard()
 Or remove **all handlers at once**:
 
 - `remove_all_handlers()` — forcibly removes all handlers associated with the chain.
+
+[Next: Timeouts »](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/10_timeouts.md)
