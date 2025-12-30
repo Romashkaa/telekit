@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+from telekit._version import __version__ as version
 
 def readme():
     with open('README.md', 'r') as f:
@@ -9,10 +10,13 @@ def changelog():
     with open('CHANGELOG.md', 'r') as f:
         return f.read()
 
+def install_requires():
+    with open('telekit/requirements.txt', 'r') as f:
+        return f.read().split("\n")
 
 setup(
     name='telekit',
-    version='1.3.0',
+    version=version,
     author='romashka',
     author_email='notromashka@gmail.com',
     description='Declarative, developer-friendly library for building Telegram bots',
@@ -21,22 +25,24 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/Romashkaa/telekit',
     packages=find_packages(),
-    install_requires=['pyTelegramBotAPI>=4.29.1', 'charset_normalizer>=3.4.2'],
+    install_requires=install_requires(),
     classifiers=[
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
-    keywords='files speedfiles ',
+    keywords='telegram bot framework declarative ',
     project_urls={
         "GitHub": "https://github.com/Romashkaa/telekit",
         "Telegram": "https://t.me/TelekitLib"
     },
-    python_requires=">=3.13.7"
+    python_requires=">=3.12.11"
 )
 
 """
 .venv/bin/python setup.py sdist bdist_wheel
 twine upload --repository pypi dist/*
 """
+
+print(f"TELEKIT VERSION: {version}")
