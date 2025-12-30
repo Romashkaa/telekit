@@ -4,13 +4,13 @@ import inspect
 import telebot
 from telebot.types import Message
 
-from .logger import logger
+from ._logger import logger
 library = logger.library
 
-from .chain import Chain
-from .callback_query_handler import CallbackQueryHandler
-from .user import User
-from .on import On
+from ._chain import Chain
+from ._callback_query_handler import CallbackQueryHandler
+from ._user import User
+from ._on import On
 
 
 class Handler:

@@ -155,3 +155,5 @@ self.chain.disable_timeout_warnings()
 - Examples:
     - [Append](https://github.com/Romashkaa/telekit/blob/main/docs/examples/append_method.md) - Appending messages with timeout control
     - [Risk Game](https://github.com/Romashkaa/telekit/blob/main/docs/examples/risk_game.md) - Interactive game
+
+[Next: Handler »](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/5_handler.md)

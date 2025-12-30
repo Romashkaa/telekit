@@ -12,12 +12,12 @@ from telebot.types import Message
 from . import senders
 
 # Logging
-from .logger import logger
+from ._logger import logger
 library = logger.library
 
 # Chain modules
-from .chain_inline_keyboards_logic import ChainInlineKeyboardLogic
-from .chain_entry_logic import ChainEntryLogic, TextDocument
+from ._chain_inline_keyboards_logic import ChainInlineKeyboardLogic
+from ._chain_entry_logic import ChainEntryLogic, TextDocument
 
 __all__ = ["TextDocument", "Chain"]
 

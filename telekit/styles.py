@@ -1,4 +1,4 @@
-from .buildtext.styles import *
+from ._buildtext.styles import *
 
 Group = Composite
 

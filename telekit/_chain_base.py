@@ -11,8 +11,8 @@ from telebot.types import Message
 
 # Local modules
 from . import senders
-from . import input_handler
-from . import timeout
+from . import _input_handler
+from . import _timeout
 
 class ChainBase:
 
@@ -33,9 +33,9 @@ class ChainBase:
     def __init__(self, chat_id: int):
         self.chat_id = chat_id
         self.sender = senders.AlertSender(chat_id)
-        self.handler = input_handler.InputHandler(chat_id)
+        self.handler = _input_handler.InputHandler(chat_id)
         self._previous_message: Message | None = None
-        self._timeout_handler = timeout.TimeoutHandler()
+        self._timeout_handler = _timeout.TimeoutHandler()
 
         self.do_remove_timeout = True
         self.do_remove_entry_handler = True

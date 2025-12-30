@@ -2,18 +2,16 @@ import telebot.types
 import telekit
 
 source = """
-# Title
+# Page Title
 
 Page text!
 
 # Another Page
 
 Text of another page
-Ця сторінка довша...
+This page is longer...
 
-Але не дуже)
-
-# Another Page 2
+# Another Page #2
 You can write right under the title!
 """
 

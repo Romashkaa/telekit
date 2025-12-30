@@ -2,7 +2,7 @@ from typing import Callable, Any
 from telebot.types import Message
 import telebot
 
-from .logger import logger
+from ._logger import logger
 library = logger.library
 
 class InputHandler:

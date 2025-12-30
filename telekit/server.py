@@ -6,10 +6,10 @@ import time
 import traceback
 import sys
 
-from . import init
+from . import _init
 import telebot # type: ignore
 
-from .logger import logger
+from ._logger import logger
 server_logger = logger.server
     
 def print_exception_message(ex: Exception) -> None:
@@ -31,7 +31,7 @@ class Server:
             bot = telebot.TeleBot(bot)
         
         self.bot = bot
-        init.init(bot)
+        _init.init(bot)
 
     def polling(self):
         """Standard `self.bot.polling(none_stop=True)` polling"""

@@ -14,10 +14,10 @@ from telebot.types import (
     InlineKeyboardMarkup
 )
 
-from .chain_base import ChainBase
+from ._chain_base import ChainBase
 
 if typing.TYPE_CHECKING:
-    from .chain import Chain # only for type hints
+    from ._chain import Chain # only for type hints
 
 class ChainInlineKeyboardLogic(ChainBase):
     def set_inline_keyboard(

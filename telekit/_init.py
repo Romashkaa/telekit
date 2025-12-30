@@ -1,8 +1,8 @@
-from .handler import Handler
-from .chain import Chain
-from .input_handler import InputHandler
-from .callback_query_handler import CallbackQueryHandler
-from .user import User
+from ._handler import Handler
+from ._chain import Chain
+from ._input_handler import InputHandler
+from ._callback_query_handler import CallbackQueryHandler
+from ._user import User
 from .senders import BaseSender
 
 import telebot

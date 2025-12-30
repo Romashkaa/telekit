@@ -9,7 +9,7 @@ import telekit
 from telekit.styles import Sanitize
 from . import parser
 
-from ..logger import logger
+from .._logger import logger
 library = logger.library
 
 MAGIC_SCENES = parser.MAGIC_SCENES

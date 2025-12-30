@@ -9,11 +9,11 @@ import re
 import telebot
 
 from . import parameters
-from .logger import logger
+from ._logger import logger
 library = logger.library
 
 if typing.TYPE_CHECKING:
-    from handler import Handler # only for type hints
+    from telekit._handler import Handler # only for type hints
 
 # --------------------------------------------------------
 # Event Handler

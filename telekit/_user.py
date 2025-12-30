@@ -1,7 +1,7 @@
 import telebot.types
 import telebot
 
-from .logger import logger
+from ._logger import logger
 
 __all__ = ["User"]
 

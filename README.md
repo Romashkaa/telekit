@@ -297,14 +297,12 @@ class EchoHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-For a full walkthrough, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) or see [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
+For a full walkthrough, [check out Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) or [see more Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
 
 ---
 
-## Developer 
+## Contact
 
-Telegram: [Romashka](https://t.me/NotRomashka)
-
-Gravatar: [Romashka](https://gravatar.com/notromashka)
-
-[Community](https://t.me/+wu-dFrOBFIwyNzc0)
+- [Telegram](https://t.me/NotRomashka)
+- [Gravatar](https://gravatar.com/notromashka)
+- [Community](https://t.me/+wu-dFrOBFIwyNzc0)
