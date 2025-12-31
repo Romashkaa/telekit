@@ -20,20 +20,21 @@ setup(
     author='romashka',
     author_email='notromashka@gmail.com',
     description='Declarative, developer-friendly library for building Telegram bots',
-    long_description=readme() + "\n\n---\n\n# Changelog:\n\n" + changelog(),
+    long_description=readme() + f"\n\n---\n\n# {version} changelog:\n\n" + changelog(),
     include_package_data=True,
     long_description_content_type='text/markdown',
     url='https://github.com/Romashkaa/telekit',
     packages=find_packages(),
     install_requires=install_requires(),
     classifiers=[
+        'Programming Language :: Python',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
-    keywords='telegram bot api declarative tools ',
+    keywords='telegram bot api declarative tools botkit',
     project_urls={
         "GitHub": "https://github.com/Romashkaa/telekit",
         "Telegram": "https://t.me/TelekitLib"

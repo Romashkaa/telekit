@@ -18,11 +18,19 @@ First, get your bot token from [BotFather](https://t.me/BotFather), then create 
 ```python
 import telekit
 
-server = telekit.Server("BOT_TOKEN")
+server = telekit.Server(BOT_TOKEN)
 ```
 
 That’s it — your bot is connected.  
 The `Server` handles all incoming messages and lets you start adding logic right away.
+
+You can also run the example bot to see the basic features in action:
+
+```py
+import telekit
+
+telekit.example(BOT_TOKEN) # run the example bot
+```
 
 ## 2. Basic concepts and Logic
 
@@ -36,7 +44,7 @@ When an update arrives from the server, for example the `/start` command, the co
 
 ## 3. Creating a handler
 
-Each piece of logic lives in its own handler — a class inherited from `telekit.Handler`.
+Each piece of logic lives in its own handler – a class inherited from `telekit.Handler`.
 
 ```python
 import telekit
@@ -48,7 +56,7 @@ class MyHandler(telekit.Handler):
         # here we’ll define message triggers
         ...
 
-telekit.Server("BOT_TOKEN").polling()  # start your bot
+telekit.Server(BOT_TOKEN).polling()  # start your bot
 ```
 
 When the server starts, Telekit automatically finds all `Handler` subclasses and calls their `init_handler` methods. This is where you register triggers — points that tell the bot *when* to initiate the processing chain.
@@ -73,7 +81,7 @@ class NameHandler(telekit.Handler):
         self.chain.sender.set_text(f"👋 Hello {name}!") # set text
         self.chain.send()                               # send
  
-telekit.Server("BOT_TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 
 Here, `cls.on.text("My name is {name}")` listens for that pattern.  
@@ -110,7 +118,7 @@ class EchoHandler(telekit.Handler):
         self.chain.sender.set_text(f"{self.message.text}!")
         self.chain.send()
 
-telekit.Server("BOT_TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 
 Let’s take a closer look at the example. Here we’ve defined a handler that adds some logic:
@@ -128,13 +136,12 @@ Let’s take a closer look at the example. Here we’ve defined a handler that a
 Finally, don’t forget to start polling:
 
 ```python
-telekit.Server("BOT_TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 
 Your bot is now live and ready to respond. 🎉
 
-## Developer tip
-
-If you’re using an IDE like VS Code with **Pylance**, you’ll get type hints everywhere — Telekit is fully typed for your convenience :)
+> [!NOTE]
+> If you’re using an IDE like VS Code with **Pylance**, you’ll get type hints everywhere — Telekit is fully typed for your convenience :)
 
 [Next: Project structure »](2_project_structure.md)
