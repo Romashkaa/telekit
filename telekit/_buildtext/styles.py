@@ -96,9 +96,6 @@ class Link(StyleFormatter):
         return f"{label} ({self.url})"
     
 class UserLink(Link):
-    markdown_symbol = ''
-    html_tag = ''
-
     def __init__(self, *content, username: str, text: str | None=None, parse_mode: str | None = "html"):
         self.content = list(content)
         self.set_parse_mode(parse_mode)
@@ -108,6 +105,17 @@ class UserLink(Link):
         else:
             encoded_text = quote(text, safe="")
             self.url = f"https://t.me/{username}?text={encoded_text}"
+
+class BotLink(Link):
+    def __init__(self, *content, bot_id: str | int, start: str | None=None, parse_mode: str | None = "html"):
+        self.content = list(content)
+        self.set_parse_mode(parse_mode)
+
+        if start is None:
+            self.url = f"https://t.me/{bot_id}"
+        else:
+            encoded_start = quote(start, safe="")
+            self.url = f"https://t.me/{bot_id}?start={encoded_start}"
 
 class Styles:
     def __init__(self, parse_mode: str | None = "html"):

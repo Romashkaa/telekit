@@ -28,9 +28,9 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
 
     # If you want to add your own bit of logic:
     
-    # def start_guide(self):
+    # def start_script(self):
     #     # Your logic
-    #     super().start_guide()
+    #     super().start_script()
 
 # ------------------------------------------------------
 # Telekit DSL
@@ -41,7 +41,9 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
 
 guide = """
 $ timeout {
-    time = 20;
+    message = "🤓 No googling!";
+    label = "Alright"
+    time = 10;
 }
 
 @ main {

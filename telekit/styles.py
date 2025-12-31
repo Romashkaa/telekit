@@ -18,6 +18,7 @@ __all__ = [
 
     "Link",
     "UserLink",
+    "BotLink",
 
     "Quote",
     "Python",

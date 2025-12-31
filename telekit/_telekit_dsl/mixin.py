@@ -3,7 +3,7 @@
 
 import re
 import json
-from typing import NoReturn
+from typing import NoReturn, Callable, Any
 
 import telekit
 from telekit.styles import Sanitize
@@ -13,6 +13,71 @@ from .._logger import logger
 library = logger.library
 
 MAGIC_SCENES = parser.MAGIC_SCENES
+
+class ScriptData:
+    def __init__(self, config: dict, scenes: dict[str, dict], scene_order: list[str], next_order: list[str], timeout_time: int | Any):
+        self.config      = config
+        self.scenes      = scenes
+        self.scene_order = scene_order
+        self.next_order  = next_order
+
+        if timeout_time and isinstance(timeout_time, int):
+            self.timeout_time = timeout_time
+        else:
+            self.timeout_time = None
+
+        self._button_ref_count: dict[str, int] = {}
+        self._scene_ref_count:  dict[str, int] = {}
+
+        self.history: list[str] = []
+        
+    def get_button_ref_count(self, name: str) -> int:
+        if name in self._button_ref_count:
+            return self._button_ref_count.get(name, 0)
+        
+        ref_count: int = 0
+
+        for scene in self.scenes.values():
+            ref_count += list(scene["buttons"].values()).count(name)
+            
+        self._button_ref_count[name] = ref_count
+        return ref_count
+    
+    def get_scene_ref_count(self, name: str) -> int:
+        if name in self._scene_ref_count:
+            return self._scene_ref_count.get(name, 0)
+        
+        ref_count: int = 0
+
+        for scene in self.scenes.values():
+            ref_count += list(set(scene["buttons"].values())).count(name)
+            
+        self._scene_ref_count[name] = ref_count
+        return ref_count
+    
+    def get_current_scene_name(self) -> str:
+        if self.history:
+            return self.history[-1]
+        else:
+            return "main"
+        
+    def get_prev_scene_name(self) -> str:
+        if len(self.history) >= 2:
+            return self.history[-2]
+        else:
+            return "main"
+        
+    def get_current_scene(self) -> dict:
+        return self.scenes[self.get_current_scene_name()]
+    
+    def get_prev_scene(self) -> dict:
+        return self.scenes[self.get_prev_scene_name()]
+
+    @classmethod
+    def script_data_factory(cls, config: dict, scenes: dict[str, dict], scene_order: list[str], next_order: list[str], timeout_time: int):
+        def create(*args) -> ScriptData:
+            return cls(config, scenes, scene_order, next_order, timeout_time)
+        return create
 
 class TelekitDSLMixin(telekit.Handler):
     """
@@ -49,8 +114,8 @@ class TelekitDSLMixin(telekit.Handler):
     [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
     """
 
-    script_data: dict | None = None
-    script_analyzed: bool = False
+    raw_script_data: dict | None = None
+    script_data_factory: Callable[..., ScriptData] | None = None
 
     @classmethod
     def analyze_file(cls, path: str, encoding: str="utf-8")  -> None | NoReturn:
@@ -64,13 +129,10 @@ class TelekitDSLMixin(telekit.Handler):
         :param encoding: Encoding
         :type encoding: str
         """
-        cls.script_analyzed = False
-
         with open(path, "r", encoding=encoding) as f:
             content = f.read()
-            cls.analyze_source(content)
-
-        cls.prepare_script()
+        
+        cls.analyze_source(content)
 
     @classmethod
     def analyze_source(cls, script: str) -> None | NoReturn:
@@ -82,8 +144,8 @@ class TelekitDSLMixin(telekit.Handler):
         :param script: Telekit DSL script
         :type script: str
         """
-        cls.script_analyzed = False
-        cls.script_data = parser.analyze(script)
+        cls.script_data_factory = None
+        cls.raw_script_data = parser.analyze(script)
         cls.prepare_script()
 
     @classmethod
@@ -91,13 +153,13 @@ class TelekitDSLMixin(telekit.Handler):
         """
         Prints the semantic model of the script to the console.
         """
-        if not cls.script_data:
+        if not cls.raw_script_data:
             print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_source` first.")
             return
 
         print(
             json.dumps(
-                cls.script_data,
+                cls.raw_script_data,
                 indent=4,
                 ensure_ascii=False
             )
@@ -108,41 +170,41 @@ class TelekitDSLMixin(telekit.Handler):
         """
         Prepares the script; raises an error if the script data is not loaded or invalid
         """
-        cls.script_analyzed = False
+        cls.script_data_factory = None
 
-        if not cls.script_data:
+        if not cls.raw_script_data:
             raise ValueError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
 
         # scenes
-        if "scenes" not in cls.script_data:
+        if "scenes" not in cls.raw_script_data:
             missing("scenes")
-        if not isinstance(cls.script_data["scenes"], dict):
+        if not isinstance(cls.raw_script_data["scenes"], dict):
             raise TypeError("'scenes' should be a dictionary.")
-        cls.scenes: dict[str, dict] = cls.script_data["scenes"]
+        scenes: dict[str, dict] = cls.raw_script_data["scenes"]
 
         # scene order
-        if "order" not in cls.script_data:
+        if "order" not in cls.raw_script_data:
             missing("order")
-        if not isinstance(cls.script_data["order"], list):
+        if not isinstance(cls.raw_script_data["order"], list):
             raise TypeError("'order' should be a list of strings.")
-        cls.scene_order: list[str] = cls.script_data["order"]
+        scene_order: list[str] = cls.raw_script_data["order"]
 
         # config
-        if "config" not in cls.script_data:
+        if "config" not in cls.raw_script_data:
             missing("config")
-        if not isinstance(cls.script_data["config"], dict):
+        if not isinstance(cls.raw_script_data["config"], dict):
             raise TypeError("'config' should be a dictionary.")
-        cls.config = cls.script_data["config"]
+        config = cls.raw_script_data["config"]
 
         # next order
-        cls.next_order: list[str] | None = cls.config.get("next_order")
-        if not isinstance(cls.next_order, list):
+        next_order: list[str] | None = config.get("next_order")
+        if not isinstance(next_order, list):
             raise TypeError("'next_order' config should be a list of strings.")
         
         # timeout
-        cls.timeout_time = cls.config.get("timeout_time", 0)
+        timeout_time = config.get("timeout_time", 0)
 
-        if not cls.timeout_time:
+        if not timeout_time:
             library.warning(
                 "No timeout configured for this DSL script. "
                 "It is recommended to add a timeout to automatically clear callbacks "
@@ -150,11 +212,15 @@ class TelekitDSLMixin(telekit.Handler):
                 "Example:\n\n"
                 "$ timeout {\n"
                 "    time = 30; // seconds\n"
-                "}\n\n"
+                "}\n" + \
+                f"{cls.raw_script_data["source"][:94]}...\n\n" + \
+                "Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout"
             )
 
         # end
-        cls.script_analyzed = True
+        cls.script_data_factory = ScriptData.script_data_factory(
+            config, scenes, scene_order, next_order, timeout_time
+        )
 
     # ----------------------------------------------------------------------------
     # Instance Attributes
@@ -165,24 +231,18 @@ class TelekitDSLMixin(telekit.Handler):
         Starts the script; raises an error if the script has not been analyzed
         """
         # quick check
-        if not self.script_analyzed:
+        if not self.script_data_factory:
             message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_source() before starting it."
             library.error(message)
             self.chain.sender.pyerror(RuntimeError(message))
             return
-        
-        # initialize history
-        self.history: list[str] = []
 
-        # localize attributes
-        self.config = self.config
-        self.scenes = self.scenes
-        self.scene_order = self.scene_order
-        self.next_order = self.next_order
+        self.script_data = self.script_data_factory()
 
         # set timeout
-        if isinstance(self.timeout_time, int):
-            self.chain.set_timeout(self._on_timeout, self.timeout_time)
+        if self.script_data.timeout_time:
+            self.chain.set_timeout(self._on_timeout, self.script_data.timeout_time)
+        self.chain.disable_timeout_warnings()
         self.chain.set_remove_timeout(False)
 
         # start the main scene
@@ -205,17 +265,14 @@ class TelekitDSLMixin(telekit.Handler):
             if scene_name in MAGIC_SCENES:
                 match scene_name:
                     case "back":
-                        if self.history:
-                            self.history.pop() # current
-                        if self.history:
-                            scene_name = self.history.pop()
+                        scene_name = self._get_prev_scene_name()
                     case "next":
                         scene_name = self._get_next_scene_name()
 
-            self.history.append(scene_name)
+            self.script_data.history.append(scene_name)
 
             # main logic
-            scene = self.scenes[scene_name]
+            scene = self.script_data.scenes[scene_name]
 
             real_parse_mode: str | None = scene.get("parse_mode")
             parse_mode = real_parse_mode or "html"
@@ -255,8 +312,8 @@ class TelekitDSLMixin(telekit.Handler):
                     has_back_button = True
 
             if not has_back_button:
-                self.history.clear()
-                self.history.append(scene_name)
+                self.script_data.history.clear()
+                self.script_data.history.append(scene_name)
 
             self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
             self.chain.edit()
@@ -268,9 +325,9 @@ class TelekitDSLMixin(telekit.Handler):
     # ----------------------------------------------------------------------------
 
     def _on_timeout(self):
-        message = self.config.get("timeout_message", "👋 Are you still there?")
+        message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
         message = self.chain.sender.styles.no_sanitize(message)
-        label   = self.config.get("timeout_label", "Yes, I'm here ✓")
+        label   = self.script_data.config.get("timeout_label", "Yes, I'm here ✓")
 
         self.chain.set_timeout(None, 7)
         self.chain.sender.add_message("\n\n", self.chain.sender.styles.bold(message))
@@ -279,8 +336,11 @@ class TelekitDSLMixin(telekit.Handler):
         self.chain.edit()
 
     def _continue(self):
-        self.chain.set_timeout(self._on_timeout, self.timeout_time)
-        self.prepare_scene(self.history.pop())()
+        if self.script_data.timeout_time:
+            self.chain.set_timeout(self._on_timeout, self.script_data.timeout_time)
+        else:
+            self.chain.remove_timeout()
+        self.prepare_scene(self.script_data.history.pop())()
 
     # ----------------------------------------------------------------------------
     # Variables
@@ -325,6 +385,22 @@ class TelekitDSLMixin(telekit.Handler):
                 return str(self.user.id)
             case "username":
                 return getattr(self.message.from_user, "username", None)
+            case "scene_ref_count":
+                return str(self.script_data.get_scene_ref_count(self.script_data.get_current_scene_name()))
+            case "button_ref_count":
+                return str(self.script_data.get_button_ref_count(self.script_data.get_current_scene_name()))
+            case "prev_scene_name":
+                return self.script_data.get_prev_scene_name()
+            case "prev_scene_title":
+                return str(self.script_data.get_prev_scene()["title"])
+            case "prev_scene_message":
+                return str(self.script_data.get_prev_scene()["message"])
+            # case "next_scene_name": # TODO: check it in Analyzer
+            #     return self._get_next_scene_name()
+            # case "next_scene_title":
+            #     return str(self.script_data.scenes[self._get_next_scene_name()]["title"])
+            # case "next_scene_message":
+            #     return str(self.script_data.scenes[self._get_next_scene_name()]["message"])
             case _:
                 return
 
@@ -364,23 +440,267 @@ class TelekitDSLMixin(telekit.Handler):
     # Other
     # ----------------------------------------------------------------------------
 
-    def _get_next_scene_name(self):
-        if not self.next_order:
-            raise ValueError("cannot use Next button: order is not defined")
+    def _fail(self, message: str, exception: type[Exception]=Exception):
+        self.chain.sender.error("🤷 Something went wrong...", message)
+        library.error(message)
+        return exception(message)
 
-        for item in self.history[::-1]:
-            if item not in self.next_order:
+    def _get_next_scene_name(self):
+        if not self.script_data.next_order:
+            raise self._fail("Cannot use 'next' button: order is not defined", ValueError)
+
+        for item in self.script_data.history[::-1]:
+            if item not in self.script_data.next_order:
                 continue
 
-            index = self.next_order.index(item)
+            index = self.script_data.next_order.index(item)
 
             # check that next index exists
-            if index + 1 >= len(self.next_order):
-                raise IndexError("next_order index out of range: no next scene defined")
+            if index + 1 >= len(self.script_data.next_order):
+                raise self._fail("'next_order' index out of range: no next scene defined", IndexError)
 
-            return self.next_order[index + 1]
+            return self.script_data.next_order[index + 1]
 
-        raise ValueError("cannot determine next scene: no matching history entry")
+        raise self._fail("Cannot determine next scene: no matching history entry", ValueError)
+    
+    def _get_prev_scene_name(self):
+        if self.script_data.history:
+            self.script_data.history.pop() # remove current
+        if self.script_data.history:
+            return self.script_data.history.pop() # get and remove previous
+        else:
+            return "main" # (impossible)
     
 def missing(name: str):
-    raise KeyError(f"Missing '{name}' key in script data.")
+    message: str = f"Missing '{name}' key in script data."
+    library.error(message)
+    raise KeyError(message)
+
+"""
+// ----------------------------------------------------
+// Script Data Structure (JSON)
+// ----------------------------------------------------
+
+{
+    "config": {
+        "timeout_time": 20,
+        "next_order": [
+            "main",
+            "question_1",
+            "question_2",
+            "question_3",
+            "question_4",
+            "question_5",
+            "question_6",
+            "question_7",
+            "question_8",
+            "question_9",
+            "question_10"
+        ]
+    },
+    "scenes": {
+        "main": {
+            "name": "main",
+            "title": "🎉 Fun Facts Quiz",
+            "message": "Hello, {{first_name}}. Test your knowledge with 10 fun questions!",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Start Quiz": "next"
+            },
+            "row_width": 1
+        },
+        "question_1": {
+            "name": "question_1",
+            "title": "🐶 Question 1",
+            "message": "Which animal is the fastest on land?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Elephant": "_lose",
+                "Cheetah": "next",
+                "Horse": "_lose",
+                "Lion": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_2": {
+            "name": "question_2",
+            "title": "🍫 Question 2",
+            "message": "From which product is chocolate made?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Cocoa powder": "_lose",
+                "Cocoa beans": "next",
+                "Cocoa butter": "_lose",
+                "Cocoa drink": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_3": {
+            "name": "question_3",
+            "title": "🌌 Question 3",
+            "message": "Which planet is known for its prominent rings?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Jupiter": "_lose",
+                "Saturn": "next",
+                "Mars": "_lose",
+                "Neptune": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_4": {
+            "name": "question_4",
+            "title": "🦎 Question 4",
+            "message": "Which animal can change the color of its skin?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Chameleon": "next",
+                "Crocodile": "_lose",
+                "Turtle": "_lose",
+                "Snake": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_5": {
+            "name": "question_5",
+            "title": "🍌 Question 5",
+            "message": "Which vitamin is most abundant in a banana?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Vitamin C": "_lose",
+                "Vitamin B6": "next",
+                "Vitamin D": "_lose",
+                "Vitamin A": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_6": {
+            "name": "question_6",
+            "title": "🎨 Question 6",
+            "message": "Which artist painted the 'Mona Lisa'?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Leonardo da Vinci": "next",
+                "Pablo Picasso": "_lose",
+                "Vincent van Gogh": "_lose",
+                "Michelangelo": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_7": {
+            "name": "question_7",
+            "title": "🎵 Question 7",
+            "message": "Which musical instrument has 88 keys?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Guitar": "_lose",
+                "Harmonica": "_lose",
+                "Piano": "next",
+                "Saxophone": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_8": {
+            "name": "question_8",
+            "title": "🧩 Question 8",
+            "message": "How many faces does a cube have?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "6": "next",
+                "8": "_lose",
+                "12": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_9": {
+            "name": "question_9",
+            "title": "🌊 Question 9",
+            "message": "Which is the largest ocean on Earth?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "Pacific Ocean": "next",
+                "Atlantic Ocean": "_lose",
+                "Indian Ocean": "_lose",
+                "Arctic Ocean": "_lose"
+            },
+            "row_width": 1
+        },
+        "question_10": {
+            "name": "question_10",
+            "title": "🍕 Question 10",
+            "message": "Which country is pizza originally from?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "France": "_lose",
+                "Italy": "_end",
+                "Spain": "_lose",
+                "USA": "_lose"
+            },
+            "row_width": 1
+        },
+        "_lose": {
+            "name": "_lose",
+            "title": "❌ Wrong Answer!",
+            "message": "Oops! {{random_lose_phrase}}",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "« Retry": "back"
+            },
+            "row_width": 1
+        },
+        "_end": {
+            "name": "_end",
+            "title": "🎉 Quiz Complete!",
+            "message": "Congratulations! You've completed the Fun Facts Quiz! 🌟\n\nWant to try again?",
+            "image": null,
+            "use_italics": false,
+            "parse_mode": null,
+            "buttons": {
+                "↺ Restart Quiz": "main"
+            },
+            "row_width": 1
+        }
+    },
+    "source": "...",
+    "order": [
+        "main",
+        "question_1",
+        "question_2",
+        "question_3",
+        "question_4",
+        "question_5",
+        "question_6",
+        "question_7",
+        "question_8",
+        "question_9",
+        "question_10",
+        "_lose",
+        "_end"
+    ]
+}
+
+"""

@@ -100,7 +100,7 @@ if __name__ == "__main__":
         "Start 1": orm.scene["start"],
         "Start 2": start,
         "Start 3": "start",
-    }
+    } 
 
     with orm.scene("start") as start:
         start.title = "Start..."
