@@ -27,12 +27,13 @@ setup(
     packages=find_packages(),
     install_requires=install_requires(),
     classifiers=[
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
-    keywords='telegram bot framework declarative ',
+    keywords='telegram bot api declarative tools ',
     project_urls={
         "GitHub": "https://github.com/Romashkaa/telekit",
         "Telegram": "https://t.me/TelekitLib"

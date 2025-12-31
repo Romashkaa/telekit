@@ -158,7 +158,7 @@ Unlike scenes (@), configuration block don’t create a UI — it just set param
 
 ```js
 $ {
-    // set global timeout (optional)
+    // set timeout (for example)
     timeout_time    = 10; // disabled by default
     timeout_message = "Are you still here?";
     timeout_label   = "Yes, i'm here";
@@ -198,6 +198,9 @@ $ timeout {
 ```
 
 If the user clicks the "Yes, I’m here" button, they will continue from where they left off.
+
+> [!NOTE]
+> By default, the `message` and `label` are already set to "Are you still here?" and "Yes, I'm here".
 
 ## Multiline Strings
 
@@ -401,6 +404,7 @@ You can use the following variables in your Telekit DSL scripts to personalize m
 - `{{username}}` – the Telegram username of the user (with the `@` symbol).
 - `{{user_id}}` – the unique Telegram ID of the user.
 - `{{chat_id}}` – the ID of the chat where the message originated.
+- [See more here](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/dsl_variables_list.md)
 
 ### Custom Variables
 

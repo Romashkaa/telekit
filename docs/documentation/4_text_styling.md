@@ -18,20 +18,12 @@ This document lists all available style classes and their purpose.
 - `NoSanitize` - prevents escaping of HTML/Markdown tags
 - `Link` - creates a clickable link (`[text](url)` in Markdown, `<a href="url">text</a>` in HTML)
 - `UserLink` - creates a link to a user with an optional pre-filled (default) message
+- `BotLink` - creates a link to bot, optionally including a pre-filled start command
 - `Styles.*`:
-    - `Styles.bold(*content)` - creates a `Bold` object
-    - `Styles.italic(*content)` - creates an `Italic` object
-    - `Styles.underline(*content)` - creates an `Underline` object
-    - `Styles.strike(*content)` - creates a `Strikethrough` object
-    - `Styles.code(*content)` - creates a `Code` object
-    - `Styles.python(*content)` - creates a `Python` code block object
-    - `Styles.spoiler(*content)` - creates a `Spoiler` object
-    - `Styles.quote(*content)` - creates a `Quote` object
-    - `Styles.group(*content)` - creates a `Composite` object (combines multiple styles)
-    - `Styles.sanitize(*content)` - creates a `Sanitize` object
-    - `Styles.no_sanitize(*content)` - creates a `NoSanitize` object
+    - All previously mentioned styles are available in snake_case. For example: `bot_link`, `no_sanitize`, ...
     - `Styles.use_markdown()` - switches parse mode to Markdown
     - `Styles.use_html()` - switches parse mode to HTML
+    - `Styles.use_plain()` - switches parse mode to None
     - `Styles.set_parse_mode(parse_mode)` - manually sets parse mode (`"html"`, `"markdown"`, or `None`)
 
 ## Sanitizing

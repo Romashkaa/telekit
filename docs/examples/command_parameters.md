@@ -32,6 +32,7 @@ telekit.Server(TOKEN).polling()
 
 ```py
 import telekit
+from telekit.styles import BotLink
 from telekit.parameters import Str
 
 class StartHandler(telekit.Handler):
@@ -46,7 +47,8 @@ class StartHandler(telekit.Handler):
             self.chain.sender.set_text("This link is missing an invite code.")
         else:
             self.chain.sender.set_text(
-                f"You joined via invite code: {invite_code}"
+                f"You joined via invite code: {invite_code}\n\n",
+                BotLink("Invite your friends too!", username=self.bot.get_me().username, start=invite_code)
             )
 
         self.chain.sender.set_parse_mode("html")

@@ -99,9 +99,9 @@ with self.chain.sender.then_send() as sender:
     sender.set_message("This message is sent automatically on exit.")
 ```
 
-⚠️ **Note:**  
-`then_send()` calls the sender’s own `send()` method, *not* `chain.send()`.  
-Because of this, features that rely on `chain.send()` — such as `inline_keyboard` — will **not** be processed when using this mode.
+> [!NOTE] 
+> `then_send()` calls the sender’s own `send()` method, *not* `chain.send()`.  
+> Because of this, features that rely on `chain.send()` — such as `inline_keyboard` — will **not** be processed when using this mode.
 
 ---
 

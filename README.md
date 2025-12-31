@@ -40,7 +40,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 - **Deep Linking** support with type-checked [Command Parameters](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/command_parameters.md) for flexible user input
 - Built-in **Permission** and **Logging** system for user management
 - Seamless integration with [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
-- Lightweight, maintainable, and easy-to-extend code
+- Fast to develop and easy-to-extend code
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)

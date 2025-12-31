@@ -107,15 +107,15 @@ class UserLink(Link):
             self.url = f"https://t.me/{username}?text={encoded_text}"
 
 class BotLink(Link):
-    def __init__(self, *content, bot_id: str | int, start: str | None=None, parse_mode: str | None = "html"):
+    def __init__(self, *content, username: str, start: str | None=None, parse_mode: str | None = "html"):
         self.content = list(content)
         self.set_parse_mode(parse_mode)
 
         if start is None:
-            self.url = f"https://t.me/{bot_id}"
+            self.url = f"https://t.me/{username}"
         else:
             encoded_start = quote(start, safe="")
-            self.url = f"https://t.me/{bot_id}?start={encoded_start}"
+            self.url = f"https://t.me/{username}?start={encoded_start}"
 
 class Styles:
     def __init__(self, parse_mode: str | None = "html"):
@@ -126,6 +126,9 @@ class Styles:
 
     def use_html(self):
         self.parse_mode = "html"
+    
+    def use_plain(self):
+        self.parse_mode = None
 
     def set_parse_mode(self, parse_mode: str | None):
         self.parse_mode = parse_mode
@@ -162,3 +165,13 @@ class Styles:
     
     def no_sanitize(self, *content):
         return NoSanitize(*content, parse_mode=self.parse_mode)
+    
+    def link(self, *content, url: str):
+        return Link(*content, url=url, parse_mode=self.parse_mode)
+    
+    def user_link(self, *content, username: str, text: str | None=None):
+        return UserLink(*content, username=username, text=text, parse_mode=self.parse_mode)
+
+    def bot_link(self, *content, username: str, start: str | None=None):
+        return BotLink(*content, username=username, start=start, parse_mode=self.parse_mode)
+

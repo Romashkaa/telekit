@@ -9,10 +9,7 @@ class QuizHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.message(commands=["quiz"]).invoke(cls.start_script)
-        cls.analyze_source(guide)
-
-    def handle(self) -> None:
-        self.start_script()
+        cls.analyze_source(script)
 
     def get_variable(self, name: str) -> str | None:
         match name:
@@ -34,7 +31,7 @@ class QuizHandler(telekit.TelekitDSL.Mixin):
 # Tuturial on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md
 #
 
-guide = """
+script = """
 $ timeout {
     time = 20;
 }

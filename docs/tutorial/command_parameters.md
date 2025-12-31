@@ -17,6 +17,7 @@ class StartHandler(telekit.Handler):
         # Define parameters: first an integer, then a string
         cls.on.command("start", params=[Int(-1), Str()]).invoke(cls.handle)
     
+    # Default values are required:   ↓↓↓↓                   ↓↓↓↓
     def handle(self, age: int | None=None, name: str | None=None):
         if age is None:
             self.chain.sender.set_text("Please provide your age and name.")
@@ -33,7 +34,7 @@ class StartHandler(telekit.Handler):
 **Notes:**
 - `Int(-1)` means: if conversion fails (non-integer input), the value will be `-1`.
 - `Str()` accepts any string input.
-- Default values in the handler (`age: int | None=None`) are used if the user omits parameters entirely.
+- Default values in the handler (`age: int | None = None`) are used if the user does not provide these parameters.
 
 ## Using Deep Links
 
@@ -41,6 +42,13 @@ You can pass parameters directly via deep links:
 
 ```
 https://t.me/YourBot?start=airplane
+```
+
+Use the built-in `BotLink` class for this:
+
+```py
+from telekit.styles import BotLink
+BotLink(Bold("Invitation link"), username=self.bot.get_me().username, start="airplane")
 ```
 
 When someone opens a chat with your bot via this link, you will receive:
