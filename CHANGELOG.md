@@ -5,6 +5,10 @@
     - `scene_title` - title of the current scene
     - `scene_message` - message text of the current scene
 
+- New Hooks:
+    - `on_exit` — triggered after the scene message has been sent
+    - `on_timeout` — triggered when a configured timeout fires due to user inactivity
+
 
 ## Planned for v1.6.0
 
@@ -31,9 +35,6 @@ $ vars {
     }
 }
 ```
-- New Hooks:
-    - `on_exit` — triggered after the scene message has been sent
-    - `on_timeout` — triggered when a configured timeout fires due to user inactivity
 
 - Add Docs:
     - new variables

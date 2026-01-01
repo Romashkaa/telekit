@@ -138,8 +138,8 @@ class Parser:
                     scene.fields[key] = self.parse_buttons_block()
                     continue
 
-                # special case: on_enter / on_enter_once
-                if key in ("on_enter", "on_enter_once"):
+                # special case: on_enter / on_enter_once / ...
+                if key in ("on_enter", "on_enter_once", "on_exit", "on_timeout"):
                     scene.fields[key] = self.parse_on_api_block()
                     continue
 

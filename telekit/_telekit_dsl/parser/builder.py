@@ -256,6 +256,10 @@ class Builder:
             scene_data["on_enter"]      = fields["on_enter"]
         if "on_enter_once" in fields:
             scene_data["on_enter_once"] = fields["on_enter_once"]
+        if "on_exit" in fields:
+            scene_data["on_exit"]       = fields["on_exit"]
+        if "on_timeout" in fields:
+            scene_data["on_timeout"]    = fields["on_timeout"]
 
         # Buttons
 
