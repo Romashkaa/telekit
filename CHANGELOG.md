@@ -1,31 +1,42 @@
 ## DSL Improvements
 
-- Added support for calling python `Handler` methods via `on_enter` and `on_enter_once` hooks:
-    ```js
-    @ throne_room {
-        title = "🏰 Castle Ending 1"
-        message = "You claim the throne. Victory!"
-        
-        on_enter {
-            add_ending("throne_room")
-        }
+- Added new built-in variables:
+    - `scene_name` - internal name of the current scene (the identifier after @)
+    - `scene_title` - title of the current scene
+    - `scene_message` - message text of the current scene
+
+
+## Planned for v1.6.0
+
+- Static {{variables}} in DSL scripts:
+```js
+$ vars {
+    PRICE = "$ 90"
+    lower = "case too"
+    any   = ["non-", "string", "values are converted to strings at compose time"]
+}
+```
+- Support using `{{variables}}` inside button labels and hook arguments:
+```js
+@ main {
+    title = "hello"
+    message = "hola"
+
+    buttons {
+        back("« {{prev_scene_name}}")
     }
-    ```
-    Each time this scene is displayed (either via a direct link, or using `back` or `next`), the `add_ending` method of the `Handler` object will be called with the parameter `"throne_room"`. [See documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#calling-python-methods-in-dsl)
 
-- Fixed formatting of the "No timeout configured" warning:
-    ```js
-    YYYY-MM-DD HH:MM:SS | WARNING | mixin.py | No timeout configured for this DSL script. It is recommended to add a timeout to automatically clear callbacks after a period of inactivity.
-
-    Example:
-
-    $ timeout {
-        time = 30; // seconds
+    on_enter {
+        add_to_busket("number:{{scene_name}}")
     }
+}
+```
+- New Hooks:
+    - `on_exit` — triggered after the scene message has been sent
+    - `on_timeout` — triggered when a configured timeout fires due to user inactivity
 
-    @ main {
-        title = "🏰 Adventure Quest"
-        message = "Welcome, {{first_name}}! Can you disc...
-
-    Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout
-    ```
+- Add Docs:
+    - new variables
+    - new hooks
+    - support using `{{variables}}` inside button labels and hook arguments 
+    - static {{variables}} in DSL script

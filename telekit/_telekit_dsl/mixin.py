@@ -407,9 +407,15 @@ class TelekitDSLMixin(telekit.Handler):
             case "prev_scene_name":
                 return self.script_data.get_prev_scene_name()
             case "prev_scene_title":
-                return str(self.script_data.get_prev_scene()["title"])
+                return self.script_data.get_prev_scene().get("title")
             case "prev_scene_message":
-                return str(self.script_data.get_prev_scene()["message"])
+                return self.script_data.get_prev_scene().get("title")
+            case "scene_name":
+                return self.script_data.get_current_scene_name()
+            case "scene_title":
+                return self.script_data.get_current_scene().get("title")
+            case "scene_message":
+                return self.script_data.get_current_scene().get("message")
             # case "next_scene_name": # TODO: check it in Analyzer
             #     return self._get_next_scene_name()
             # case "next_scene_title":

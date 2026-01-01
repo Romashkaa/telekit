@@ -39,14 +39,9 @@ You can use the following attributes for any scene in Telekit DSL:
     }
 
     // hook called every time the scene is entered
-    on_enter {
-        method_name("arg")
-    }
-
+    on_enter { method_name("arg") }
     // hook called only the first time the scene is entered
-    on_enter_once {
-        method_name("arg")
-    }
+    on_enter_once { method_name("arg") }
 }
 ```
 
