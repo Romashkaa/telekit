@@ -345,8 +345,8 @@ class TelekitDSLMixin(telekit.Handler):
 
     def _on_timeout(self):
         scene = self.script_data.get_current_scene()
-        if "on_exit" in scene:
-            self._call_api_methods(scene["on_exit"])
+        if "on_timeout" in scene:
+            self._call_api_methods(scene["on_timeout"])
 
         message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
         message = self.chain.sender.styles.no_sanitize(message)
