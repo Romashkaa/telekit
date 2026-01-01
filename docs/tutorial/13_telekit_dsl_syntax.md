@@ -427,29 +427,22 @@ $ vars {
 ```
 
 > [!NOTE]  
-> Variables defined in a named `$ vars` block are equivalent to creating individual entries in the unnamed configuration block with the same values.  
-> For example, `$ vars { PRICE = 99 }` is similar to having a `$ { vars_PRICE = 99 }` in the unnamed configuration block.  
-> See Named Configuration Blocks for more details.
+> Variables defined in a named `$ vars` block are equivalent to creating individual entries in the unnamed configuration block with the same values. For example, `$ vars { PRICE = 99 }` is similar to having a `$ { vars_PRICE = 99 }` in the unnamed configuration block.  
+> See [Named Configuration Blocks](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#named-configuration-block) for more details.
 
 When used in a template, lists and other non-string values are automatically converted to strings:
 
 ```js
-title = "{{AMENITIES}}"   // results in title = '["Wi-Fi", "Breakfast", "Parking"]'
+title = "{{AMENITIES}}" // title = '["Wi-Fi", "Breakfast", "Parking"]'
 ```
-
 
 ### Custom Dynamic Variables
 
-... 
-
-Custom variables are resolved by implementing the `get_variable` method in your handler class. When rendering a DSL script:  
-
-1. The DSL engine encounters a `{{variable}}` in your script.  
-2. It calls your handler’s `get_variable(name)` method:  
-   - If it returns a string, that value replaces the variable.  
-   - If it returns `None`, the engine uses the built-in variables instead.
+In addition to the static `$ vars`, Telekit DSL lets you define **dynamic variables** whose values are determined at runtime in python.
 
 This allows you to add **dynamic, personalized content** to your messages.
+
+Custom variables are resolved by implementing the `get_variable` method in your handler class:
 
 ```python
 import random
@@ -501,6 +494,17 @@ If a variable is missing or has no value (for example, `{{last_name}}` for a use
 - If `last_name` is missing, it will use `"there"` as a fallback.  
 
 This ensures that your messages always display meaningful text even when some user data is unavailable.
+
+### Variable Resolution Order
+
+When Telekit DSL evaluates a template variable, it follows a specific order to determine its value:
+
+1. **Static variables** defined in the script inside a `$ vars` block.  
+2. **Custom dynamic variables** provided by the handler via the `get_variable` method.  
+3. **Built-in Telekit variables** such as `first_name`, `username`, etc.  
+4. **Default values** specified directly in the template using the `{{variable:default}}` syntax.  
+
+This order ensures that user-defined values override built-in defaults, while fallback defaults are applied only when no other value is found.
 
 ## Calling Python Methods in DSL
 

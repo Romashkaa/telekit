@@ -389,12 +389,12 @@ class TelekitDSLMixin(telekit.Handler):
         return
 
     def _get_variable(self, name: str) -> str | None:
-        value = self.get_variable(name)
+        value = self._find_variable(name)
 
         if isinstance(value, str):
             return value
         
-        value = self._find_variable(name)
+        value = self.get_variable(name)
 
         if isinstance(value, str):
             return value
