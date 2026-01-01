@@ -253,17 +253,19 @@ The button will automatically use the scene’s default label if provided, or fa
     title   = "📖 FAQ - Frequently Asked Questions";
     message = "Here are answers to common questions to help you get started:";
     buttons {
-        developers;    // "Who are developers"
-        documentation; // "📚 Documentation"
+        developers;    // "Who are developers" - scene's default label
+        documentation; // "📚 Documentation" - fall back to the scene's title
     }
 }
 
+// default label ↓
 @ developers("Who are developers") {
     title   = "👨‍💻 Developer";
     message = "This bot was spellcrafted by [Telekit Wizard](https://t.me/+WsZ1SyGYSoI3YWQ8) 🪄✨";
 }
 
 @ documentation {
+// fall back to the title ↓
     title   = "📚 Documentation";
     message = "Here you can find helpful guides and references.";
 }

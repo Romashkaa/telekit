@@ -26,4 +26,6 @@ telekit.TelekitDSL.from_string("""...Telekit DSL...""", ["faq"])
 telekit.Server(TOKEN).polling()
 ```
 
+Further details and syntax examples can be found in the Telekit DSL Syntax guide:
+
 [Telekit DSL Syntax »](13_telekit_dsl_syntax.md)
