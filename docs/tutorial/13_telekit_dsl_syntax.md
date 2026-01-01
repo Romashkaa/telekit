@@ -1,5 +1,30 @@
 # Telekit DSL Syntax
 
+## Content
+
+- [Our first scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#our-first-scene)
+- [Let’s add another scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#lets-add-another-scene)
+- [Back Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#back)
+- [Other Scene`s Attributes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#other-scenes-attributes)
+- [Configuration Block](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#configuration-block)
+    - [Named Configuration Block](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#named-configuration-block)
+- [Timeouts](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout)
+- [Multiline Strings](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#multiline-strings)
+- [Buttons Without Label](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label)
+- [Next Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next)
+- [Template Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables)
+    - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#available-variables)
+    - [Custom Static Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-static-variables)
+    - [Custom Dynamic Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-dynamic-variables)
+    - [Default Values](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#default-values)
+    - [Variable Resolution Order](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#variable-resolution-order)
+- [Calling Python Methods in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#calling-python-methods-in-dsl)
+    - [Argument Data Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#argument-data-types)
+    - [Hook Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#hook-types)
+- [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#additional-documentation)
+
+## Our first scene
+
 Each Telekit DSL script starts with the main block (also called the main "scene"). This is the entry point (start) of the script:
 
 ```js
@@ -22,7 +47,7 @@ If we now load this code using the methods shown on the [Telekit DSL Integration
 >
 > Here are answers to common questions to help you get started:
 
-## Let’s add another scene:
+## Let’s add another scene
 
 ```js
 @ main {
