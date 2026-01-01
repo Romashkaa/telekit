@@ -18,7 +18,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | [Ads](ads.md) | Sending messages to several chats | `on.command`, `whitelist=`, `create_sender`, `send_or_handle_error`, `set_effect` |
 | [Redirect](redirect.md) | Message with buttons linking to other handlers | `handoff`, `on.command`,  `inline_keyboard`, `user`, `first_name` |
 | [Deep Linking: Command Parameters & Invite Code](command_parameters.md) | Example of handling `/start <age> <name>` commands with type-checked parameters | `parameters`, `params=`, `set_parse_mode`, `set_text`, `Sanitize`, `set_reply_to`, `message` |
-| [Logging](logging.md) | | |
+| [Logging](logging.md) | | `user.logger.info`, `user`, `logger`, `info`, `enable_logging`, `set_inline_keyboard`, `inline_keyboard`, `chapters` |
 
 ## Telekit DSL
 
