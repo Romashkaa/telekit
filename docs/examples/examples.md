@@ -27,6 +27,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | [Quiz](quiz.md) | Example of DSL code | `analyze_source`, `start_script` |
 | [Custom Variables](custom_variables.md) | Example of custom variables in the script | `get_variable`, `analyze_source` |
 | [Python API](python_api.md) | Example of calling Handler methods directly from a script | `on_enter`, `get_variable`, `analyze_source`, `start_script` |
+| [Hotel Booking](hotel_booking.md) | Example hotel bot demonstrating the use of DSL-defined variables to store room prices and API methods to add rooms to the cart | `get_variable`, `on_enter`, `start_script`, `analyze_source` |
 
 ## Complex
 

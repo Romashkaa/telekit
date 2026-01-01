@@ -165,6 +165,8 @@ $ {
 }
 ```
 
+### Named Configuration Block
+
 You can also save time by creating a named block:
 
 ```js
@@ -374,12 +376,15 @@ For example, greeting a user by name or referencing their username.
 
 Telekit DSL supports **template variables** using double curly braces: `{{variable}}`.
 
-These variables can be used directly inside `title` and `message` fields.
+These variables can be used directly inside title, message, and button label fields.
 
 ```js
 @ main {
     title   = "Welcome, {{first_name}}!";
     message = "Your username is {{username}}.";
+    buttons {
+        back("« {{prev_scene_name}}")
+    }
 }
 ```
 
@@ -405,12 +410,37 @@ You can use the following variables in your Telekit DSL scripts to personalize m
 - `{{full_name}}` – the full name of the user (first name + last name).  
 - `{{username}}` – the Telegram username of the user (with the `@` symbol).
 - `{{user_id}}` – the unique Telegram ID of the user.
-- `{{chat_id}}` – the ID of the chat where the message originated.
+- `{{prev_scene_name}}` – internal name of the previous scene (the identifier after @)
 - [See more here](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
 
-### Custom Variables
+### Custom Static Variables
 
-In addition to the built-in template variables like `{{first_name}}` or `{{username}}`, Telekit allows you to define **your own variables**.  
+In addition to the built-in template variables like `{{first_name}}` or `{{username}}`, Telekit allows you to define **your own variables directly in the DSL script**. 
+
+These **static variables** are defined in a named `$ vars` configuration block and can store strings, numbers, or lists:
+
+```js
+$ vars {
+    PRICE = 99
+    AMENITIES = ["Wi-Fi", "Breakfast", "Parking"]
+}
+```
+
+> [!NOTE]  
+> Variables defined in a named `$ vars` block are equivalent to creating individual entries in the unnamed configuration block with the same values.  
+> For example, `$ vars { PRICE = 99 }` is similar to having a `$ { vars_PRICE = 99 }` in the unnamed configuration block.  
+> See Named Configuration Blocks for more details.
+
+When used in a template, lists and other non-string values are automatically converted to strings:
+
+```js
+title = "{{AMENITIES}}"   // results in title = '["Wi-Fi", "Breakfast", "Parking"]'
+```
+
+
+### Custom Dynamic Variables
+
+... 
 
 Custom variables are resolved by implementing the `get_variable` method in your handler class. When rendering a DSL script:  
 
@@ -526,12 +556,35 @@ on_enter {
 }
 ```
 
+You can also use variables directly in hook arguments:
+
+```js
+on_enter {
+    my_method("Hello {{username}}")
+}
+```
+
+> [!IMPORTANT]  
+> Template variables are only substituted **when passed directly as a string**.  
+> They will **not** be evaluated if placed inside a list or nested inside other data structures.  
+
+**Example:**
+
+```js
+on_enter {
+    my_method("Hello {{username}}")   // works
+    my_method(["Hello {{username}}"]) // variables will not be replaced
+}
+```
+
 ### Hook Types
 
 A scene can have multiple hooks, each triggered at a specific moment during the scene's lifecycle:
 
-- `on_enter` – called **every time** the scene is entered (either via a direct link, or using `back` or `next`)
-- `on_enter_once` – called **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_enter` – triggered **every time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_enter_once` – triggered **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_exit` — triggered after the scene message has been sent
+- `on_timeout` — triggered when a configured timeout fires due to user inactivity
 
 These hooks let you perform dynamic actions, update variables, or trigger custom logic directly from your DSL script.
 

@@ -48,7 +48,4 @@ $ vars {
 ## Planned for v1.6.0
 
 - Add Docs:
-    - new variables
-    - new hooks
-    - support using `{{variables}}` inside button labels and hook arguments 
     - static {{variables}} in DSL script

@@ -63,21 +63,33 @@ You can use the following attributes for any scene in Telekit DSL:
 You can use the following variables in your Telekit DSL scripts to [personalize messages](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables):
 
 ### Basic
-- `first_name` – the first name of the user as provided by Telegram.  
-- `last_name` – the last name of the user as provided by Telegram.  
-- `full_name` – the full name of the user (first name + last name).  
+- `first_name` – the first name of the user.  
+  - `last_name` – the last name of the user.  
+  - `full_name` – the full name of the user (first name + last name).  
 - `username` – the Telegram username of the user (with the `@` symbol).
 - `user_id` – the unique Telegram ID of the user.
 - `chat_id` – the ID of the chat where the message originated.
 
 ### Context
-- `prev_scene_name` – name of the previous scene
-- `prev_scene_title` – title of the previous scene
-- `prev_scene_message` – main text of the previous scene
+- `scene_name` - internal name of the current scene (the identifier after @)
+  - `scene_title` - title of the current scene
+  - `scene_message` - message text of the current scene
+- `prev_scene_name` – internal name of the previous scene
+  - `prev_scene_title` – title of the previous scene
+  - `prev_scene_message` – message text of the previous scene
 
 ### Technical
 - `scene_ref_count` – number of scenes linking to the current scene
 - `button_ref_count` – number of buttons pointing to the current scene
+
+## Hook Types (Python API)
+
+A scene can have multiple hooks, each triggered at a specific moment during the scene's lifecycle:
+
+- `on_enter` – triggered **every time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_enter_once` – triggered **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_exit` — triggered after the scene message has been sent
+- `on_timeout` — triggered when a configured timeout fires due to user inactivity
 
 ## Suggested Emojis for Buttons
 
