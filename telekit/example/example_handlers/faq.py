@@ -8,7 +8,7 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
         cls.on.message(commands=["faq"]).invoke(cls.start_script)
         cls.analyze_source(guide)
         
-        # cls.display_script_data()
+        # cls.display_script_data() # see the ast of the script
 
     def handle(self) -> None:
         self.start_script()
@@ -26,193 +26,68 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
                 # fallback to built-in variables if None
                 return None
 
-    # If you want to add your own bit of logic:
-    
-    # def start_script(self):
-    #     # Your logic
-    #     super().start_script()
-
 # ------------------------------------------------------
 # Telekit DSL
 # ------------------------------------------------------
 #
-# Tuturial on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md
+# Tutorial on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md
 #
 
 guide = """
 $ timeout {
-    message = "🤓 No googling!";
-    label = "Alright"
-    time = 10;
+    time = 32 // seconds
 }
 
 @ main {
-    title   = "🎉 Fun Facts Quiz";
-    message = "Hello, {{first_name}}. Test your knowledge with 10 fun questions!";
+    title   = "🏢 Company FAQ"
+    message = `
+        Welcome! Select a topic to learn more about our company:
+    `
 
     buttons {
-        next("Start Quiz");
+        services("Our Services")
+        pricing("Pricing & Plans")
+        contact("Contact & Support")
     }
 }
 
-@ question_1 {
-    title   = "🐶 Question 1";
-    message = "Which animal is the fastest on land?";
-    buttons {
-        _lose("Elephant");
-        next("Cheetah");       // correct answer
-        _lose("Horse");
-        _lose("Lion");
+@ services {
+    title   = "💼 Our Services"
+    message = `
+        We provide the following services:
+        - Web Development
+        - Mobile Apps
+        - Cloud Solutions
+        - IT Consulting
+    `
+
+    buttons (2) {
+        back, pricing("Pricing »")
     }
 }
 
-@ question_2 {
-    title   = "🍫 Question 2";
-    message = "From which product is chocolate made?";
-    buttons {
-        _lose("Cocoa powder");
-        next("Cocoa beans");   // correct answer
-        _lose("Cocoa butter");
-        _lose("Cocoa drink");
+@ pricing {
+    title   = "💰 Pricing & Plans"
+    message = `
+        We offer flexible pricing plans:
+        - Basic: $99/month
+        - Pro: $199/month
+        - Enterprise: Custom pricing
+    `
+
+    buttons (2) {
+        back, contact("Contact »")
     }
 }
 
-@ question_3 {
-    title   = "🌌 Question 3";
-    message = "Which planet is known for its prominent rings?";
-    buttons {
-        _lose("Jupiter");
-        next("Saturn");        // correct answer
-        _lose("Mars");
-        _lose("Neptune");
-    }
+@ contact {
+    title   = "📞 Contact & Support"
+    message = `
+        For inquiries, partnerships, or support, contact us:
+        - Email: support@company.com
+        - Telegram: @CompanySupportBot
+    `
+
+    buttons { back }
 }
-
-@ question_4 {
-    title   = "🦎 Question 4";
-    message = "Which animal can change the color of its skin?";
-    buttons {
-        next("Chameleon");     // correct answer
-        _lose("Crocodile");
-        _lose("Turtle");
-        _lose("Snake");
-    }
-}
-
-@ question_5 {
-    title   = "🍌 Question 5";
-    message = "Which vitamin is most abundant in a banana?";
-    buttons {
-        _lose("Vitamin C");
-        next("Vitamin B6");    // correct answer
-        _lose("Vitamin D");
-        _lose("Vitamin A");
-    }
-}
-
-@ question_6 {
-    title   = "🎨 Question 6";
-    message = "Which artist painted the 'Mona Lisa'?";
-    buttons {
-        next("Leonardo da Vinci"); // correct answer
-        _lose("Pablo Picasso");
-        _lose("Vincent van Gogh");
-        _lose("Michelangelo");
-    }
-}
-
-@ question_7 {
-    title   = "🎵 Question 7";
-    message = "Which musical instrument has 88 keys?";
-    buttons {
-        _lose("Guitar");
-        _lose("Harmonica");
-        next("Piano");          // correct answer
-        _lose("Saxophone");
-    }
-}
-
-@ question_8 {
-    title   = "🧩 Question 8";
-    message = "How many faces does a cube have?";
-    buttons {
-        _lose("6");
-        next("6");             // correct answer
-        _lose("8");
-        _lose("12");
-    }
-}
-
-@ question_9 {
-    title   = "🌊 Question 9";
-    message = "Which is the largest ocean on Earth?";
-    buttons {
-        next("Pacific Ocean"); // correct answer
-        _lose("Atlantic Ocean");
-        _lose("Indian Ocean");
-        _lose("Arctic Ocean");
-    }
-}
-
-@ question_10 {
-    title   = "🍕 Question 10";
-    message = "Which country is pizza originally from?";
-    buttons {
-        _lose("France");
-        _end("Italy");          // correct answer
-        _lose("Spain");
-        _lose("USA");
-    }
-}
-
-@ _lose {
-    title   = "❌ Wrong Answer!";
-    message = "Oops! {{random_lose_phrase}}";
-
-    buttons {
-        back("« Retry");
-    }
-}
-
-@ _end {
-    title   = "🎉 Quiz Complete!";
-    message = "Congratulations! You've completed the Fun Facts Quiz! 🌟\n\nWant to try again?";
-
-    buttons {
-        main("↺ Restart Quiz");
-    }
-}
-
-/* Suggested Emojis
-
-↺ Restart
-  What ？
-✓ Okay
-
----
-
-  Next »
-« Back
-
----
-
-  Next →
-← Back
-
----
-
-★ Starred
-☆ Star
-
----
-
-✓ Okay
-✕ Cancel
-
----
-
-⊕ Add
-⊖ Remove
-
-*/
 """

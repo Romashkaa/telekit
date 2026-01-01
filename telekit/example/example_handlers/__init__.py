@@ -1,6 +1,13 @@
-from . import counter
-from . import entry
-from . import pages
-from . import on_text
-from . import faq
-from . import start
+from . import (   
+    counter,
+    entry,
+    pages,
+    on_text,
+    start,
+
+    dsl,
+    faq,
+    pyapi,
+    quiz,
+    hotel,
+)

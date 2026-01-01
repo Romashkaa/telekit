@@ -21,7 +21,7 @@ class StartHandler(telekit.Handler):
             {
                 "🧮 Counter": "CounterHandler",
                 "⌨️ Entry":     "EntryHandler",
-                "📚 FAQ":         "FAQHandler",
+                "📚 Telekit DSL Examples":"DSLHandler",
                 "📄 Pages":     "PagesHandler",
                 "🦻 On Text":  "OnTextHandler",
             }, row_width=[2, 1, 2]
@@ -29,4 +29,4 @@ class StartHandler(telekit.Handler):
         def handle_response(message, handler: str):
             self.handoff(handler).handle()
         
-        self.chain.send()
+        self.chain.edit()

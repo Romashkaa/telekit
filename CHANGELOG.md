@@ -44,8 +44,4 @@ $ vars {
     - `on_exit` — triggered after the scene message has been sent
     - `on_timeout` — triggered when a configured timeout fires due to user inactivity
 
-
-## Planned for v1.6.0
-
-- Add Docs:
-    - static {{variables}} in DSL script
+- v1.6.1 Added new examples
