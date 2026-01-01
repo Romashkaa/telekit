@@ -321,20 +321,19 @@ class TelekitDSLMixin(telekit.Handler):
             has_back_button = False
 
             for button_label, button_scene in scene.get("buttons", {}).items():
-                keyboard[button_label] = self.prepare_scene(button_scene)
+                keyboard[self._parse_variables(button_label)] = self.prepare_scene(button_scene)
 
                 if "back" in button_scene:
                     has_back_button = True
+
+            if "on_exit" in scene:
+                self._call_api_methods(scene["on_exit"])
 
             if not has_back_button:
                 self.script_data.history.clear()
                 self.script_data.history.append(scene_name)
 
             self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
-
-            if "on_exit" in scene:
-                self._call_api_methods(scene["on_exit"])
-
             self.chain.edit()
 
         return render
@@ -529,6 +528,10 @@ class TelekitDSLMixin(telekit.Handler):
                 if args is None:
                     method()
                 else:
+                    args = [
+                        self._parse_variables(arg) if isinstance(arg, str) else arg
+                        for arg in args
+                    ]
                     method(*args)
             except TypeError as e:
                 raise self._fail(f"Error calling '{name}' with args {args}: {e}")

@@ -19,19 +19,7 @@ $ vars {
 }
 ```
 
-- Added new built-in variables:
-    - `scene_name` - internal name of the current scene (the identifier after @)
-    - `scene_title` - title of the current scene
-    - `scene_message` - message text of the current scene
-
-- Added new Hooks:
-    - `on_exit` — triggered after the scene message has been sent
-    - `on_timeout` — triggered when a configured timeout fires due to user inactivity
-
-
-## Planned for v1.6.0
-
-- Support using `{{variables}}` inside button labels and hook arguments:
+- Added support using `{{variables}}` inside button labels and hook arguments:
 ```js
 @ main {
     title = "hello"
@@ -46,6 +34,18 @@ $ vars {
     }
 }
 ```
+
+- Added new built-in variables:
+    - `scene_name` - internal name of the current scene (the identifier after @)
+    - `scene_title` - title of the current scene
+    - `scene_message` - message text of the current scene
+
+- Added new Hooks:
+    - `on_exit` — triggered after the scene message has been sent
+    - `on_timeout` — triggered when a configured timeout fires due to user inactivity
+
+
+## Planned for v1.6.0
 
 - Add Docs:
     - new variables
