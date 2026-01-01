@@ -553,7 +553,13 @@ on_enter {
 
 ## Documentation
 
-[See extended documentation](??)
+- [More information](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md) ⭐️
+    - [Data types](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#data-types)
+    - [Scene's attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#scenes-attributes)
+    - [Configuration attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#configuration-attributes)
+    - [Magic scenes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#magic-scenes)
+    - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
+    - [Suggested Emojis for Buttons](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#suggested-emojis-for-buttons)
 
 ---
 

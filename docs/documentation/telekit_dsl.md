@@ -60,12 +60,12 @@ You can use the following attributes for any scene in Telekit DSL:
 
 ## Magic Scenes
 
-- `back` - returns the user to the previous scene using a LIFO stack.
-- `next` - moves to the next scene based on the `next_order` config, which by default follows the order in the file, skipping scenes whose names start with `_`.
+- [back](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#back) - returns the user to the previous scene using a LIFO stack.
+- [next](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next) - moves to the next scene based on the `next_order` config, which by default follows the order in the file, skipping scenes whose names start with `_`.
 
 ## Available Variables
 
-You can use the following variables in your Telekit DSL scripts to personalize messages:
+You can use the following variables in your Telekit DSL scripts to [personalize messages](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables):
 
 ### Basic
 - `first_name` – the first name of the user as provided by Telegram.  
