@@ -1,11 +1,13 @@
 # Python / Handler API
 
-Example of calling Handler methods directly from a script:
+Example of calling Handler methods directly from a script.
+
+[See tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#calling-python-methods-in-dsl)
 
 ```py
 import telekit
 
-class FAQHandler(telekit.TelekitDSL.Mixin):
+class QuestHandler(telekit.TelekitDSL.Mixin):
     
     TOTAL_ENDINGS = 8
 
@@ -187,3 +189,5 @@ script = """
 
 telekit.Server(TOKEN).polling()
 ```
+
+[See tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#calling-python-methods-in-dsl)

@@ -487,10 +487,10 @@ Using hooks like `on_enter`, specify the name of the method you want to call and
 }
 ```
 
-Each time this scene is displayed (either via a direct link, or using `back` or `next`), the `add_ending` method of the `FAQHandler` object will be called with the parameter `ending_name="throne_room"`:
+Each time this scene is displayed (either via a direct link, or using `back` or `next`), the `add_ending` method of the `QuestHandler` object will be called with the parameter `ending_name="throne_room"`:
 
 ```py
-class FAQHandler(telekit.TelekitDSL.Mixin):
+class QuestHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.message(commands=["start"]).invoke(cls.handle)
