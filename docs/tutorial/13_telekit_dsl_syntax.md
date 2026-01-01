@@ -122,7 +122,7 @@ Let’s rewrite the previous example using `back`:
 
 Perfect! Let’s move on.
 
-## Other Scene`s Attributes:
+## Other Scene`s Attributes
 
 You can use the following attributes for any scene, like `@main`:
 
@@ -406,7 +406,7 @@ You can use the following variables in your Telekit DSL scripts to personalize m
 - `{{username}}` – the Telegram username of the user (with the `@` symbol).
 - `{{user_id}}` – the unique Telegram ID of the user.
 - `{{chat_id}}` – the ID of the chat where the message originated.
-- [See more here](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/dsl_variables_list.md)
+- [See more here](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
 
 ### Custom Variables
 
@@ -551,37 +551,9 @@ on_enter {
 > [!NOTE] 
 > Method arguments are optional — you can leave the parentheses empty or omit them entirely
 
-## Suggested Emojis for Buttons
+## Documentation
 
-This is an set of nice emoji labels you can use for buttons in your bot:
-
-```
-« Back
-  Next »
-↺ Restart
-  What ？
-✓ Okay
-```
-
-Alternative arrows:
-```
-← Back
-  Next →
-```
-
-Additional:
-```
-★ Starred
-☆ Star
-
-✓ Okay
-✕ Cancel
-
-⊕ Add
-⊖ Remove
-```
-
-Feel free to adapt them for your own scenes.
+[See extended documentation](??)
 
 ---
 

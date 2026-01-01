@@ -2,8 +2,6 @@
 
 Telekit provides flexible decorators to handle various types of user input, from plain text to documents. These tools make it easy to process messages without manually parsing updates or managing states.
 
----
-
 ## Receive Any Message Type
 
 Use `@self.chain.entry()` to handle any message type. You can add a `filter_message` to process only messages that meet certain conditions (e.g., containing text).
@@ -17,8 +15,6 @@ def handler(message):
     print(message.text)  # Process the message
 ```
 
----
-
 ## Receive Text Messages
 
 Use `@self.chain.entry_text()` when you expect the user to send a text message and want Telekit to automatically extract it.
@@ -29,8 +25,6 @@ def name_handler(message, name: str):
     print(name)  # The text content is passed directly as `name`
 ```
 
----
-
 ## Suggested Inline Options (Quick Replies)
 
 You can provide suggested replies for the user to click instead of typing. This is useful for predefined options or guiding user input.
@@ -38,8 +32,6 @@ You can provide suggested replies for the user to click instead of typing. This 
 ```python
 self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
 ```
-
----
 
 ## Receive Documents
 
@@ -67,8 +59,6 @@ def text_document_handler(message, text_document: telekit.types.TextDocument):
         text_document.document   # Original <telebot.types.Document> object
     )
 ```
-
----
 
 > **Tip:** All these decorators integrate seamlessly with Telekit’s `Chain`, so you can combine message handling, inline keyboards, and suggested replies to create interactive and responsive bot flows effortlessly.
 
