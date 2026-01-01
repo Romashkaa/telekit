@@ -30,6 +30,9 @@ class ScriptData:
         self._scene_ref_count:  dict[str, int] = {}
 
         self.history: list[str] = []
+
+        # keep track of which *_once hooks have already been executed
+        self.executed_once_hooks: set[str] = set()
         
     def get_button_ref_count(self, name: str) -> int:
         if name in self._button_ref_count:
@@ -214,7 +217,7 @@ class TelekitDSLMixin(telekit.Handler):
                 "    time = 30; // seconds\n"
                 "}\n\n" + \
                 f"{cls.raw_script_data["source"][:94].strip()}...\n\n" + \
-                "Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout"
+                "Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout\n"
             )
 
         # end
@@ -273,6 +276,18 @@ class TelekitDSLMixin(telekit.Handler):
 
             # main logic
             scene = self.script_data.scenes[scene_name]
+
+            # handler api
+
+            if "on_enter" in scene:
+                self._call_api_methods(scene["on_enter"])
+            if "on_enter_once" in scene:
+                hook_key = f"{scene_name}.on_enter_once"
+                if hook_key not in self.script_data.executed_once_hooks:
+                    self._call_api_methods(scene["on_enter_once"])
+                    self.script_data.executed_once_hooks.add(hook_key)
+
+            # view
 
             real_parse_mode: str | None = scene.get("parse_mode")
             parse_mode = real_parse_mode or "html"
@@ -470,6 +485,32 @@ class TelekitDSLMixin(telekit.Handler):
             return self.script_data.history.pop() # get and remove previous
         else:
             return "main" # (impossible)
+        
+    def _call_api_methods(self, api_calls: list[tuple[str, None | list[Any]]]):
+        """
+        Execute API methods from the list. Each element is [method_name, args]:
+            args can be a list or None if no arguments.
+        """
+        for name, args in api_calls:
+            if not hasattr(self, name):
+                raise self._fail(f"Handler has no method named '{name}'")
+
+            method = getattr(self, name)
+
+            # ensure callable
+            if not callable(method):
+                raise self._fail(f"Attribute '{name}' exists but is not callable")
+
+            # call with args
+            try:
+                if args is None:
+                    method()
+                else:
+                    method(*args)
+            except TypeError as e:
+                raise self._fail(f"Error calling '{name}' with args {args}: {e}")
+            except Exception as e:
+                raise self._fail(f"Unexpected error in '{name}': {e}")
     
 def missing(name: str):
     message: str = f"Missing '{name}' key in script data."

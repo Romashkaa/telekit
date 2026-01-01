@@ -24,8 +24,9 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | Name | Comment | Used methods |
 |-----------|--------------|-------------------------|
 | [FAQ](faq.md) | FAQ generation from string | `analyze_source`, `from_string` |
-| [Quiz](quiz.md) | Example of DSL code | `analyze_source` |
+| [Quiz](quiz.md) | Example of DSL code | `analyze_source`, `start_script` |
 | [Custom Variables](custom_variables.md) | Example of custom variables in the script | `get_variable`, `analyze_source` |
+| [Python API](python_api.md) | Example of calling Handler methods directly from a script | `on_enter`, `get_variable`, `analyze_source`, `start_script` |
 
 ## Complex
 

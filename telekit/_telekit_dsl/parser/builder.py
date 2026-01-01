@@ -204,9 +204,10 @@ class Builder:
 
         # optional fields
         optional: tuple[tuple[str, type | tuple[type, ...], Any], ...] = (
+            # Style
             ("image", str, None),
             ("use_italics", bool, False),
-            ("parse_mode", (str, type(None)), None)
+            ("parse_mode", (str, type(None)), None),
         )
 
         scene_data: dict[str, Any] = {"name": name}
@@ -244,8 +245,19 @@ class Builder:
         if not scene_data["message"].strip():
             raise BuilderError(f"Scene '@{name}' has an empty message")
         
+        # Style
+        
         if scene_data["parse_mode"] and scene_data["parse_mode"].lower() not in ("markdown", "html"):
             raise BuilderError(f"Scene '@{name}' has invalid parse_mode '{scene_data['parse_mode']}'")
+        
+        # Handler API
+
+        if "on_enter" in fields:
+            scene_data["on_enter"]      = fields["on_enter"]
+        if "on_enter_once" in fields:
+            scene_data["on_enter_once"] = fields["on_enter_once"]
+
+        # Buttons
 
         scene_data["buttons"] = {}
 
@@ -260,7 +272,10 @@ class Builder:
             for label, target in buttons.items():
 
                 if isinstance(label, NoLabel):
-                    label = self.scenes_default_labels[target]
+                    if target in self.scenes_default_labels:
+                        label = self.scenes_default_labels[target]
+                    else:
+                        raise BuilderError(f"Scene '@{name}' contains a button that points to unknown scene '{target}'")
 
                 if not label.strip():
                     raise BuilderError(f"Scene '@{name}' contains a button with an empty label")
@@ -275,4 +290,3 @@ class Builder:
 
         self.result["scenes"][scene.name] = scene_data
         self.result["order"].append(scene.name)
-

@@ -133,9 +133,14 @@ class Parser:
                 key = t.value
                 self.next()
 
-                # special case: buttons[width] { ... }
+                # special case: buttons(width) { ... }
                 if key == "buttons":
                     scene.fields[key] = self.parse_buttons_block()
+                    continue
+
+                # special case: on_enter / on_enter_once
+                if key in ("on_enter", "on_enter_once"):
+                    scene.fields[key] = self.parse_on_api_block()
                     continue
 
                 self.expect("op", "=")
@@ -225,3 +230,30 @@ class Parser:
             return items
 
         raise ParserError(f"Unexpected token '{t.value}' at position {self.pos}")
+
+    def parse_on_api_block(self) -> list[list]:
+        self.expect("punc", "{")
+        calls = []
+
+        while self.token().value != "}":
+            t = self.token()
+            if t.type == "kw":
+                method_name = t.value
+                self.next()
+
+                args = None
+                if self.match("punc", "("):
+                    args_list = []
+                    while self.token().value != ")":
+                        args_list.append(self.parse_value())
+                        self.match("punc", ",")
+                    self.expect("punc", ")")
+                    args = args_list
+
+                calls.append((method_name, args))
+            else:
+                # skip ; or newlines
+                self.next()
+
+        self.expect("punc", "}")
+        return calls

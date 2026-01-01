@@ -420,7 +420,6 @@ Custom variables are resolved by implementing the `get_variable` method in your 
 This allows you to add **dynamic, personalized content** to your messages.
 
 ```python
-...
 import random
 
 class QuizHandler(telekit.TelekitDSL.Mixin):
@@ -470,6 +469,85 @@ If a variable is missing or has no value (for example, `{{last_name}}` for a use
 - If `last_name` is missing, it will use `"there"` as a fallback.  
 
 This ensures that your messages always display meaningful text even when some user data is unavailable.
+
+## Calling Python Methods in DSL
+
+After seeing how template variables personalize messages, Telekit DSL goes one step further: it lets you **invoke python `Handler` methods directly from your script**. This means you can not only read and display values, but also trigger actions, update variables, or implement custom logic while the user interacts with your script.
+
+Using hooks like `on_enter`, specify the name of the method you want to call and optionally pass arguments:
+
+```js
+@ throne_room {
+    title = "🏰 Castle Ending 1"
+    message = "You claim the throne. Victory!"
+    
+    on_enter {
+        add_ending("throne_room")
+    }
+}
+```
+
+Each time this scene is displayed (either via a direct link, or using `back` or `next`), the `add_ending` method of the `FAQHandler` object will be called with the parameter `ending_name="throne_room"`:
+
+```py
+class FAQHandler(telekit.TelekitDSL.Mixin):
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.message(commands=["start"]).invoke(cls.handle)
+        cls.analyze_source(script)
+
+    def handle(self):
+        self.visited_endings = set()
+        self.start_script()
+
+    def add_ending(self, ending_name: str):
+        """API method called from DSL on_enter to mark an ending visited"""
+        self.visited_endings.add(ending_name)
+```
+
+[See the full working example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/python_api.md)
+
+### Argument Data Types
+
+When calling Python methods from DSL hooks, you can pass arguments of the following types:
+
+- none `none` – represents a `None` value in Python
+- bool `true` / `false` – boolean values
+- numbers `21` / `3.14` – integers or floats
+- strings `"August"` – text values
+- lists `[21, ["telekit"]]` – arrays containing any combination of the above types
+
+**Example:**
+```js
+on_enter {
+    save_purchase(["Laptop", "Headphones", "Mouse"], 1299.99)
+}
+```
+
+### Hook Types
+
+A scene can have multiple hooks, each triggered at a specific moment during the scene's lifecycle:
+
+- `on_enter` – called **every time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_enter_once` – called **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
+
+These hooks let you perform dynamic actions, update variables, or trigger custom logic directly from your DSL script.
+
+You can combine multiple hooks and method calls in a single scene:
+
+```js
+on_enter_once {
+    add_ending("treasure_found")
+    log_event("Entered treasure_room")
+    award_points("gold", 100)
+}
+on_enter {
+    save_progress // save user state to database
+}
+```
+
+> [!NOTE] 
+> Method arguments are optional — you can leave the parentheses empty or omit them entirely
 
 ## Suggested Emojis for Buttons
 
