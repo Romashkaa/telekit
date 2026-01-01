@@ -1,3 +1,7 @@
+# Logging
+
+```py
+
 import telebot.types
 import telekit
 
@@ -29,14 +33,7 @@ class PagesHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the command handler.
-        """
         cls.on.command("pages").invoke(cls.handle)
-
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
 
     def handle(self) -> None:
         self.display_home_page()
@@ -63,3 +60,6 @@ class PagesHandler(telekit.Handler):
 
         self.chain.set_inline_keyboard({"« Back": self.display_home_page})
         self.chain.edit()
+        
+telekit.Server(TOKEN).polling()
+```
