@@ -438,9 +438,7 @@ title = "{{AMENITIES}}" // title = '["Wi-Fi", "Breakfast", "Parking"]'
 
 ### Custom Dynamic Variables
 
-In addition to the static `$ vars`, Telekit DSL lets you define **dynamic variables** whose values are determined at runtime in python.
-
-This allows you to add **dynamic, personalized content** to your messages.
+In addition to the static `$ vars`, Telekit DSL lets you define **dynamic variables** whose values are determined at runtime in python. This allows you to add **dynamic, personalized content** to your messages.
 
 Custom variables are resolved by implementing the `get_variable` method in your handler class:
 
@@ -589,6 +587,7 @@ A scene can have multiple hooks, each triggered at a specific moment during the 
 - `on_enter_once` – triggered **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
 - `on_exit` — triggered after the scene message has been sent
 - `on_timeout` — triggered when a configured timeout fires due to user inactivity
+- [See more here](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#hook-types-python-api)
 
 These hooks let you perform dynamic actions, update variables, or trigger custom logic directly from your DSL script.
 
@@ -615,7 +614,9 @@ on_enter {
     - [Scene's attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#scenes-attributes)
     - [Configuration attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#configuration-attributes)
     - [Magic scenes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#magic-scenes)
-    - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
+    - [Available variables](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
+    - [Variable resolution order](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#variable_resolution_order)
+    - [Hook types (Python API)](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#hook-types-python-api)
     - [Suggested Emojis for Buttons](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#suggested-emojis-for-buttons)
 
 ---

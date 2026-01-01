@@ -1,5 +1,16 @@
 # Telekit DSL Documentation
 
+## Content
+
+- [Data types](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#data-types)
+- [Scene's attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#scenes-attributes)
+- [Configuration attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#configuration-attributes)
+- [Hook types (python API)](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#hook-types-python-api)
+- [Magic scenes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#magic-scenes)
+- [Available variables](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
+- [Variable resolution order](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#variable_resolution_order)
+- [Suggested emojis](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#suggested-emojis-for-buttons)
+
 ## Data Types
 
 When defining scene attributes, configuration values, or calling Python methods from DSL hooks, you can use literals of the following types:
@@ -45,6 +56,15 @@ You can use the following attributes for any scene in Telekit DSL:
 }
 ```
 
+## Hook Types (Python API)
+
+A scene can have multiple hooks, each triggered at a specific moment during the scene's lifecycle:
+
+- `on_enter` – triggered **every time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_enter_once` – triggered **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
+- `on_exit` — triggered after the scene message has been sent
+- `on_timeout` — triggered when a configured timeout fires due to user inactivity
+
 ## Configuration Attributes
 
 - `timeout_time` – specifies the timeout duration in seconds; if exceeded, the bot will clear callbacks associated with the chat. Disabled by default.  
@@ -82,14 +102,16 @@ You can use the following variables in your Telekit DSL scripts to [personalize 
 - `scene_ref_count` – number of scenes linking to the current scene
 - `button_ref_count` – number of buttons pointing to the current scene
 
-## Hook Types (Python API)
+## Variable Resolution Order
 
-A scene can have multiple hooks, each triggered at a specific moment during the scene's lifecycle:
+When Telekit DSL evaluates a template variable, it follows a specific order to determine its value:
 
-- `on_enter` – triggered **every time** the scene is entered (either via a direct link, or using `back` or `next`)
-- `on_enter_once` – triggered **only the first time** the scene is entered (either via a direct link, or using `back` or `next`)
-- `on_exit` — triggered after the scene message has been sent
-- `on_timeout` — triggered when a configured timeout fires due to user inactivity
+1. **Static variables** defined in the script inside a `$ vars` block.  
+2. **Custom dynamic variables** provided by the handler via the `get_variable` method.  
+3. **Built-in Telekit variables** such as `first_name`, `username`, etc.  
+4. **Default values** specified directly in the template using the `{{variable:default}}` syntax.  
+
+This order ensures that user-defined values override built-in defaults, while fallback defaults are applied only when no other value is found.
 
 ## Suggested Emojis for Buttons
 
