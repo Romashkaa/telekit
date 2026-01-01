@@ -513,8 +513,8 @@ class QuestHandler(telekit.TelekitDSL.Mixin):
 
 When calling Python methods from DSL hooks, you can pass arguments of the following types:
 
-- none `none` – represents a `None` value in Python
-- bool `true` / `false` – boolean values
+- none `none` – represents a `None` value in Python (case-insensitive)
+- bool `true` / `false` – boolean values (case-insensitive)
 - numbers `21` / `3.14` – integers or floats
 - strings `"August"` – text values
 - lists `[21, ["telekit"]]` – arrays containing any combination of the above types
@@ -551,9 +551,9 @@ on_enter {
 > [!NOTE] 
 > Method arguments are optional — you can leave the parentheses empty or omit them entirely
 
-## Documentation
+## Additional Documentation
 
-- [More information](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md) ⭐️
+- [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md) ⭐️
     - [Data types](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#data-types)
     - [Scene's attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#scenes-attributes)
     - [Configuration attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#configuration-attributes)

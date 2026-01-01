@@ -4,8 +4,8 @@
 
 When defining scene attributes, configuration values, or calling Python methods from DSL hooks, you can use literals of the following types:
 
-- none `none` – represents a `None` value in Python
-- bool `true` / `false` – boolean values
+- none `none` – represents a `None` value in Python (case-insensitive)
+- bool `true` / `false` – boolean values (case-insensitive)
 - numbers `21` / `3.14` – integers or floats
 - strings `"August"` – text values
 - lists `[21, ["telekit"]]` – arrays containing any combination of the above types
