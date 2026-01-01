@@ -4,7 +4,7 @@ This section contains small, focused example projects built with Telekit.
 
 Examples are intentionally minimal: you can copy them, modify them, or use them as a starting point for your own bots.
 
-> Use Command + F to quickly find a specific method, attribute, or parameter.
+> Use Command ⌘ + F to quickly find a specific method, attribute, or parameter.
 
 ## Basic
 
@@ -17,7 +17,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | [Append](append_method.md) | Appending messages with timeout control | `append`, `styles`, `set_timeout`, `set_use_italics`, `Sanitize` |
 | [Ads](ads.md) | Sending messages to several chats | `on.command`, `whitelist=`, `create_sender`, `send_or_handle_error`, `set_effect` |
 | [Redirect](redirect.md) | Message with buttons linking to other handlers | `handoff`, `on.command`,  `inline_keyboard`, `user`, `first_name` |
-| [Deep Linking: Command Parameters](command_parameters.md) | Example of handling `/start <age> <name>` commands with type-checked parameters | `parameters`, `params=`, `set_parse_mode`, `set_text`, `Sanitize` |
+| [Deep Linking: Command Parameters & Invite Code](command_parameters.md) | Example of handling `/start <age> <name>` commands with type-checked parameters | `parameters`, `params=`, `set_parse_mode`, `set_text`, `Sanitize`, `set_reply_to`, `message` |
 
 ## Telekit DSL
 

@@ -212,8 +212,8 @@ class TelekitDSLMixin(telekit.Handler):
                 "Example:\n\n"
                 "$ timeout {\n"
                 "    time = 30; // seconds\n"
-                "}\n" + \
-                f"{cls.raw_script_data["source"][:94]}...\n\n" + \
+                "}\n\n" + \
+                f"{cls.raw_script_data["source"][:94].strip()}...\n\n" + \
                 "Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout"
             )
 

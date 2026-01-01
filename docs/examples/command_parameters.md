@@ -51,6 +51,7 @@ class StartHandler(telekit.Handler):
                 BotLink("Invite your friends too!", username=self.bot.get_me().username, start=invite_code)
             )
 
+        self.chain.sender.set_reply_to(self.message) # reply to user's message
         self.chain.sender.set_parse_mode("html")
         self.chain.send()
 

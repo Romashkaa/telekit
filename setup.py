@@ -39,7 +39,7 @@ setup(
         "GitHub": "https://github.com/Romashkaa/telekit",
         "Telegram": "https://t.me/TelekitLib"
     },
-    python_requires=">=3.12.11"
+    python_requires=">=3.12"
 )
 
 """
