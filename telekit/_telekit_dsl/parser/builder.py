@@ -170,7 +170,7 @@ class Builder:
         optional_keys = [key[0] for key in optional_fields]
 
         for key in fields:
-            if key not in optional_keys:
+            if key not in optional_keys and not key.startswith("vars_"):
                 raise BuilderError(f"Unknown field: '{key}' — this option is not allowed")
 
         for key, typ in optional_fields:
@@ -180,6 +180,8 @@ class Builder:
                     raise BuilderError(f"Field '{key}' must be of type {self.type_name(typ)}")
                 result[key] = val
 
+        # next order 
+        
         if "next_order" in fields:
             next_order = fields["next_order"]
 
@@ -189,6 +191,10 @@ class Builder:
                 
             if len(next_order) != len(set(next_order)):
                 raise BuilderError("Field 'next_order' must contain only unique values")
+        
+        # variables
+
+        result.update({k: v for k, v in fields.items() if k.startswith("vars_")})
 
         self.result["config"] = result
 

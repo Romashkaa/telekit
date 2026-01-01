@@ -394,6 +394,11 @@ class TelekitDSLMixin(telekit.Handler):
 
         if isinstance(value, str):
             return value
+        
+        value = self._find_variable(name)
+
+        if isinstance(value, str):
+            return value
 
         match name:
             case "first_name":
@@ -432,6 +437,10 @@ class TelekitDSLMixin(telekit.Handler):
             #     return str(self.script_data.scenes[self._get_next_scene_name()]["message"])
             case _:
                 return
+            
+    def _find_variable(self, name: str) -> str | None:
+        value = self.script_data.config.get(f"vars_{name}")
+        return None if value is None else str(value)
 
     def _parse_variables(self, template_str: str, parse_mode: str | None=None):
         """
