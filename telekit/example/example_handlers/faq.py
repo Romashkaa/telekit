@@ -13,19 +13,6 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
     def handle(self) -> None:
         self.start_script()
 
-    def get_variable(self, name: str) -> str | None:
-        match name:
-            case "random_lose_phrase":
-                phrases = [
-                    "Keep going, you're doing great!",
-                    "Don't give up!",
-                    "Almost there, try again!",
-                ]
-                return random.choice(phrases)
-            case _:
-                # fallback to built-in variables if None
-                return None
-
 # ------------------------------------------------------
 # Telekit DSL
 # ------------------------------------------------------
