@@ -332,6 +332,9 @@ buttons {
 }
 ```
 
+> [!NOTE]
+> `scene_name;` and `scene_name();` are equivalent
+
 ## Next
 
 When building a linear bot, it can get tedious to repeatedly type out button labels. Here’s a look at how you can use the magic next scene:
@@ -418,6 +421,8 @@ $ next {
     label = "Next »";
 }
 ```
+
+> See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
 
 ## Template Variables
 
