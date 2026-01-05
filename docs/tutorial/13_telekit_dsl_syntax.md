@@ -680,6 +680,26 @@ You can access the text entered by the user through the `{{entry}}` variable and
 ```js
 @ main {
     title = "Welcome!"
+    message = "Enter the text:"
+
+    // triggers `correct` when the user enters anything
+    entries { print() }
+}
+
+@ print {
+    title = "Printing..."
+    message = "You entered: {{entry}}"
+    buttons { back() }
+}
+```
+
+- In this example, the `entries { print() }` block captures **any text entered by the user**.  
+- When the user types something, the `print` scene is opened, and the `{{entry}}` variable contains exactly what the user typed.  
+- The message in the `print` scene shows the entered text using `{{entry}}`.
+
+```js
+@ main {
+    title = "Welcome!"
     message = "Enter the password:"
 
     // button
@@ -698,29 +718,8 @@ You can access the text entered by the user through the `{{entry}}` variable and
 - If the user enters "1111", the `correct` scene is opened and the `{{entry}}` variable contains the value `"1111"`.
 - If the user clicks the "Skip" button, `{{entry}}` has no value (`none`). You can provide a default using `{{entry:DEFAULT}}` to handle such cases.
 
-```js
-@ main {
-    title = "Welcome!"
-    message = "Enter the text:"
-
-    // triggers `correct` when the user enters anything
-    entries { print() }
-}
-
-@ print {
-    title = "Printing..."
-    message = "You entered: {{entry}}"
-    buttons { back() }
-}
-```
-
-- In this example, the `entries { print() }` block captures **any text entered by the user**.  
-- When the user types something, the `print` scene is opened, and the `{{entry}}` variable contains exactly what the user typed.  
-- The message in the `print` scene shows the entered text using `{{entry}}`.
-
 > [!IMPORTANT] 
-> This is not "the <u>last</u> input".
-> `{{entry}}` stores **only the value entered immediately before transitioning to this scene**.
+> This is not "the last input": `{{entry}}` stores **only the value entered immediately before transitioning to this scene**.
 
 ### Input Suggestions
 
