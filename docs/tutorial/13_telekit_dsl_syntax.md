@@ -718,7 +718,8 @@ You can access the text entered by the user through the `{{entry}}` variable and
 - When the user types something, the `print` scene is opened, and the `{{entry}}` variable contains exactly what the user typed.  
 - The message in the `print` scene shows the entered text using `{{entry}}`.
 
-> [!IMPORTANT] This is not "the <u>last</u> input"
+> [!IMPORTANT] 
+> This is not "the <u>last</u> input".
 > `{{entry}}` stores **only the value entered immediately before transitioning to this scene**.
 
 ### Input Suggestions
@@ -743,8 +744,8 @@ buttons {
 
 - If only one argument is provided, the button label is automatically set to the same value.
 
-> [!TIP] Check the Example
-> See the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/password.md) for a complete demonstration of how to use input handling.
+> [!TIP]
+> Check the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/password.md) for a complete demonstration of how to use input handling.
 
 ## Additional Documentation
 
