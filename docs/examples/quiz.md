@@ -3,11 +3,11 @@
 ```python
 import telekit
 
-class FAQHandler(telekit.TelekitDSL.Mixin):
+class QuizHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.analyze_source(guide)
-        cls.on.command("faq").invoke(cls.start_script)
+        cls.on.command("start").invoke(cls.start_script)
 
 # ------------------------------------------------------
 # Telekit DSL

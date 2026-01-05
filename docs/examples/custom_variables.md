@@ -173,4 +173,6 @@ $ timeout {
     }
 }
 """
+
+telekit.Server(TOKEN).polling()
 ```
