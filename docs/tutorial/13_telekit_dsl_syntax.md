@@ -744,7 +744,7 @@ buttons {
 - If only one argument is provided, the button label is automatically set to the same value.
 
 > [!TIP] Check the Example
-> See the example for a complete demonstration of how to use input handling.
+> See the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/password.md) for a complete demonstration of how to use input handling.
 
 ## Additional Documentation
 

@@ -29,7 +29,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | [Custom Variables](custom_variables.md) | Example of custom variables in the script | `get_variable`, `analyze_source` |
 | [Python API](python_api.md) | Example of calling Handler methods directly from a script | `on_enter`, `get_variable`, `analyze_source`, `start_script` |
 | [Hotel Booking](hotel_booking.md) | Example hotel bot demonstrating the use of DSL-defined variables to store room prices and API methods to add rooms to the cart | `get_variable`, `on_enter`, `start_script`, `analyze_source` |
-| [Password: Input Handling](password.md) | A simple password-checking program that handles user input, respond to correct or incorrect values, and provide link. | `` |
+| [Password: Input Handling](password.md) | A simple password-checking program that [handles user input](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handling-text-input), respond to correct or incorrect values, and provide link. | DSL: `link`, `suggest`, `entries`, `buttons`, `{{entry}}` |
 
 ## Complex
 
