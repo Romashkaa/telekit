@@ -5,7 +5,7 @@ class BuilderError(Exception):
     pass
 
 MAGIC_SCENES = ("back", "next")
-SPECIAL_NAMES = ("link", "suggest")
+SPECIAL_NAMES = ("link", "suggest", "redirect", "handoff")
 
 class NoValue:
     pass
@@ -313,11 +313,33 @@ class Builder:
 
             for label, [target_scene, argument] in buttons.items():
                 match target_scene:
+                    case "handoff":
+                        if isinstance(label, NoLabel):
+                            raise BuilderError(f"\n\nScene '@{name}' contains a handoff-button that needs a label and handler name. \n\n- Example: handoff('Start', StartHandler)\n")
+                        if not label.strip():
+                            raise BuilderError(f"\n\nScene '@{name}' contains a handoff-button with an empty label")
+                        if argument is None:
+                            raise BuilderError(f"\n\nScene '@{name}' contains a handoff-button that missing argument. \n\n- Example: handoff('Start', StartHandler)\n")
+                        scene_data["buttons"][label] = {
+                            "type": "handoff",
+                            "target": argument
+                        }
+                    case "redirect":
+                        if isinstance(label, NoLabel):
+                            raise BuilderError(f"\n\nScene '@{name}' contains a redirect-button that needs a label and argument. \n\n- Example: redirect('Start', '/start INVITE_CODE')\n")
+                        if not label.strip():
+                            raise BuilderError(f"\n\nScene '@{name}' contains a redirect-button with an empty label")
+                        if argument is None:
+                            raise BuilderError(f"\n\nScene '@{name}' contains a redirect-button that missing argument. \n\n- Example: redirect('Start', '/start INVITE_CODE')\n")
+                        scene_data["buttons"][label] = {
+                            "type": "redirect",
+                            "target": argument
+                        }
                     case "suggest":
                         if isinstance(label, NoLabel):
                             raise BuilderError(f"\n\nScene '@{name}' contains a suggest-button that needs a label and suggestion. \n\n- Example: suggest('Hint', 'mypassword')\n- Example: suggest('mypassword')\n")
                         if not label.strip():
-                            raise BuilderError(f"\n\nScene '@{name}' contains a button with an empty label")
+                            raise BuilderError(f"\n\nScene '@{name}' contains a suggest-button with an empty label")
                         if argument is None:
                             argument = label.strip()
 

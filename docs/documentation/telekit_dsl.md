@@ -7,6 +7,7 @@
 - [Configuration attributes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#configuration-attributes)
 - [Hook types (python API)](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#hook-types-python-api)
 - [Magic scenes](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#magic-scenes)
+- [Special Button Types](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#special-button-types)
 - [Available variables](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#available-variables)
 - [Variable resolution order](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#variable_resolution_order)
 - [Suggested emojis](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md#suggested-emojis-for-buttons)
@@ -78,10 +79,12 @@ A scene can have multiple hooks, each triggered at a specific moment during the 
 - [back](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#back) - returns the user to the previous scene using a LIFO stack.
 - [next](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next) - moves to the next scene based on the `next_order` config, which by default follows the order in the file, skipping scenes whose names start with `_`.
 
-### Magic Non-Scenes
+### Special Button Types
 
 - `link(label, url)` — creates a button that opens an external URL directly from the bot without navigating to another scene.
 - `suggest(label, suggestion)` — creates a button that provides a predefined input value and passes it to the `entries { ... }` handler as if the user typed it manually.
+- `redirect(label, text)` — creates a button that simulates the user sending a specific message or command. Clicking it automatically ends the current script.
+- `handoff(label, handler_name)` — creates a button that seamlessly switches control to another handler. Equivalent to calling `self.handoff(handler_name).handle()` in code.
 
 ## Available Variables
 

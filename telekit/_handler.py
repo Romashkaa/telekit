@@ -133,6 +133,8 @@ class Handler:
         if isinstance(handler, str):
             if handler in self.handlers_dict:
                 handler = self.handlers_dict[handler]
+            else:
+                raise NameError(f"{type(self).__name__}().handoff(\"{handler}\") <- Handler does not exist")
 
         if not (isinstance(handler, type) and issubclass(handler, Handler)):
             raise TypeError(f"{type(self).__name__}().handoff(HERE) <- Expected `Handler` type")

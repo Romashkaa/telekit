@@ -23,6 +23,8 @@
     - [Argument Data Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#argument-data-types)
     - [Hook Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#hook-types)
 - [Handling Text Input](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handling-text-input)
+- [Handoff Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handoff-button)
+- [Redirect Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#redirect-button)
 - [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#additional-documentation)
 - [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
 
@@ -745,6 +747,48 @@ buttons {
 
 > [!TIP]
 > Check the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/password.md) for a complete demonstration of how to use input handling.
+
+## Handoff Button
+
+The `handoff` button is equivalent to the same method in the handler. It allows you to seamlessly switch control to another handler.
+
+```js
+@ main {
+    title = "📚 Telekit DSL Examples"
+    message = `
+        Explore DSL examples step by step — from simple to advanced.
+        Use the buttons below to try them out:
+    `
+    buttons {
+        handoff("🤔 Quiz", "QuizHandler")
+    }
+}
+```
+
+> [!NOTE] 
+> `handoff("🤔 Quiz", "QuizHandler")` in the script is equivalent to `self.handoff("QuizHandler").handle()` in code
+
+## Redirect Button
+
+The `redirect` button simulates the user sending a specific message or command when clicked:
+
+```js
+@ main {
+    title = "📚 Telekit DSL Examples"
+    message = `
+        Explore DSL examples step by step — from simple to advanced.
+        Use the buttons below to try them out:
+    `
+    buttons {
+        redirect("Quiz", "/quiz") // send command `/quiz`
+        redirect("Pricing", "/faq pricing") // send the command `/faq` with the argument `pricing`
+        redirect("Say hello to the Bot", "Hello, bot!") // send the message: "Hello, bot!"
+    }
+}
+```
+
+> [!NOTE] 
+> Clicking a `redirect` button automatically ends the current script. Therefore, the value is **not passed** to `entries { ... }` in the scene.
 
 ## Additional Documentation
 

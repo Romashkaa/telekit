@@ -241,7 +241,7 @@ class TelekitDSLMixin(telekit.Handler):
     # Instance Attributes
     # ----------------------------------------------------------------------------
 
-    def start_script(self) -> None | NoReturn:
+    def start_script(self, initial_scene: str="main") -> None | NoReturn:
         """
         Starts the script; raises an error if the script has not been analyzed
         """
@@ -260,8 +260,11 @@ class TelekitDSLMixin(telekit.Handler):
         self.chain.disable_timeout_warnings()
         self.chain.set_remove_timeout(False)
 
-        # start the main scene
-        self.prepare_scene("main")()
+        # start the initial scene
+        if initial_scene not in self.script_data.scenes:
+            initial_scene = "main"
+            
+        self.prepare_scene(initial_scene)()
     
     # ----------------------------------------------------------------------------
     # Scene Rendering
@@ -336,6 +339,10 @@ class TelekitDSLMixin(telekit.Handler):
                         keyboard[label] = self.prepare_scene(target)
                     case "suggest":
                         keyboard[label] = self._prepare_suggestion(*target)
+                    case "redirect":
+                        keyboard[label] = self._prepare_redirect(target)
+                    case "handoff":
+                        keyboard[label] = self._prepare_handoff(target)
                     case "link":
                         keyboard[label] = target
 
@@ -355,6 +362,22 @@ class TelekitDSLMixin(telekit.Handler):
                 self.script_data.history.append(scene_name)
 
             self.chain.edit()
+
+        return render
+    
+    # ----------------------------------------------------------------------------
+    # Redirect Logic
+    # ----------------------------------------------------------------------------
+
+    def _prepare_handoff(self, target: str):
+        def render():
+            self.handoff(target).handle()
+
+        return render
+    
+    def _prepare_redirect(self, target: str):
+        def render():
+            self.simulate_user_message(target)
 
         return render
     

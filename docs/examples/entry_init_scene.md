@@ -1,3 +1,6 @@
+# Entry Scene Selection
+
+```py
 import telekit
 from telekit.parameters import Str
 
@@ -77,3 +80,6 @@ $ timeout {
     buttons { back }
 }
 """
+
+telekit.Server(TOKEN).polling()
+```

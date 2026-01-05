@@ -204,7 +204,7 @@ class Parser:
             elif t.value == ";":
                 self.next()
             else:
-                raise ParseError(f"Expected name or ';' at {self.pos}")
+                raise ParseError(f"Expected name or ';' at {self.pos}: '{t.value}{getattr(self.peek(), "value", "")}'")
 
         self.expect("punc", "}")
         return {"width": width, "buttons": buttons}
