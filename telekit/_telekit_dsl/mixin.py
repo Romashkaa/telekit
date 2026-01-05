@@ -342,7 +342,7 @@ class TelekitDSLMixin(telekit.Handler):
             self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
 
             # entries
-            if scene.get("entries"):
+            if scene.get("entries") or scene.get("_default_entry_target"):
                 self.chain.entry_text(self._filter_entry, True)(self._handle_entry)
 
             if "on_exit" in scene:

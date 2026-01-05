@@ -6,6 +6,7 @@
 - [Let’s add another scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#lets-add-another-scene)
 - [Back Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#back)
 - [Other Scene`s Attributes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#other-scenes-attributes)
+- [Links](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#links)
 - [Configuration Block](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#configuration-block)
     - [Named Configuration Block](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#named-configuration-block)
 - [Timeouts](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout)
@@ -21,6 +22,7 @@
 - [Calling Python Methods in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#calling-python-methods-in-dsl)
     - [Argument Data Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#argument-data-types)
     - [Hook Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#hook-types)
+- [Handling Text Input](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handling-text-input)
 - [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#additional-documentation)
 - [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
 
@@ -176,6 +178,26 @@ You can use the following attributes for any scene, like `@main`:
     }
 }
 ```
+
+## Links
+
+The `link()` button type is used to open external resources directly from the bot interface.
+
+Unlike scene navigation buttons, a `link()` button **does not trigger a scene transition** and does not affect the navigation stack.
+
+```js
+buttons {
+    link("Telekit", "https://github.com/Romashkaa/telekit")
+}
+```
+
+- **Label** — text displayed on the button  
+- **URL** — the external link that will be opened when the button is pressed
+
+The user remains in the current scene after clicking a `link()` button.
+
+> [!WARNING]
+> This name is reserved and cannot be used as a scene name.
 
 ## Configuration Block
 
@@ -632,6 +654,97 @@ on_enter {
 
 > [!NOTE] 
 > Method arguments are optional — you can leave the parentheses empty or omit them entirely
+
+## Handling Text Input
+
+Starting from version 1.7.0, Telekit allows you to **react to text entered by the user** and manage scene transitions based on this input without additional Python code.
+
+```js
+entries {
+    scene_name("text") // scene to open when the user entered "text"
+    default_scene_name // default scene to open if the entered value does not match any listed
+}
+```
+
+- `"text"` - the specific text value expected from the user.
+- `scene_name` — scene to open when the user entered that text.  
+- `default_scene_name` — scene to open if the entered value does not match any specified values.
+
+> [!NOTE]
+> `buttons { ... }` and `entries { ... }` do not conflict. You can freely use them together, especially in combination with the feature explained in the "Input Suggestions" section.
+
+### Capturing Input
+
+You can access the text entered by the user through the `{{entry}}` variable and use its value within the scene's message, title, button labels, or even as arguments when calling functions.
+
+```js
+@ main {
+    title = "Welcome!"
+    message = "Enter the password:"
+
+    // button
+    buttons { correct("Skip »") } // the `{{entry}}` variable in @correct will be `none`
+    // triggers `correct` when the user enters "1111"
+    entries { correct("1111") }   // the `{{entry}}` variable in @correct will be `"1111"`
+}
+
+@ correct {
+    title = "Correct!"
+    message = "You entered: {{entry:Nothing, you just clicked 'Skip'}}"
+    buttons { back() }
+}
+```
+
+- If the user enters "1111", the `correct` scene is opened and the `{{entry}}` variable contains the value `"1111"`.
+- If the user clicks the "Skip" button, `{{entry}}` has no value (`none`). You can provide a default using `{{entry:DEFAULT}}` to handle such cases.
+
+```js
+@ main {
+    title = "Welcome!"
+    message = "Enter the text:"
+
+    // triggers `correct` when the user enters anything
+    entries { print() }
+}
+
+@ print {
+    title = "Printing..."
+    message = "You entered: {{entry}}"
+    buttons { back() }
+}
+```
+
+- In this example, the `entries { print() }` block captures **any text entered by the user**.  
+- When the user types something, the `print` scene is opened, and the `{{entry}}` variable contains exactly what the user typed.  
+- The message in the `print` scene shows the entered text using `{{entry}}`.
+
+> [!IMPORTANT] This is not "the <u>last</u> input"
+> `{{entry}}` stores **only the value entered immediately before transitioning to this scene**.
+
+### Input Suggestions
+
+Telekit allows you to provide **suggested input values** to users via the `suggest()` button.  
+These suggestions can be clicked to fill the input field and open the scene, making it easier for users to provide expected responses without typing everything manually.
+
+```js
+buttons {
+    suggest("Label", "Value")
+}
+```
+
+- **Label** — text displayed on the button  
+- **Value** — input value that will be passed to `{{entry}}` variable
+
+```js
+buttons {
+    suggest("1111") // label == value
+}
+```
+
+- If only one argument is provided, the button label is automatically set to the same value.
+
+> [!TIP] Check the Example
+> See the example for a complete demonstration of how to use input handling.
 
 ## Additional Documentation
 

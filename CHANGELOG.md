@@ -1,12 +1,4 @@
-## DSL Improvements
-
-Version 1.7.0 focuses on making the Telekit DSL more interactive, expressive, and convenient for building dialogs. This update adds user input handling capabilities and introduces link buttons.
-
-The key improvement is the integration of the `entries { ... }` block, which allows reacting to text entered by the user and using that value in subsequent scenes. Along with this, the `{{entry}}` variable was introduced to store the entered value. The `suggest()` mechanism was also added, providing input suggestions that work seamlessly with entries.
-
-The update introduces a new `link()` button type, which allows opening external resources directly from the bot interface.
-
-Taken together, these changes make the Telekit DSL a more powerful tool for creating complex, yet readable and extensible scripts.
+## Improvements
 
 ```js
 @ main {
@@ -47,19 +39,6 @@ Taken together, these changes make the Telekit DSL a more powerful tool for crea
     }
 }
 ```
-
-### Links
-
-New `link("Label", "URL")` button type – creates a button that opens a link.  
-
-```js
-buttons {
-    link("GitHub", "https://github.com/Romashkaa/telekit")
-}
-```
-
-> [!NOTE]
-> Unlike `scene()` or `suggest()`, a `link()` button **does not navigate to another scene**, it opens the external URL.
 
 ### Entries
 

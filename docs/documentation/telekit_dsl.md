@@ -21,7 +21,6 @@ When defining scene attributes, configuration values, or calling Python methods 
 - strings `"August"` – text values
 - lists `[21, ["telekit"]]` – arrays containing any combination of the above types
 
-
 ## Scene's Attributes
 
 You can use the following attributes for any scene in Telekit DSL:
@@ -30,29 +29,30 @@ You can use the following attributes for any scene in Telekit DSL:
 @ main {
     // -- Required --
 
-    title   = "Bold title text";
-    message = "Regular text below";
+    title   = "Bold title text"
+    message = "Regular text below"
 
     // -- Optional --
 
     // path to local file, URL, or Telegram file ID
-    image = "path / reference / file_id";
+    image = "path / reference / file_id"
 
     // enable or disable italics in message
-    use_italics = false; // default: false
+    use_italics = false // default: false
     
     // change message parse mode
-    parse_mode = "html"; // (html | markdown) default: none
+    parse_mode = "html" // (html | markdown) default: none
 
     //      ↓ button row width: `buttons(row_width)`
     buttons(2) { // default: 1    ↑↑↑↑↑↑↑↑↑
         devs("👨‍💻 Developers"); docs("📚 Docs")
     }
 
-    // hook called every time the scene is entered
+    // open a scene on a specific text
+    entries { secret("1111") }
+
+    // a hook called every time the scene is entered
     on_enter { method_name("arg") }
-    // hook called only the first time the scene is entered
-    on_enter_once { method_name("arg") }
 }
 ```
 
@@ -78,6 +78,11 @@ A scene can have multiple hooks, each triggered at a specific moment during the 
 - [back](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#back) - returns the user to the previous scene using a LIFO stack.
 - [next](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next) - moves to the next scene based on the `next_order` config, which by default follows the order in the file, skipping scenes whose names start with `_`.
 
+### Magic Non-Scenes
+
+- `link(label, url)` — creates a button that opens an external URL directly from the bot without navigating to another scene.
+- `suggest(label, suggestion)` — creates a button that provides a predefined input value and passes it to the `entries { ... }` handler as if the user typed it manually.
+
 ## Available Variables
 
 You can use the following variables in your Telekit DSL scripts to [personalize messages](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables):
@@ -89,6 +94,9 @@ You can use the following variables in your Telekit DSL scripts to [personalize 
 - `username` – the Telegram username of the user (with the `@` symbol).
 - `user_id` – the unique Telegram ID of the user.
 - `chat_id` – the ID of the chat where the message originated.
+
+### Entries
+- `entry` - the text value entered by the user (or provided via `suggest("suggestion")`) that triggered the transition through the `entries { ... }` block to the current scene.
 
 ### Context
 - `scene_name` - internal name of the current scene (the identifier after @)
