@@ -42,10 +42,13 @@ class ConfigBlock(Node):
 class NoLabel:
 	pass
 
+class AnyTrigger:
+	pass
+
 @dataclass
 class SceneBlock(Node):
 	name: str
-	fields: dict[str, str | int | list | None | dict[str, int | dict[str | NoLabel, str]]] = field(default_factory=dict)
+	fields: dict = field(default_factory=dict)
 
 	def __init__(self, name: str, default_label: str | None):
 		super().__init__(type="scene")

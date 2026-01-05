@@ -5,6 +5,10 @@ class BuilderError(Exception):
     pass
 
 MAGIC_SCENES = ("back", "next")
+SPECIAL_NAMES = ("link", "suggest")
+
+class NoValue:
+    pass
 
 class Builder:
     def __init__(self, ast: Ast, src: str):
@@ -40,7 +44,13 @@ class Builder:
         self.post_analysis()
         self.check_last_scene_has_no_next()
 
+        self.remove_refers_to_attr()
+
         return self.result
+    
+    def remove_refers_to_attr(self):
+        for _, scene in self.result["scenes"].items():
+            scene.pop("refers_to", None)
     
     def analyze_scenes_default_labels(self):
         for item in self.ast.body:
@@ -56,11 +66,11 @@ class Builder:
     
     def post_analysis(self):
         for scene_name, scene in self.result["scenes"].items():
-            for label, target_scene in scene["buttons"].items():
+            for label, target_scene in scene["refers_to"].items():
                 if target_scene not in self.result["scenes"]:
                     if target_scene not in MAGIC_SCENES:
                         raise BuilderError(
-                            f"Button '{label}' in scene '@{scene_name}' points to non-existent scene '@{target_scene}'"
+                            f"{label} in scene '@{scene_name}' points to non-existent scene '@{target_scene}'"
                         )
                 
         timeout = self.result["config"].get("timeout_time")
@@ -90,10 +100,10 @@ class Builder:
 
         last_scene = self.result["scenes"][last_scene_name]
 
-        for label, target in last_scene.get("buttons", {}).items():
+        for label, target in last_scene.get("refers_to", {}).items():
             if target == "next":
                 raise BuilderError(
-                    f"Scene '@{last_scene_name}' is last in next_order but contains a Next button ('{label}'). "
+                    f"Scene '@{last_scene_name}' is last in next_order but contains a 'next' button. "
                     f"cannot use 'next' from the final scene in order."
                 )
             
@@ -104,11 +114,11 @@ class Builder:
             return
 
         for scene_name, scene in self.result["scenes"].items():
-            for label, target in scene.get("buttons", {}).items():
+            for label, target in scene.get("refers_to", {}).items():
                 if target == "next":
                     raise BuilderError(
-                        f"Scene '@{scene_name}' uses a Next button ('{label}'), "
-                        f"but next_order is empty. Define next_order or remove the Next button."
+                        f"Scene '@{scene_name}' uses a 'next' button, "
+                        f"but next_order is empty. Define next_order or remove the 'next' button."
                     )
 
     def ensure_single_config_block(self):
@@ -202,24 +212,16 @@ class Builder:
         name: str = scene.name
         fields: dict[str, Any] = scene.fields
 
+        scene_data: dict[str, Any] = {"name": name}
+
+        if name in MAGIC_SCENES + SPECIAL_NAMES:
+            raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
+
         # required fields
         required: tuple[tuple[str, type], ...] = (
             ("title", str),
             ("message", str),
         )
-
-        # optional fields
-        optional: tuple[tuple[str, type | tuple[type, ...], Any], ...] = (
-            # Style
-            ("image", str, None),
-            ("use_italics", bool, False),
-            ("parse_mode", (str, type(None)), None),
-        )
-
-        scene_data: dict[str, Any] = {"name": name}
-
-        if name in MAGIC_SCENES:
-            raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
 
         # check required fields
         for key, typ in required:
@@ -236,6 +238,14 @@ class Builder:
                 raise BuilderError(f"Field '{key}' in scene '@ {name}' must be of type {self.type_name(typ)}")
             scene_data[key] = val
 
+        # optional fields
+        optional: tuple[tuple[str, type | tuple[type, ...], Any], ...] = (
+            # Style
+            ("image", str, NoValue()),
+            ("use_italics", bool, NoValue()),
+            ("parse_mode", (str, type(None)), NoValue()),
+        )
+
         # check optional fields
         for key, typ, default in optional:
             if key in fields:
@@ -243,7 +253,7 @@ class Builder:
                 if not isinstance(val, typ):
                     raise BuilderError(f"Field '{key}' in scene '@ {name}' must be of type {self.type_name(typ)}")
                 scene_data[key] = val
-            else:
+            elif not isinstance(default, NoValue):
                 scene_data[key] = default
 
         if not scene_data["title"].strip():
@@ -253,8 +263,8 @@ class Builder:
         
         # Style
         
-        if scene_data["parse_mode"] and scene_data["parse_mode"].lower() not in ("markdown", "html"):
-            raise BuilderError(f"Scene '@{name}' has invalid parse_mode '{scene_data['parse_mode']}'")
+        if scene_data.get("parse_mode") and scene_data["parse_mode"].lower() not in ("markdown", "html"):
+            raise BuilderError(f"\n\nScene '@{name}' has invalid parse_mode '{scene_data['parse_mode']}'.\nUse: 'markdown' or 'html'")
         
         # Handler API
 
@@ -267,36 +277,95 @@ class Builder:
         if "on_timeout" in fields:
             scene_data["on_timeout"]    = fields["on_timeout"]
 
+        # Entries
+
+        if "entries" in fields:
+            scene_data["entries"] = {}
+            for trigger, target_scene in fields["entries"].items():
+                if target_scene == scene.name:
+                    raise BuilderError(f"Entry '{target_scene}' in scene '@{scene.name}' points to itself")
+
+                if target_scene not in self.scenes_default_labels:
+                    raise BuilderError(f"Scene '@{name}' contains a entry that points to unknown scene '{target_scene}'")
+
+                if isinstance(trigger, AnyTrigger):
+                    if "_default_entry_target" in scene_data:
+                        raise BuilderError(f"Scene '@{name}' contains multiple default entries")
+                    scene_data["_default_entry_target"] = target_scene
+                else:
+                    scene_data["entries"][trigger] = target_scene
+
+                if target_scene == "back":
+                    scene_data["_has_back_option"] = True
+
         # Buttons
 
         scene_data["buttons"] = {}
+        scene_data["refers_to"] = {}
 
         # handle buttons if present
         if "buttons" in fields:
             buttons_block = fields["buttons"]
-            buttons: dict[str | NoLabel, str] = buttons_block.get("buttons", [])
+            buttons: dict[str | NoLabel, tuple[str, str | None]] = buttons_block.get("buttons", [])
 
             width = buttons_block.get("width", 1) # row_width
             scene_data["row_width"] = int(width)
 
-            for label, target in buttons.items():
+            for label, [target_scene, argument] in buttons.items():
+                match target_scene:
+                    case "suggest":
+                        if isinstance(label, NoLabel):
+                            raise BuilderError(f"\n\nScene '@{name}' contains a suggest-button that needs a label and suggestion. \n\n- Example: suggest('Hint', 'mypassword')\n- Example: suggest('mypassword')\n")
+                        if not label.strip():
+                            raise BuilderError(f"\n\nScene '@{name}' contains a button with an empty label")
+                        if argument is None:
+                            argument = label.strip()
 
-                if isinstance(label, NoLabel):
-                    if target in self.scenes_default_labels:
-                        label = self.scenes_default_labels[target]
-                    else:
-                        raise BuilderError(f"Scene '@{name}' contains a button that points to unknown scene '{target}'")
+                        if argument in scene_data["entries"]:
+                            target = scene_data["entries"][argument]
+                        elif scene_data.get("_default_entry_target"):
+                            target = scene_data["_default_entry_target"]
+                        else:
+                            raise BuilderError(f"Scene '@{name}' contains a suggest-button '{label}' that points to entry '{argument}', but no such entry exists and no default entry is defined")
+                        
+                        scene_data["buttons"][label] = {
+                            "type": "suggest",
+                            "target": (target, argument)
+                        }
+                    case "link":
+                        if isinstance(label, NoLabel):
+                            raise BuilderError(f"\n\nScene '@{name}' contains a link-button that needs a label and URL. \n\n- Example: link('YouTube', 'https://youtube.com')\n")
+                        if not label.strip():
+                            raise BuilderError(f"\n\nScene '@{name}' contains a button with an empty label")
+                        if argument is None:
+                            raise BuilderError(f"\n\nScene '@{name}' contains a link-button that missing target URL. \n\n- Example: link('YouTube', 'https://youtube.com')\n")
+                        if not argument.startswith(("http://", "https://")):
+                            raise BuilderError(f"\n\nScene '@{name}' contains a link-button '{label}' that has invalid URL: '{argument}'")
+                        scene_data["buttons"][label] = {
+                            "type": "link",
+                            "target": argument
+                        }
+                    case _:
+                        if isinstance(label, NoLabel):
+                            if target_scene in self.scenes_default_labels:
+                                label = self.scenes_default_labels[target_scene]
+                            else:
+                                raise BuilderError(f"Scene '@{name}' contains a button that points to unknown scene '{target_scene}'")
 
-                if not label.strip():
-                    raise BuilderError(f"Scene '@{name}' contains a button with an empty label")
+                        if not label.strip():
+                            raise BuilderError(f"Scene '@{name}' contains a button with an empty label")
+                            
+                        if target_scene == scene.name:
+                            raise BuilderError(f"Button '{label}' in scene '@{scene.name}' points to itself")
 
-                if label in scene_data["buttons"]:
-                    raise BuilderError(f"Duplicate button label '{label}' in scene '@ {name}'")
-                    
-                if target == scene.name:
-                    raise BuilderError(f"Button '{label}' in scene '@{scene.name}' points to itself")
+                        scene_data["buttons"][label] = {
+                            "type": "scene",
+                            "target": target_scene
+                        }
+                        scene_data["refers_to"][f"Button '{label}'"] = target_scene
 
-                scene_data["buttons"][label] = target
+                        if target_scene == "back":
+                            scene_data["_has_back_option"] = True
 
         self.result["scenes"][scene.name] = scene_data
         self.result["order"].append(scene.name)

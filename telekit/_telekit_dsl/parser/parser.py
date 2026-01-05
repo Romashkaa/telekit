@@ -5,7 +5,7 @@ from .nodes import *
 # Exception
 # ---------------------------
 
-class ParserError(Exception):
+class ParseError(Exception):
     pass
 
 # ---------------------------
@@ -23,7 +23,7 @@ class Parser:
 
     def token(self) -> Token:
         if self.pos >= len(self.tokens):
-            raise ParserError("Unexpected end of input")
+            raise ParseError("Unexpected end of input")
         return self.tokens[self.pos]
 
     def peek(self, offset=1) -> Token | None:
@@ -50,9 +50,9 @@ class Parser:
     def expect(self, type_: str, value: str | None = None) -> Token:
         t = self.token()
         if t.type != type_:
-            raise ParserError(f"Expected token type '{type_}', got '{t.type}' at {self.pos}")
+            raise ParseError(f"Expected token type '{type_}', got '{t.type}' at {self.pos}")
         if value is not None and t.value != value:
-            raise ParserError(f"Expected '{value}', got '{t.value}' at {self.pos}")
+            raise ParseError(f"Expected '{value}', got '{t.value}' at {self.pos}")
         self.next()
         return t
 
@@ -118,7 +118,7 @@ class Parser:
         default_label = None
         if self.match("punc", "("):
             if self.token().type != "string":
-                raise ParserError(f"Expected string as default label at {self.pos}")
+                raise ParseError(f"Expected string as default label at {self.pos}")
             default_label = self.token().value
             self.next()
             self.expect("punc", ")")
@@ -143,6 +143,11 @@ class Parser:
                     scene.fields[key] = self.parse_on_api_block()
                     continue
 
+                # special case: entries { ... }
+                if key == "entries":
+                    scene.fields[key] = self.parse_entries_block()
+                    continue
+
                 self.expect("op", "=")
                 val = self.parse_value()
                 scene.fields[key] = val
@@ -153,48 +158,53 @@ class Parser:
         self.expect("punc", "}")
         return scene
 
-    def parse_buttons_block(self) -> dict[str, int | dict[str | NoLabel, str]]:
+    def parse_buttons_block(self) -> dict[str, int | dict[str | NoLabel, tuple[str, str | None]]]:
         width = 1
 
         # optional `(row_width)`
         if self.match("punc", "("):
             if self.token().type != "number":
-                raise ParserError(f"Expected number after 'buttons(' at {self.pos}")
+                raise ParseError(f"Expected number after 'buttons(' at {self.pos}")
             width = int(self.token().value)
             self.next()
             self.expect("punc", ")")
 
         # expect `{`
         self.expect("punc", "{")
-        buttons: dict[str | NoLabel, str] = {}
+        buttons: dict[str | NoLabel, tuple[str, str | None]] = {}
 
         while self.token() and self.token().value != "}":
             t = self.token()
 
-            # `scene_name("Label")`
+            # `scene_name("Label")` | `scene_name` | `scene_name()`
             if t.type == "kw":
                 scene_name = t.value
                 self.next()
 
-                label = NoLabel()
+                argument = None
+
                 if self.match("punc", "("):
                     # expect only one argument (string)
                     if self.token().type == "string":
                         label = self.token().value
                         self.next()
+                        self.match("punc", ",")
+                        # expect argument (string)
+                        if self.token().type == "string":
+                            argument = self.token().value
+                            self.next()
                     else:
-                        raise ParserError(f"Expected string as button label at {self.pos}")
+                        label = NoLabel()
+                        # raise ParseError(f"Expected string as button label at {self.pos}")
                     self.expect("punc", ")")
+                else:
+                    label = NoLabel()
 
-                # # if no label provided, use scene name as fallback
-                # label = label or scene_name
-                buttons[label] = scene_name
-
+                buttons[label] = (scene_name, argument)
             elif t.value == ";":
                 self.next()
-                continue
             else:
-                self.next()
+                raise ParseError(f"Expected name or ';' at {self.pos}")
 
         self.expect("punc", "}")
         return {"width": width, "buttons": buttons}
@@ -229,7 +239,7 @@ class Parser:
             self.expect("punc", "]")
             return items
 
-        raise ParserError(f"Unexpected token '{t.value}' at position {self.pos}")
+        raise ParseError(f"Unexpected token '{t.value}' at position {self.pos}")
 
     def parse_on_api_block(self) -> list[list]:
         self.expect("punc", "{")
@@ -251,9 +261,45 @@ class Parser:
                     args = args_list
 
                 calls.append((method_name, args))
-            else:
-                # skip ; or newlines
+            elif t.value == ";":
                 self.next()
+            else:
+                raise ParseError(f"Expected name or ';' at {self.pos}")
 
         self.expect("punc", "}")
         return calls
+    
+    def parse_entries_block(self):
+        # expect `{`
+        self.expect("punc", "{")
+        entries: dict[str | AnyTrigger, str] = {}
+
+        while self.token() and self.token().value != "}":
+            t = self.token()
+
+            # `scene_name("on text")`
+            if t.type == "kw":
+                scene_name = t.value
+                self.next()
+
+                if self.match("punc", "("):
+                    # expect only one argument (string)
+                    if self.token().type == "string":
+                        trigger = self.token().value
+                        self.next()
+                    else:
+                        trigger = AnyTrigger()
+
+                    self.expect("punc", ")")
+                else:
+                    # on any text
+                    trigger = AnyTrigger()
+
+                entries[trigger] = scene_name
+            elif t.value == ";":
+                self.next()
+            else:
+                raise ParseError(f"Expected name or ';' at {self.pos}")
+
+        self.expect("punc", "}")
+        return entries

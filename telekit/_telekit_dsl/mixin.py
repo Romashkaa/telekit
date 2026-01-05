@@ -20,6 +20,8 @@ class ScriptData:
         self.scenes      = scenes
         self.scene_order = scene_order
         self.next_order  = next_order
+        self.entry: str | None = None
+
 
         if timeout_time and isinstance(timeout_time, int):
             self.timeout_time = timeout_time
@@ -36,25 +38,35 @@ class ScriptData:
         
     def get_button_ref_count(self, name: str) -> int:
         if name in self._button_ref_count:
-            return self._button_ref_count.get(name, 0)
-        
-        ref_count: int = 0
+            return self._button_ref_count[name]
+
+        ref_count = 0
 
         for scene in self.scenes.values():
-            ref_count += list(scene["buttons"].values()).count(name)
-            
+            for button in scene["buttons"].values():
+                if button.get("type") == "scene" and button.get("target") == name:
+                    ref_count += 1
+
         self._button_ref_count[name] = ref_count
         return ref_count
     
     def get_scene_ref_count(self, name: str) -> int:
         if name in self._scene_ref_count:
-            return self._scene_ref_count.get(name, 0)
-        
-        ref_count: int = 0
+            return self._scene_ref_count[name]
+
+        ref_count = 0
 
         for scene in self.scenes.values():
-            ref_count += list(set(scene["buttons"].values())).count(name)
-            
+            has_ref = False
+
+            for button in scene["buttons"].values():
+                if button.get("type") == "scene" and button.get("target") == name:
+                    has_ref = True
+                    break
+
+            if has_ref:
+                ref_count += 1
+
         self._scene_ref_count[name] = ref_count
         return ref_count
     
@@ -278,7 +290,6 @@ class TelekitDSLMixin(telekit.Handler):
             scene = self.script_data.scenes[scene_name]
 
             # handler api
-
             if "on_enter" in scene:
                 self._call_api_methods(scene["on_enter"])
             if "on_enter_once" in scene:
@@ -288,12 +299,12 @@ class TelekitDSLMixin(telekit.Handler):
                     self.script_data.executed_once_hooks.add(hook_key)
 
             # view
-
             real_parse_mode: str | None = scene.get("parse_mode")
             parse_mode = real_parse_mode or "html"
 
             self.chain.sender.set_parse_mode(parse_mode)
             self.chain.sender.set_use_italics(scene.get("use_italics", False))
+            self.chain.sender.set_photo(scene.get("image"))
 
             styles = self.chain.sender.styles
             title = scene.get("title", "[ no title ]")
@@ -313,30 +324,74 @@ class TelekitDSLMixin(telekit.Handler):
                 self.chain.sender.set_title(styles.no_sanitize(title))
                 self.chain.sender.set_message(styles.no_sanitize(message))
             
-            # image
-            self.chain.sender.set_photo(scene.get("image", None))
-
-            # keyboard
+            # buttons
             keyboard: dict = {}
-            has_back_button = False
 
-            for button_label, button_scene in scene.get("buttons", {}).items():
-                keyboard[self._parse_variables(button_label)] = self.prepare_scene(button_scene)
+            for button_label, button_attrs in scene.get("buttons", {}).items():
+                label = self._parse_variables(button_label)
+                target = button_attrs["target"]
 
-                if "back" in button_scene:
-                    has_back_button = True
+                match button_attrs["type"]:
+                    case "scene":
+                        keyboard[label] = self.prepare_scene(target)
+                    case "suggest":
+                        keyboard[label] = self._prepare_suggestion(*target)
+                    case "link":
+                        keyboard[label] = target
+
+            self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
+
+            # entries
+            if scene.get("entries"):
+                self.chain.entry_text(self._filter_entry, True)(self._handle_entry)
 
             if "on_exit" in scene:
                 self._call_api_methods(scene["on_exit"])
 
-            if not has_back_button:
+            self.script_data.entry = None
+
+            if not scene.get("_has_back_option"):
                 self.script_data.history.clear()
                 self.script_data.history.append(scene_name)
 
-            self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
             self.chain.edit()
 
         return render
+    
+    # ----------------------------------------------------------------------------
+    # Entry Logic
+    # ----------------------------------------------------------------------------
+
+    def _prepare_suggestion(self, target: str, text: str):
+        def render():
+            self.script_data.entry = text
+            self.prepare_scene(target)()
+
+        return render
+
+    def _filter_entry(self, _, text: str):
+        scene = self.script_data.get_current_scene()
+
+        if text in scene.get("entries", {}): 
+            return True
+        if "_default_entry_target" in scene:
+            return True
+        
+        return False
+
+    def _handle_entry(self, _, text: str):
+        scene_name = self.script_data.get_current_scene_name()
+        scene = self.script_data.scenes[scene_name]
+
+        self.script_data.entry = text
+
+        entries = scene.get("entries", {})
+        choosed_scene = entries.get(text)
+
+        if not choosed_scene:
+            choosed_scene = scene.get("_default_entry_target", "main")
+
+        self.prepare_scene(choosed_scene)()
     
     # ----------------------------------------------------------------------------
     # Timeout Logic
@@ -428,6 +483,8 @@ class TelekitDSLMixin(telekit.Handler):
                 return self.script_data.get_current_scene().get("title")
             case "scene_message":
                 return self.script_data.get_current_scene().get("message")
+            case "entry":
+                return self.script_data.entry if isinstance(self.script_data.entry, str) else None
             # case "next_scene_name": # TODO: check it in Analyzer
             #     return self._get_next_scene_name()
             # case "next_scene_title":
@@ -574,7 +631,10 @@ def missing(name: str):
             "use_italics": false,
             "parse_mode": null,
             "buttons": {
-                "Start Quiz": "next"
+                "Start Quiz": {
+                    "type": "scene",
+                    "target": "next"
+                }
             },
             "row_width": 1
         },

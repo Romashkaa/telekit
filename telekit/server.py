@@ -37,7 +37,7 @@ class Server:
         """Standard `self.bot.polling(none_stop=True)` polling"""
         while True:
             server_logger.info("Telekit server is polling...")
-            print("Telekit server is starting polling...")
+            print("Telekit server has started polling...")
 
             try:
                 self.bot.polling(none_stop=True)
@@ -55,7 +55,7 @@ class Server:
         """Long `self.bot.polling(none_stop=True, timeout=timeout)` polling with custom timeout"""
         while True:
             server_logger.info("Telekit server is long polling...")
-            print(f"Telekit server is long polling with timeout={timeout}...")
+            print(f"Telekit server started long polling with timeout={timeout}...")
             try:
                 self.bot.polling(none_stop=True, timeout=timeout)
             except Exception as exception:
