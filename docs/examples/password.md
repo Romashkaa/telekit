@@ -22,13 +22,13 @@ script = """
     message = "Enter the password:"
 
     buttons (2) {
-        suggest("Help", "1111") // suggestion
-        okay("Skip »")
+        suggest("Help", "1111") // opens the `okay` scene; {{entry}} becomes "1111"
+        okay("Skip »")          // skips input; {{entry}} will be `none`
     }
 
     entries {
-        okay("1111") // on "1111" message
-        fail // default
+        okay("1111") // opens the `okay` scene when the user enters "1111"
+        fail         // opens the `fail` scene for any other input
     }
 }
 
@@ -39,9 +39,8 @@ script = """
 
         Your reward is the following link:
     `
-
     buttons (2) {
-        back()
+        back() // back to `main`
         link("Reward", "https://github.com/Romashkaa/telekit")
     }
 }
@@ -51,7 +50,7 @@ script = """
     message = "The password you entered is incorrect. Please try again."
 
     buttons {
-        back("« Try again")
+        back("« Try again") // back to `main`
     }
 }
 """
