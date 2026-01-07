@@ -4,7 +4,7 @@ Senders in Telekit provide a high-level interface for sending and managing messa
 
 ## Basic Usage 
 
-You use `self.chain.sender.*` to define how your bot responds.
+Use `self.chain.sender.*` to define how your bot responds.
 
 There are two main ways to create a message: a simple text message or a structured message with a title and body:
 
@@ -38,6 +38,9 @@ Telekit supports text formatting and replying to specific messages:
 
 - `set_parse_mode(mode)`: Set formatting mode.
 - `set_reply_to(message)`: Reply to a specific message.
+
+> [!TIP]
+> See more methods and features in the [documentation](../documentation/3_senders.md)
 
 ## Photos & Effects
 
@@ -96,7 +99,8 @@ with self.chain.sender as sender:
 
 You still need to call `self.chain.send()` or `sender.send()` afterward.
 
-More info: [Senders documentation: Context Manager](../documentation/3_senders.md#context-manager)
+> [!TIP]
+> See more info in the [documentation - Context Manager](../documentation/3_senders.md#context-manager)
 
 ---
 

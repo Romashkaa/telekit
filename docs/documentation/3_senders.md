@@ -4,7 +4,7 @@ Senders in Telekit provide a high-level interface for sending and managing messa
 
 ## Basic Methods 
 
-You use `self.chain.sender.*` to define how your bot responds.
+Use `self.chain.sender.*` to define how your bot responds.
 
 - `set_message_effect_id(effect: str)` - Sets the message effect by string ID.  
 - `set_effect(effect: BaseSender.Effect | str | int)` - Sets a message effect using enum, string, or integer.  
@@ -21,9 +21,9 @@ You use `self.chain.sender.*` to define how your bot responds.
     - bytes or file-like object
     - `None` to remove any previously set photo
 - `set_document(document: str | None | Any)` - Sets the document for the message.
-- `set_text_as_document(text: str | None, name: str="text.txt", encoding: str="utf-8")` - Converts the given text into an in-memory file-like object and sets it as a document to be sent.  The provided `name` is only a **placeholder filename** for Telegram; no actual file is created on disk.
+- `set_text_as_document(text: str | None, name: str="text.txt", encoding: str="utf-8")` - Converts the given text into an in-memory file-like object and sets it as a document to be sent. The provided `name` is only a **placeholder filename** for Telegram; no actual file is created on disk.
 - `set_video(video: str | None | Any)` - Sets the video for the message.
-- `set_video_note(video_note: str | None | Any)` — Sets a video note (round video) for the message. Ignores set_text, set_title, and set_message.
+- `set_video_note(video_note: str | None | Any)` — Sets a video note (round video) for the message. Ignores set_text, set_title, and set_message. (It's not Telekit's fault)
 - `set_animation(animation: str | None | Any)` - Sets the animation for the message.
 - `set_audio(audio: str | None | Any)` — Sets an audio file (music) for the message.
 - `set_voice(voice: str | None | Any)` — Sets a voice message (OGG) for the message.
@@ -36,49 +36,76 @@ You use `self.chain.sender.*` to define how your bot responds.
 - `remove_attachments()` method - clears all attachments from the message or object, resetting photo, media, and document.
 - `set_chat_id(chat_id: int)` - Sets the chat ID for sending messages.  
 - `set_text(text: str)` - Sets the plain text of the message.  
-- `set_reply_markup(reply_markup)` - Inline keyboards, reply keyboards, or other markup objects.  
-- `set_temporary(is_temp: bool)` - Marks message as temporary; will be deleted later if `delete_temporaries` is True.  
-- `set_delete_temporaries(del_temps: bool)` - Whether to delete temporary messages in the chat.  
+- `set_reply_markup(reply_markup)` - Inline keyboards, reply keyboards, or other markup objects.   
 - `set_parse_mode(parse_mode: str | None)` - `"html"`, `"markdown"` or `None`.  
 - `set_reply_to_message_id(reply_to_message_id: int | None)` - Reply to specific message by ID.  
+- `set_reply_to(reply_to: Message | None)` - Reply to a specific `Message` object.  
 - `set_edit_message_id(edit_message_id: int | None)` - Edit an existing message by ID.  
 - `set_edit_message(edit_message: Message | None)` - Edit a specific message by its `Message` object.
-- `set_reply_to(reply_to: Message | None)` - Reply to a specific `Message` object.  
+
+## Temporary Messages
+
+Temporary messages are messages marked for later deletion and managed automatically during sending.
+
+- `set_temporary(is_temp: bool)` - Marks the **current message** as temporary. The message is only flagged and **is not deleted immediately**. 
+- `set_delete_temporaries(del_temps: bool)` - When sending the current message, deletes **all previously marked temporary messages** in the current chat. Deletion happens **during the send operation**, not instantly.
+
+> [!IMPORTANT] 
+> - `set_temporary()` only marks the current message.  
+> - `set_delete_temporaries()` only triggers deletion of earlier temporary messages.
+
+## Send Methods
+
+Sends a previously configured message.
+
+- `send() -> Message | None` - Sends or edits the message, including management of temporary messages. Does **not** handle exceptions — any error will be raised.
+- `try_send() -> tuple[Message | None, Exception | None]` - Attempts to send the message with error handling.
+```py
+# Usage example
+message, error = self.chain.sender.try_send()
+```  
+- `send_or_handle_error() -> Message | None` - Attempts to send the message with error handling. Returns `Message` if the message was sent successfully, or `None` if an error occurred. If an error occurs, an error message containing the **exception type and description** is automatically sent to the chat:
+```
+ApiTelegramException
+
+A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse entities: Can't find end tag corresponding to start tag "b".
+```
+
+## Action Methods
+
+These methods do not configure the current message; instead, they perform a specific action immediately. 
+
 - `delete_message(message: Message | None, only_user_messages: bool=False) -> bool` - Deletes a message optionally ignoring bot messages.  
 - `pyerror(exception: BaseException) -> Message | None` - Sends a Python exception as a message.  
 - `error(title: str | StyleFormatter, message: str | StyleFormatter) -> Message | None` - Sends a custom error message.  
-- `send_chat_action` - Send a chat action to a chat. String or `ChatAction` object:
+- `send_chat_action(action)` - Send a chat action to a chat. String or `ChatAction` object:
 ```py
 self.chain.sender.send_chat_action(self.chain.sender.ChatAction.UPLOAD_AUDIO)
 self.chain.sender.send_chat_action("upload_audio")
 ```
-- `try_send() -> tuple[Message | None, Exception | None]` - Attempts to send a message with error handling.  
-- `send_or_handle_error() -> Message | None` - Sends a message and handles errors if they occur.  
-- `send() -> Message | None` - Sends or edits a message, managing temporary state.  
 - `get_message_id(message: Message | None) -> int | None` - Retrieves the message ID from a Message object.
 
-## Alert Sender
+## Alert Methods
 
 AlertSender is a special sender that sends a message and automatically formats its style (title, message body, italics, etc.).
 
 - `set_text(*text: str | StyleFormatter)` - Sets the full text of the message, clears title and message.  
 - `set_title(title: str | StyleFormatter)` - Sets the message title, clears text and message.  
 - `set_message(*message: str | StyleFormatter, sep: str | StyleFormatter="")` - Sets the alert message body, clearing text.  
-- `append(*message: str | StyleFormatter, sep: str | StyleFormatter="")` - Appends to the alert message body.  
-- `set_parse_mode(parse_mode: str | None=None)` - Sets the parse mode for the alert message.  
+- `append(*message: str | StyleFormatter, sep: str | StyleFormatter="")` - Appends to the alert message body.
 - `set_use_italics(use_italics: bool=True)` - Sets whether to use italics in the message.  
 - `set_use_newline(_use_newline: bool=True)` - Sets whether to add a newline between title and message.  
-- `send() -> Message | None` - Compiles and sends the alert message.  
 
 ## Under-the-Hood Methods
 
-These settings are handled automatically, but you can override them if needed:
+These settings are handled automatically by `Chain`, but you can override them if needed:
 
 - `set_chat_id(chat_id)`: Change target chat.
 - `set_edit_message(message)`: Set the message to edit.
 - `set_reply_markup(reply_markup)`: Add inline/keyboard markup. Raw.
 
 ## Context Manager
+
 This form **does not automatically send** the message.  
 It only groups your setter calls in a clean block:
 
@@ -91,6 +118,7 @@ with self.chain.sender as sender:
 You still need to call `self.chain.send()` afterward.
 
 ### Auto‑sending Context Manager
+
 If you want the message to be sent automatically at the end of the block, use:
 
 ```python

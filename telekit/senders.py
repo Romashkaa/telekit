@@ -740,13 +740,13 @@ class BaseSender:
     # Internal methods for sending and editing messages
     # --------------------------------------------------------
 
-    def _send_text(self) -> Message | None:
+    def _send_text(self):
         return self.bot.send_message(
             text=self.text,
             **self._get_send_args()
         )
 
-    def _edit(self) -> Message | None: # type: ignore
+    def _edit(self) -> Message | None:
         configs = self._get_edit_configs()
 
         if not self.edit_message_id:
@@ -760,14 +760,14 @@ class BaseSender:
             )
             message = self.bot.edit_message_media(
                 media=media,
-                reply_markup=self.reply_markup,  # type: ignore
+                reply_markup=self.reply_markup,
                 **configs
             )
         else:
             message = self.bot.edit_message_text(
                 text=self.text,
                 parse_mode=self.parse_mode,
-                reply_markup=self.reply_markup,  # type: ignore
+                reply_markup=self.reply_markup,
                 **configs
             )
 
@@ -900,6 +900,10 @@ class BaseSender:
 
         return message
     
+
+    # TODO: Add `send_or_edit` method that will return tuple[Message | None, bool]
+    # TODO: Add `delete`
+
     # --------------------------------------------------------
     # Methods for sending chat actions and retrieving message IDs
     # --------------------------------------------------------
