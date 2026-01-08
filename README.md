@@ -69,7 +69,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 
 ## Overview
 
-To get the most out of Telekit, we recommend following the full, [step-by-step tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) that covers everything from installation to advanced features and DSL usage.
+> To get the most out of Telekit, we recommend following the full, [step-by-step tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) that covers everything from installation to advanced features and DSL usage.
 
 Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
 
