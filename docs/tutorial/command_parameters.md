@@ -33,7 +33,7 @@ class StartHandler(telekit.Handler):
 
 **Notes:**
 - `Int(-1)` means: if conversion fails (non-integer input), the value will be `-1`.
-- `Str()` accepts any string input.
+- `Str()` accepts any string input (`Name` or `"Name Surname"`).
 - Default values in the handler (`age: int | None = None`) are used if the user does not provide these parameters.
 
 ## Using Deep Links

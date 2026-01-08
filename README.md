@@ -235,7 +235,7 @@ Telekit is lightweight yet powerful, giving you a full set of built-in tools and
 
 ## Command Parameters and Deep Linking
 
-Telekit allows you to define **commands with typed parameters** and handle **deep links**. This makes it easy to pass arguments directly in the `/command` call or through a URL link like `https://t.me/YourBot?start=parameter`.
+Telekit allows you to define **commands with typed parameters** and handle **deep links**. This makes it easy to pass arguments directly in the `/command parameter` call or through a URL link like `https://t.me/YourBot?start=parameter`.
 
 You can define a command and specify expected parameter types using `telekit.parameters`:
 
@@ -264,7 +264,7 @@ class StartHandler(telekit.Handler):
         self.chain.send()
 ```
 
-Send `/start 21 Alice` to your bot to see it in action.
+Send `/start 21 "Name Surname"` to your bot to see it in action.
 
 ---
 
