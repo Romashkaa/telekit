@@ -172,8 +172,6 @@ If your focus is on logic and functionality, Telekit is the ideal library:
 
 ```python
 # Inline keyboard `label-callback`:
-# - label:    `str`
-# - callback: `Chain` | `str` | `func()` | `func(message)`
 self.chain.set_inline_keyboard(
     {
         "« Change": prompt,  # Executes `prompt()` when clicked
@@ -183,8 +181,6 @@ self.chain.set_inline_keyboard(
 )
 
 # Inline keyboard `label-value`:
-# - label: `str`
-# - value: `Any`
 @self.chain.inline_keyboard({
     "Red": (255, 0, 0),
     "Green": (0, 255, 0),
@@ -209,8 +205,8 @@ def handler(message):
 
 # Receive text message:
 @self.chain.entry_text()
-def name_handler(message, name: str):
-    print(name)
+def name_handler(message, text: str):
+    print(text)
 
 # Inline keyboard with suggested options:
 chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
@@ -233,7 +229,41 @@ def text_document_handler(message, text_document: telekit.types.TextDocument):
 
 Telekit is lightweight yet powerful, giving you a full set of built-in tools and solutions for building advanced Telegram bots effortlessly.
 
-- You can find more information about the decorators by checking their doc-strings in Python.
+> [!TIP]
+> You can find more information about the decorators by checking their doc-strings in Python.
+
+## Command Parameters and Deep Linking
+
+Telekit allows you to define **commands with typed parameters** and handle **deep links**. This makes it easy to pass arguments directly in the `/command` call or through a URL link like `https://t.me/YourBot?start=parameter`.
+
+You can define a command and specify expected parameter types using `telekit.parameters`:
+
+```python
+import telekit
+from telekit.parameters import Int, Str
+
+class StartHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        # Define parameters: first an integer, then a string
+        cls.on.command("start", params=[Int(-1), Str()]).invoke(cls.handle)
+    
+    # Default values are required:   ↓↓↓↓                   ↓↓↓↓
+    def handle(self, age: int | None=None, name: str | None=None):
+        if age is None:
+            self.chain.sender.set_text("Please provide your age and name.")
+        elif age == -1:
+            self.chain.sender.set_text("Invalid age provided.")
+        elif name is None:
+            self.chain.sender.set_text("Name is missing.")
+        else:
+            self.chain.sender.set_text(f"Hello {name}! You are {age} years old.")
+        
+        self.chain.send()
+```
+
+Send `/start 21 Alice` to your bot to see it in action.
 
 ---
 
