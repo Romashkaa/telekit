@@ -2,7 +2,7 @@
 
 # TeleKit Library
 
-**Telekit** is a declarative, developer-friendly library for building Telegram bots. It gives developers a dedicated Sender to manage message composition and a Chain to handle user input and responses.
+**Telekit** is a declarative, developer-friendly library for building Telegram bots. It gives developers a dedicated Sender to manage message composition and a Chain to handle user input and responses. The library also handles message formatting, user input, and callback routing automatically, letting you focus on the bot’s behavior instead of repetitive tasks.
 
 ```py
 import telekit
@@ -22,7 +22,7 @@ telekit.Server("BOT_TOKEN").polling()
 
 > Example taken out of context
 
-Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for defining scenes, menus, FAQ pages, and multi-step flows, allowing developers to create fully interactive bots with minimal code. The library also handles message formatting, user input, and callback routing automatically, letting you focus on the bot’s behavior instead of repetitive tasks.
+Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md), allowing developers to create fully interactive bots with minimal code. The DSL also supports **Jinja templates**, providing support for loops, conditionals, expressions, and filters directly within template fields to generate dynamic content.
 
 ```js
 @ main {
