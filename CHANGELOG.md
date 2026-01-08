@@ -1,9 +1,39 @@
 ## DSL Improvements
 
-- Added `initial_scene` parameter for `start_script` method
-- Added new button types:
-    - `redirect(label, text)` — creates a button that simulates the user sending a specific message or command. Clicking it automatically ends the current script.
-    - `handoff(label, handler_name)` — creates a button that seamlessly switches control to another handler. Equivalent to calling `self.handoff(handler_name).handle()` in code.
-    - See tutorial:
-        - [Handoff Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handoff-button)
-        - [Redirect Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#redirect-button)
+This update enhances Telekit DSL templating by introducing **Jinja** as an alternative template engine.
+
+- Added global `template` configuration option — `"jinja"`, `"vars"`, or `"plain"` (`"vars"` is the default):
+    ```js
+    $ {
+        template = "jinja"
+    }
+    ```
+
+- Added a per-scene `template` attribute — `"jinja"`, `"vars"`, or `"plain"`.  
+  If not specified, the global `template` configuration value is used by default.
+    ```js
+    @ main {
+        ...
+        template = "jinja"
+    }
+    ```
+
+- Added the `set_jinja_context` method — sets variables in the Jinja rendering context, making them available across all DSL templates (such as `title`, `message`, and others).
+    - Example 1 (keyword arguments):
+    ```py
+    def handle(self):
+        self.set_jinja_context(
+            name="value"
+        )
+        self.start_script()
+    ```
+    - Example 2 (dictionary-based context):
+    ```py
+    def handle(self):
+        self.set_jinja_context(
+            {
+                "name": "value"
+            }
+        )
+        self.start_script()
+    ```

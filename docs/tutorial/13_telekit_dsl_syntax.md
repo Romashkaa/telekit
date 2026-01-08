@@ -795,6 +795,87 @@ The `redirect` button simulates the user sending a specific message or command w
 > [!NOTE] 
 > Clicking a `redirect` button automatically ends the current script. Therefore, the value is **not passed** to `entries { ... }` in the scene.
 
+## Jinja: Extended Template Engine
+
+Telekit DSL supports **Jinja** as an alternative and more powerful template engine.
+It allows you to use **conditions, loops, expressions, and filters** directly inside DSL fields.
+
+Jinja is useful when simple `{{variable}}` substitution is not enough.
+
+```js
+@ cart {
+    title = "🛒 Rooms in your cart:"
+    message = `
+        {% for room in handler.cart -%}
+            {{ room.title() }}
+        {% endfor %}
+    `
+    template = "jinja"
+    buttons { rooms("Book more »") }
+}
+```
+
+> [!NOTE]  
+> This tutorial does not cover Jinja syntax in detail.  
+> Please refer to the [official Jinja documentation](https://jinja.palletsprojects.com/en/stable/templates/) for full syntax and features.
+
+### Activation
+
+You can enable Jinja **globally** using a configuration block:
+
+```js
+$ {
+    template = "jinja"
+}
+```
+
+Or enable it **locally per scene**:
+
+```js
+@ main {
+    ...
+    template = "jinja"
+}
+```
+
+### Context
+
+Telekit automatically injects several objects into the Jinja context:
+
+- `{{ handler }}` — the current handler instance
+  - Example: `{{ handler.user.first_name or "no name" }}`
+- All static variables defined in `$ vars { ... }`
+  - Example: `{{ PRICE }}`
+
+### Custom Context
+
+You can override existing variables or add new ones using the `set_jinja_context` method.
+
+- Example 1 (keyword arguments):
+```py
+def handle(self):
+    self.set_jinja_context(
+        name="value"
+    )
+    self.start_script()
+```
+
+- Example 2 (dictionary-based context):
+```py
+def handle(self):
+    self.set_jinja_context(
+        {
+            "name": "value"
+        }
+    )
+    self.start_script()
+```
+
+A context value can be **any Python object**, including functions.
+
+> [!TIP]
+> Check the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/jinja_engine.md)
+
 ## Additional Documentation
 
 - [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md) ⭐️

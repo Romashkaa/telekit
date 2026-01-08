@@ -4,6 +4,7 @@
 import re
 import json
 from typing import NoReturn, Callable, Any
+import jinja2
 
 import telekit
 from telekit.styles import Sanitize
@@ -85,6 +86,9 @@ class ScriptData:
     def get_current_scene(self) -> dict:
         return self.scenes[self.get_current_scene_name()]
     
+    def get_current_template_mode(self) -> str:
+        return self.get_current_scene().get("template") or self.config.get("template", "vars")
+    
     def get_prev_scene(self) -> dict:
         return self.scenes[self.get_prev_scene_name()]
 
@@ -124,6 +128,7 @@ class TelekitDSLMixin(telekit.Handler):
 
     executable_model: dict | None = None
     script_data_factory: Callable[..., ScriptData] | None = None
+    jinja_context: dict[str, Any] = {}
 
     @classmethod
     def analyze_file(cls, path: str, encoding: str="utf-8")  -> None | NoReturn:
@@ -285,13 +290,15 @@ class TelekitDSLMixin(telekit.Handler):
             # main logic
             scene = self.script_data.scenes[scene_name]
 
+            template_mode: str = self.script_data.get_current_template_mode()
+
             # handler api
             if "on_enter" in scene:
-                self._call_api_methods(scene["on_enter"])
+                self._call_api_methods(scene["on_enter"], template_mode)
             if "on_enter_once" in scene:
                 hook_key = f"{scene_name}.on_enter_once"
                 if hook_key not in self.script_data.executed_once_hooks:
-                    self._call_api_methods(scene["on_enter_once"])
+                    self._call_api_methods(scene["on_enter_once"], template_mode)
                     self.script_data.executed_once_hooks.add(hook_key)
 
             # view
@@ -309,8 +316,8 @@ class TelekitDSLMixin(telekit.Handler):
 
             # variables
             if "{{" in title or "{{" in message:
-                title = self._parse_variables(title, real_parse_mode)
-                message = self._parse_variables(message, real_parse_mode)
+                title = self._parse_template(title, real_parse_mode, template_mode)
+                message = self._parse_template(message, real_parse_mode, template_mode)
 
             # title and message
             if do_sanitize:
@@ -324,7 +331,7 @@ class TelekitDSLMixin(telekit.Handler):
             keyboard: dict = {}
 
             for button_label, button_attrs in scene.get("buttons", {}).items():
-                label = self._parse_variables(button_label)
+                label = self._parse_template(button_label, template_mode=template_mode)
                 target = button_attrs["target"]
 
                 match button_attrs["type"]:
@@ -346,7 +353,7 @@ class TelekitDSLMixin(telekit.Handler):
                 self.chain.entry_text(self._filter_entry, True)(self._handle_entry)
 
             if "on_exit" in scene:
-                self._call_api_methods(scene["on_exit"])
+                self._call_api_methods(scene["on_exit"], template_mode)
 
             self.script_data.entry = None
 
@@ -414,10 +421,14 @@ class TelekitDSLMixin(telekit.Handler):
     # ----------------------------------------------------------------------------
 
     def _on_timeout(self):
+        # on_timeout { ... } block
         scene = self.script_data.get_current_scene()
-        if "on_timeout" in scene:
-            self._call_api_methods(scene["on_timeout"])
+        template_mode: str = self.script_data.get_current_template_mode()
 
+        if "on_timeout" in scene:
+            self._call_api_methods(scene["on_timeout"], template_mode)
+
+        # main logic
         message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
         message = self.chain.sender.styles.no_sanitize(message)
         label   = self.script_data.config.get("timeout_label", "Yes, I'm here ✓")
@@ -436,8 +447,50 @@ class TelekitDSLMixin(telekit.Handler):
         self.prepare_scene(self.script_data.history.pop())()
 
     # ----------------------------------------------------------------------------
-    # Variables
+    # Template Vars / Jinja
     # ----------------------------------------------------------------------------
+
+    def _parse_template(self, template_str: str, parse_mode: str | None=None, template_mode: str="plain"):
+        match template_mode:
+            case "vars":
+                return self._parse_variables(template_str, parse_mode)
+            case "jinja":
+                return self._parse_jinja_template(template_str, parse_mode)
+            case _:
+                return template_str
+            
+    def _parse_jinja_template(self, template_str: str, parse_mode: str | None = None):
+        env = jinja2.Environment(autoescape=False)
+
+        # custom escape filter: {{ value | e }}
+        def escape_filter(value):
+            if value is None:
+                return ""
+            return str(Sanitize(str(value), parse_mode=parse_mode))
+
+        env.filters["e"] = escape_filter
+
+        context = self._prepare_jinja_context()
+
+        try:
+            template = env.from_string(template_str)
+            rendered = template.render(context)
+        except Exception as e:
+            raise self._fail(f"Jinja template error: {e}")
+
+        return rendered
+    
+    def set_jinja_context(self, context: dict[str, Any] | None=None, **kwcontext):
+        if context:
+            self.jinja_context = context | kwcontext
+        else:
+            self.jinja_context = kwcontext
+
+    def _prepare_jinja_context(self) -> dict[str, Any]:
+        return {"handler": self} | self._get_script_vars() | self.jinja_context
+    
+    def _get_script_vars(self):
+        return {k[len("vars_"):]: v for k, v in self.script_data.config.items() if k.startswith("vars_")}
 
     def get_variable(self, name: str) -> str | None:
         """
@@ -492,7 +545,7 @@ class TelekitDSLMixin(telekit.Handler):
             case "prev_scene_title":
                 return self.script_data.get_prev_scene().get("title")
             case "prev_scene_message":
-                return self.script_data.get_prev_scene().get("title")
+                return self.script_data.get_prev_scene().get("message")
             case "scene_name":
                 return self.script_data.get_current_scene_name()
             case "scene_title":
@@ -581,7 +634,7 @@ class TelekitDSLMixin(telekit.Handler):
         else:
             return "main" # (impossible)
         
-    def _call_api_methods(self, api_calls: list[tuple[str, None | list[Any]]]):
+    def _call_api_methods(self, api_calls: list[tuple[str, None | list[Any]]], template_mode: str):
         """
         Execute API methods from the list. Each element is [method_name, args]:
             args can be a list or None if no arguments.
@@ -602,7 +655,7 @@ class TelekitDSLMixin(telekit.Handler):
                     method()
                 else:
                     args = [
-                        self._parse_variables(arg) if isinstance(arg, str) else arg
+                        self._parse_template(arg, template_mode=template_mode) if isinstance(arg, str) else arg
                         for arg in args
                     ]
                     method(*args)

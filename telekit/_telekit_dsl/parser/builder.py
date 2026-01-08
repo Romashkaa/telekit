@@ -174,7 +174,9 @@ class Builder:
             ("timeout_label", str),
 
             ("next_label", str),
-            ("next_order", list)
+            ("next_order", list),
+
+            ("template", str)
         )
 
         optional_keys = [key[0] for key in optional_fields]
@@ -201,6 +203,10 @@ class Builder:
                 
             if len(next_order) != len(set(next_order)):
                 raise BuilderError("Field 'next_order' must contain only unique values")
+            
+        if "template" in fields:
+            if fields.get("template") not in ["jinja", "vars", "plain"]:
+                raise BuilderError("Field 'template' must contain only 'jinja', 'vars' or 'plain'")
         
         # variables
 
@@ -244,6 +250,9 @@ class Builder:
             ("image", str, NoValue()),
             ("use_italics", bool, NoValue()),
             ("parse_mode", (str, type(None)), NoValue()),
+
+            # Templates
+            ("template", str, NoValue())
         )
 
         # check optional fields
@@ -265,6 +274,9 @@ class Builder:
         
         if scene_data.get("parse_mode") and scene_data["parse_mode"].lower() not in ("markdown", "html"):
             raise BuilderError(f"\n\nScene '@{name}' has invalid parse_mode '{scene_data['parse_mode']}'.\nUse: 'markdown' or 'html'")
+        
+        if "template" in scene_data and scene_data.get("template") not in ["jinja", "vars", "plain"]:
+            raise BuilderError("\n\nScene '@{name}' has invalid 'template' attribute: must contain only 'jinja', 'vars' or 'plain'")
         
         # Handler API
 
