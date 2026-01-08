@@ -59,6 +59,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
     - [Message Formatting](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#message-formatting)
     - [Text Styling](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#text-styling-with-styles)
     - [Handling Callbacks](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#handling-callbacks-and-logic)
+    - [Command Parameters](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#command-parameters-and-deep-linking)
 - [Quick Start](https://github.com/Romashkaa/telekit/tree/main?tab=readme-ov-file#quick-start)
 - [Examples and Solutions](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
     - [Dialogue](https://github.com/Romashkaa/telekit/blob/main/docs/examples/dialogue.md)
