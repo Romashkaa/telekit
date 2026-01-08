@@ -155,3 +155,7 @@ Additional:
 ```
 
 Feel free to adapt them for your own scenes.
+
+## Script Data Structure (JSON)
+
+[See on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/dsl_analyzer_output.md)

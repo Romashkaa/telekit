@@ -17,8 +17,8 @@ class Builder:
         self.result = {
             "config": {},
             "scenes": {},
+            "order": [],
             "source": self.src,
-            "order": []
         }
         self.config_blocks: list[dict[str, Any]] = []
         self.scenes_default_labels: dict[str, str] = {
@@ -100,7 +100,7 @@ class Builder:
 
         last_scene = self.result["scenes"][last_scene_name]
 
-        for label, target in last_scene.get("refers_to", {}).items():
+        for _, target in last_scene.get("refers_to", {}).items():
             if target == "next":
                 raise BuilderError(
                     f"Scene '@{last_scene_name}' is last in next_order but contains a 'next' button. "
@@ -114,7 +114,7 @@ class Builder:
             return
 
         for scene_name, scene in self.result["scenes"].items():
-            for label, target in scene.get("refers_to", {}).items():
+            for _, target in scene.get("refers_to", {}).items():
                 if target == "next":
                     raise BuilderError(
                         f"Scene '@{scene_name}' uses a 'next' button, "

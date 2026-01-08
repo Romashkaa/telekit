@@ -99,7 +99,7 @@ class TelekitDSLMixin(telekit.Handler):
     TelekitDSLMixin — Mixin for creating interactive FAQ inside a Telekit handler.
 
     This class allows you to:
-    - Load guide data from a Telekit DSL file or string.
+    - Load script data from a Telekit DSL file or string.
     - Automatically handle user navigation between scenes.
     - Render scenes with inline keyboards and formatting.
 
@@ -110,26 +110,19 @@ class TelekitDSLMixin(telekit.Handler):
 
     ## Usage:
     ```
-        import telebot.types
         import telekit
 
         class MyFAQHandler(telekit.TelekitDSL.Mixin):
             @classmethod
             def init_handler(cls) -> None:
-                cls.analyze_source(guide)
+                cls.analyze_source(script)
                 cls.on.command("faq").invoke(cls.start_script)
-
-            # If you want to add your own bit of logic:
-
-            # def start_script(self):
-            #     # Your logic
-            #     super().start_script()
     ```
 
     [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
     """
 
-    raw_script_data: dict | None = None
+    executable_model: dict | None = None
     script_data_factory: Callable[..., ScriptData] | None = None
 
     @classmethod
@@ -160,7 +153,7 @@ class TelekitDSLMixin(telekit.Handler):
         :type script: str
         """
         cls.script_data_factory = None
-        cls.raw_script_data = parser.analyze(script)
+        cls.executable_model = parser.analyze(script)
         cls.prepare_script()
 
     @classmethod
@@ -168,13 +161,13 @@ class TelekitDSLMixin(telekit.Handler):
         """
         Prints the semantic model of the script to the console.
         """
-        if not cls.raw_script_data:
+        if not cls.executable_model:
             print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_source` first.")
             return
 
         print(
             json.dumps(
-                cls.raw_script_data,
+                cls.executable_model,
                 indent=4,
                 ensure_ascii=False
             )
@@ -187,29 +180,29 @@ class TelekitDSLMixin(telekit.Handler):
         """
         cls.script_data_factory = None
 
-        if not cls.raw_script_data:
+        if not cls.executable_model:
             raise ValueError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
 
         # scenes
-        if "scenes" not in cls.raw_script_data:
+        if "scenes" not in cls.executable_model:
             missing("scenes")
-        if not isinstance(cls.raw_script_data["scenes"], dict):
+        if not isinstance(cls.executable_model["scenes"], dict):
             raise TypeError("'scenes' should be a dictionary.")
-        scenes: dict[str, dict] = cls.raw_script_data["scenes"]
+        scenes: dict[str, dict] = cls.executable_model["scenes"]
 
         # scene order
-        if "order" not in cls.raw_script_data:
+        if "order" not in cls.executable_model:
             missing("order")
-        if not isinstance(cls.raw_script_data["order"], list):
+        if not isinstance(cls.executable_model["order"], list):
             raise TypeError("'order' should be a list of strings.")
-        scene_order: list[str] = cls.raw_script_data["order"]
+        scene_order: list[str] = cls.executable_model["order"]
 
         # config
-        if "config" not in cls.raw_script_data:
+        if "config" not in cls.executable_model:
             missing("config")
-        if not isinstance(cls.raw_script_data["config"], dict):
+        if not isinstance(cls.executable_model["config"], dict):
             raise TypeError("'config' should be a dictionary.")
-        config = cls.raw_script_data["config"]
+        config = cls.executable_model["config"]
 
         # next order
         next_order: list[str] | None = config.get("next_order")
@@ -228,7 +221,7 @@ class TelekitDSLMixin(telekit.Handler):
                 "$ timeout {\n"
                 "    time = 30; // seconds\n"
                 "}\n\n" + \
-                f"{cls.raw_script_data["source"][:94].strip()}...\n\n" + \
+                f"{cls.executable_model["source"][:94].strip()}...\n\n" + \
                 "Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout\n"
             )
 
@@ -623,234 +616,9 @@ def missing(name: str):
     library.error(message)
     raise KeyError(message)
 
-"""
-// ----------------------------------------------------
-// Script Data Structure (JSON)
-// ----------------------------------------------------
 
-{
-    "config": {
-        "timeout_time": 20,
-        "next_order": [
-            "main",
-            "question_1",
-            "question_2",
-            "question_3",
-            "question_4",
-            "question_5",
-            "question_6",
-            "question_7",
-            "question_8",
-            "question_9",
-            "question_10"
-        ]
-    },
-    "scenes": {
-        "main": {
-            "name": "main",
-            "title": "🎉 Fun Facts Quiz",
-            "message": "Hello, {{first_name}}. Test your knowledge with 10 fun questions!",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Start Quiz": {
-                    "type": "scene",
-                    "target": "next"
-                }
-            },
-            "row_width": 1
-        },
-        "question_1": {
-            "name": "question_1",
-            "title": "🐶 Question 1",
-            "message": "Which animal is the fastest on land?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Elephant": "_lose",
-                "Cheetah": "next",
-                "Horse": "_lose",
-                "Lion": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_2": {
-            "name": "question_2",
-            "title": "🍫 Question 2",
-            "message": "From which product is chocolate made?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Cocoa powder": "_lose",
-                "Cocoa beans": "next",
-                "Cocoa butter": "_lose",
-                "Cocoa drink": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_3": {
-            "name": "question_3",
-            "title": "🌌 Question 3",
-            "message": "Which planet is known for its prominent rings?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Jupiter": "_lose",
-                "Saturn": "next",
-                "Mars": "_lose",
-                "Neptune": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_4": {
-            "name": "question_4",
-            "title": "🦎 Question 4",
-            "message": "Which animal can change the color of its skin?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Chameleon": "next",
-                "Crocodile": "_lose",
-                "Turtle": "_lose",
-                "Snake": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_5": {
-            "name": "question_5",
-            "title": "🍌 Question 5",
-            "message": "Which vitamin is most abundant in a banana?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Vitamin C": "_lose",
-                "Vitamin B6": "next",
-                "Vitamin D": "_lose",
-                "Vitamin A": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_6": {
-            "name": "question_6",
-            "title": "🎨 Question 6",
-            "message": "Which artist painted the 'Mona Lisa'?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Leonardo da Vinci": "next",
-                "Pablo Picasso": "_lose",
-                "Vincent van Gogh": "_lose",
-                "Michelangelo": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_7": {
-            "name": "question_7",
-            "title": "🎵 Question 7",
-            "message": "Which musical instrument has 88 keys?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Guitar": "_lose",
-                "Harmonica": "_lose",
-                "Piano": "next",
-                "Saxophone": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_8": {
-            "name": "question_8",
-            "title": "🧩 Question 8",
-            "message": "How many faces does a cube have?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "6": "next",
-                "8": "_lose",
-                "12": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_9": {
-            "name": "question_9",
-            "title": "🌊 Question 9",
-            "message": "Which is the largest ocean on Earth?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "Pacific Ocean": "next",
-                "Atlantic Ocean": "_lose",
-                "Indian Ocean": "_lose",
-                "Arctic Ocean": "_lose"
-            },
-            "row_width": 1
-        },
-        "question_10": {
-            "name": "question_10",
-            "title": "🍕 Question 10",
-            "message": "Which country is pizza originally from?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "France": "_lose",
-                "Italy": "_end",
-                "Spain": "_lose",
-                "USA": "_lose"
-            },
-            "row_width": 1
-        },
-        "_lose": {
-            "name": "_lose",
-            "title": "❌ Wrong Answer!",
-            "message": "Oops! {{random_lose_phrase}}",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "« Retry": "back"
-            },
-            "row_width": 1
-        },
-        "_end": {
-            "name": "_end",
-            "title": "🎉 Quiz Complete!",
-            "message": "Congratulations! You've completed the Fun Facts Quiz! 🌟\n\nWant to try again?",
-            "image": null,
-            "use_italics": false,
-            "parse_mode": null,
-            "buttons": {
-                "↺ Restart Quiz": "main"
-            },
-            "row_width": 1
-        }
-    },
-    "source": "...",
-    "order": [
-        "main",
-        "question_1",
-        "question_2",
-        "question_3",
-        "question_4",
-        "question_5",
-        "question_6",
-        "question_7",
-        "question_8",
-        "question_9",
-        "question_10",
-        "_lose",
-        "_end"
-    ]
-}
-
-"""
+# ----------------------------------------------------
+# Script Data Structure (JSON)
+# ----------------------------------------------------
+#
+# See on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/documentation/dsl_analyzer_output.md
