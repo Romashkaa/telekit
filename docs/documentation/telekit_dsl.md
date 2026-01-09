@@ -108,6 +108,9 @@ You can use the following variables in your Telekit DSL scripts to [personalize 
 - `prev_scene_name` – internal name of the previous scene
   - `prev_scene_title` – title of the previous scene
   - `prev_scene_message` – message text of the previous scene
+- `next_scene_name` – internal name of the next scene
+  - `next_scene_title` – title of the next scene
+  - `next_scene_message`  – message text of the next scene
 
 ### Technical
 - `scene_ref_count` – number of scenes linking to the current scene

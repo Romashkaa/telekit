@@ -877,6 +877,67 @@ A context value can be **any Python object**, including functions.
 > [!TIP]
 > Check the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/jinja_engine.md)
 
+### Environment
+
+When using the Jinja template engine, Telekit relies on a shared **Jinja Environment**.  
+The environment defines how templates are loaded, rendered, and extended with custom behavior such as filters.
+
+The Jinja environment is **class-attribute**, meaning it is shared between all handler instances of the same DSL handler class. This avoids unnecessary re-creation.
+
+#### Accessing the Environment
+
+The Jinja environment is available both on the handler class and on handler instances:
+
+```py
+cls.jinja_env
+self.jinja_env
+```
+
+#### Customizing the Environment
+
+You can provide your own Jinja environment using `set_jinja_env`:
+
+```py
+import jinja2
+
+@classmethod
+def init_handler(cls) -> None:
+    cls.set_jinja_env(
+        jinja2.Environment(
+            loader=jinja2.FileSystemLoader("templates"),
+            autoescape=False
+        )
+    )
+```
+
+If no environment is provided, Telekit creates a default `jinja2.Environment` internally.
+
+This method can be used to:
+- Change template loaders (for example, enable file-based templates)
+- Enable or disable autoescaping
+- Register global functions or filters
+- Adjust Jinja configuration options
+
+#### Built-in Sanitize Filters
+
+Telekit automatically registers additional filters in the Jinja environment to safely escape dynamic content depending on the parse mode:
+
+```py
+cls.jinja_env.filters["e_md"] = JinjaFilters.escape_md
+cls.jinja_env.filters["e_html"] = JinjaFilters.escape_html
+```
+
+- `e_md` — escapes text for **Markdown** messages
+- `e_html` — escapes text for **HTML** messages
+
+These filters are available in all Jinja templates and are especially useful when rendering user-generated content:
+
+```jinja
+Hello, {{ handler.user.first_name | e_md }}
+```
+
+Using these filters helps prevent formatting issues and accidental markup injection.
+
 ## Additional Documentation
 
 - [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/telekit_dsl.md) ⭐️

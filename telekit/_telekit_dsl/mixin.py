@@ -23,7 +23,6 @@ class ScriptData:
         self.next_order  = next_order
         self.entry: str | None = None
 
-
         if timeout_time and isinstance(timeout_time, int):
             self.timeout_time = timeout_time
         else:
@@ -36,6 +35,13 @@ class ScriptData:
 
         # keep track of which *_once hooks have already been executed
         self.executed_once_hooks: set[str] = set()
+
+        self.static_vars = self._filter_configs("vars_")
+
+    def _filter_configs(self, key_prefix: str):
+        prefix_len = len(key_prefix)
+        filtered_items = filter(lambda kv: kv[0].startswith(key_prefix), self.config.items())
+        return {k[prefix_len:]: v for k, v in filtered_items}
         
     def get_button_ref_count(self, name: str) -> int:
         if name in self._button_ref_count:
@@ -86,17 +92,87 @@ class ScriptData:
     def get_current_scene(self) -> dict:
         return self.scenes[self.get_current_scene_name()]
     
-    def get_current_template_mode(self) -> str:
-        return self.get_current_scene().get("template") or self.config.get("template", "vars")
+    def get_template_engine(self, scene_name: str | None=None) -> str:
+        if scene_name is None:
+            scene = self.get_current_scene()
+        else:
+            scene = self.scenes[scene_name]
+        return scene.get("template") or self.config.get("template", "vars")
     
     def get_prev_scene(self) -> dict:
         return self.scenes[self.get_prev_scene_name()]
+    
+    def get_next_scene_name(self) -> str | None:
+        if not self.next_order:
+            return None
+        for item in self.history[::-1]:
+            if item not in self.next_order:
+                continue
+            index = self.next_order.index(item)
+            # check that next index exists
+            if index + 1 >= len(self.next_order):
+                return None
+            return self.next_order[index + 1]
+        return None
+    
+    def get_next_scene(self) -> dict:
+        return self.scenes[self.get_next_scene_name() or "main"]
+    
+    # -----------------------------------------------------------------
+    # Internal Logic
+    # -----------------------------------------------------------------
+
+    def _pop_prev_scene_name(self) -> str | None:
+        if self.history:
+            self.history.pop() # remove current
+        if self.history:
+            return self.history.pop() # get and remove previous
 
     @classmethod
-    def script_data_factory(cls, config: dict, scenes: dict[str, dict], scene_order: list[str], next_order: list[str], timeout_time: int):
-        def create(*args) -> ScriptData:
-            return cls(config, scenes, scene_order, next_order, timeout_time)
+    def _script_data_factory(cls, executable_model: dict[str, Any]):
+        script_data = cls._extract_script_data(executable_model)
+
+        def create(*_) -> ScriptData:
+            return cls(*script_data)
+        
         return create
+    
+    @classmethod
+    def _extract_script_data(cls, executable_model: dict[str, Any]):
+        # scenes
+        if "scenes" not in executable_model:
+            missing("scenes")
+        if not isinstance(executable_model["scenes"], dict):
+            raise TypeError("'scenes' should be a dictionary.")
+        scenes: dict[str, dict] = executable_model["scenes"]
+
+        # scene order
+        if "order" not in executable_model:
+            missing("order")
+        if not isinstance(executable_model["order"], list):
+            raise TypeError("'order' should be a list of strings.")
+        scene_order: list[str] = executable_model["order"]
+
+        # config
+        if "config" not in executable_model:
+            missing("config")
+        if not isinstance(executable_model["config"], dict):
+            raise TypeError("'config' should be a dictionary.")
+        config = executable_model["config"]
+
+        # next order
+        next_order: list[str] | None = config.get("next_order")
+        if not isinstance(next_order, list):
+            raise TypeError("'next_order' config should be a list of strings.")
+        
+        # timeout
+        timeout_time = config.get("timeout_time", 300) # 5min
+
+        return config, scenes, scene_order, next_order, timeout_time
+
+# -----------------------------------------------------------------
+# Mixin
+# -----------------------------------------------------------------
 
 class TelekitDSLMixin(telekit.Handler):
     """
@@ -126,9 +202,17 @@ class TelekitDSLMixin(telekit.Handler):
     [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
     """
 
-    executable_model: dict | None = None
-    script_data_factory: Callable[..., ScriptData] | None = None
-    jinja_context: dict[str, Any] = {}
+    # class attributes
+    _script_data_factory: Callable[..., ScriptData]
+    executable_model: dict
+    jinja_env: jinja2.Environment
+
+    # instance attributes
+    jinja_context: dict[str, Any]
+
+    # ----------------------------------------------------------------------------
+    # Class Attributes
+    # ----------------------------------------------------------------------------
 
     @classmethod
     def analyze_file(cls, path: str, encoding: str="utf-8")  -> None | NoReturn:
@@ -157,16 +241,15 @@ class TelekitDSLMixin(telekit.Handler):
         :param script: Telekit DSL script
         :type script: str
         """
-        cls.script_data_factory = None
         cls.executable_model = parser.analyze(script)
-        cls.prepare_script()
+        cls._prepare_script(cls.executable_model)
 
     @classmethod
     def display_script_data(cls):
         """
         Prints the semantic model of the script to the console.
         """
-        if not cls.executable_model:
+        if not hasattr(cls, "executable_model"):
             print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_source` first.")
             return
 
@@ -179,64 +262,41 @@ class TelekitDSLMixin(telekit.Handler):
         )
 
     @classmethod
-    def prepare_script(cls):
+    def set_jinja_env(cls, env: jinja2.Environment | None=None):
+        """
+        Sets the Jinja Environment for the handler **class**.
+
+        - If `env` is None, creates a default Environment with `autoescape` disabled.
+        - Otherwise, uses the provided custom Environment.
+        - Registers custom escape filters for Markdown (`e_md`) and HTML (`e_html`).
+        - The Environment is shared across all instances of this class.
+        """
+        if env is None:
+            cls.jinja_env = jinja2.Environment(autoescape=False)
+        else:
+            cls.jinja_env = env
+
+        cls.jinja_env.filters["e_md"] = JinjaFilters.escape_md
+        cls.jinja_env.filters["e_html"] = JinjaFilters.escape_html
+
+    @classmethod
+    def _prepare_script(cls, executable_model: dict[str, Any]):
         """
         Prepares the script; raises an error if the script data is not loaded or invalid
         """
-        cls.script_data_factory = None
 
-        if not cls.executable_model:
+        if not executable_model:
             raise ValueError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
 
-        # scenes
-        if "scenes" not in cls.executable_model:
-            missing("scenes")
-        if not isinstance(cls.executable_model["scenes"], dict):
-            raise TypeError("'scenes' should be a dictionary.")
-        scenes: dict[str, dict] = cls.executable_model["scenes"]
+        # update script data factory
+        cls._script_data_factory = ScriptData._script_data_factory(executable_model)
 
-        # scene order
-        if "order" not in cls.executable_model:
-            missing("order")
-        if not isinstance(cls.executable_model["order"], list):
-            raise TypeError("'order' should be a list of strings.")
-        scene_order: list[str] = cls.executable_model["order"]
-
-        # config
-        if "config" not in cls.executable_model:
-            missing("config")
-        if not isinstance(cls.executable_model["config"], dict):
-            raise TypeError("'config' should be a dictionary.")
-        config = cls.executable_model["config"]
-
-        # next order
-        next_order: list[str] | None = config.get("next_order")
-        if not isinstance(next_order, list):
-            raise TypeError("'next_order' config should be a list of strings.")
+        # set default jinja environment
+        if not hasattr(cls, "jinja_env"):
+            cls.set_jinja_env()
         
-        # timeout
-        timeout_time = config.get("timeout_time", 0)
-
-        if not timeout_time:
-            library.warning(
-                "No timeout configured for this DSL script. "
-                "It is recommended to add a timeout to automatically clear callbacks "
-                "after a period of inactivity.\n\n"
-                "Example:\n\n"
-                "$ timeout {\n"
-                "    time = 30; // seconds\n"
-                "}\n\n" + \
-                f"{cls.executable_model["source"][:94].strip()}...\n\n" + \
-                "Learn more about DSL Timeouts in the GitHub tutorial: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout\n"
-            )
-
-        # end
-        cls.script_data_factory = ScriptData.script_data_factory(
-            config, scenes, scene_order, next_order, timeout_time
-        )
-
     # ----------------------------------------------------------------------------
-    # Instance Attributes
+    # Instance Methods
     # ----------------------------------------------------------------------------
 
     def start_script(self, initial_scene: str="main") -> None | NoReturn:
@@ -244,19 +304,23 @@ class TelekitDSLMixin(telekit.Handler):
         Starts the script; raises an error if the script has not been analyzed
         """
         # quick check
-        if not self.script_data_factory:
+        if not hasattr(self, "_script_data_factory"):
             message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_source() before starting it."
             library.error(message)
             self.chain.sender.pyerror(RuntimeError(message))
             return
 
-        self.script_data = self.script_data_factory()
+        self.script_data = self._script_data_factory()
 
         # set timeout
         if self.script_data.timeout_time:
             self.chain.set_timeout(self._on_timeout, self.script_data.timeout_time)
         self.chain.disable_timeout_warnings()
         self.chain.set_remove_timeout(False)
+
+        # set default jinja context
+        if not hasattr(self, "jinja_context"):
+            self.set_jinja_context()
 
         # start the initial scene
         if initial_scene not in self.script_data.scenes:
@@ -281,24 +345,24 @@ class TelekitDSLMixin(telekit.Handler):
             if scene_name in MAGIC_SCENES:
                 match scene_name:
                     case "back":
-                        scene_name = self._get_prev_scene_name()
+                        scene_name = self.script_data._pop_prev_scene_name() or "main"
                     case "next":
-                        scene_name = self._get_next_scene_name()
-
-            self.script_data.history.append(scene_name)
+                        scene_name = self.script_data.get_next_scene_name() or "main"
 
             # main logic
+            self.script_data.history.append(scene_name)
             scene = self.script_data.scenes[scene_name]
 
-            template_mode: str = self.script_data.get_current_template_mode()
+            # template engine
+            template_engine: str = self.script_data.get_template_engine()
 
-            # handler api
+            # "on enter" handler api
             if "on_enter" in scene:
-                self._call_api_methods(scene["on_enter"], template_mode)
+                self._call_api_methods(scene["on_enter"], template_engine)
             if "on_enter_once" in scene:
                 hook_key = f"{scene_name}.on_enter_once"
                 if hook_key not in self.script_data.executed_once_hooks:
-                    self._call_api_methods(scene["on_enter_once"], template_mode)
+                    self._call_api_methods(scene["on_enter_once"], template_engine)
                     self.script_data.executed_once_hooks.add(hook_key)
 
             # view
@@ -316,8 +380,8 @@ class TelekitDSLMixin(telekit.Handler):
 
             # variables
             if "{{" in title or "{{" in message:
-                title = self._parse_template(title, real_parse_mode, template_mode)
-                message = self._parse_template(message, real_parse_mode, template_mode)
+                title = self._parse_template(title, real_parse_mode, template_engine)
+                message = self._parse_template(message, real_parse_mode, template_engine)
 
             # title and message
             if do_sanitize:
@@ -331,7 +395,7 @@ class TelekitDSLMixin(telekit.Handler):
             keyboard: dict = {}
 
             for button_label, button_attrs in scene.get("buttons", {}).items():
-                label = self._parse_template(button_label, template_mode=template_mode)
+                label = self._parse_template(button_label, template_engine=template_engine)
                 target = button_attrs["target"]
 
                 match button_attrs["type"]:
@@ -352,18 +416,66 @@ class TelekitDSLMixin(telekit.Handler):
             if scene.get("entries") or scene.get("_default_entry_target"):
                 self.chain.entry_text(self._filter_entry, True)(self._handle_entry)
 
+            # "on exit" handler api
             if "on_exit" in scene:
-                self._call_api_methods(scene["on_exit"], template_mode)
+                self._call_api_methods(scene["on_exit"], template_engine)
 
+            # remove the garbage
             self.script_data.entry = None
 
             if not scene.get("_has_back_option"):
                 self.script_data.history.clear()
                 self.script_data.history.append(scene_name)
 
+            # send the message
             self.chain.edit()
 
         return render
+    
+    # ----------------------------------------------------------------------------
+    # Jinja & Vars API
+    # ----------------------------------------------------------------------------
+    
+    def set_jinja_context(self, context: dict[str, Any] | None=None, **kwcontext):
+        """
+        Sets the Jinja rendering context for the current handler instance.
+
+        - If `context` dict is provided, it is merged with keyword arguments.
+        - Keyword arguments always override values from `context` on key conflicts.
+        - If `context` is None, only keyword arguments are used.
+
+        This context is later passed to Jinja templates during rendering.
+
+        ---
+
+        If keys conflict, values provided by this method override the default ones:
+        - the built-in `handler` variable
+        - variables defined in the DSL (`$ vars { ... }`)
+        """
+        if context:
+            self.jinja_context = context | kwcontext
+        else:
+            self.jinja_context = kwcontext
+
+    def get_variable(self, name: str) -> str | None:
+        """
+        Return a custom variable value for use in Telekit DSL scripts.
+
+        Telekit DSL supports **template variables** using double curly braces: `{{variable}}`.
+
+        This method is called by the DSL engine when rendering template variables.
+        If you return a string, that value will be used in place of the variable 
+        `{{name}}` in the DSL script. If you return None, the engine will fallback 
+        to the built-in variables. If the variable is not found there either, the 
+        default value (if provided using the `:` syntax) will be used.
+
+        :param name: The name of the variable to retrieve.
+        :type name: str
+        :return: The value of the variable to use in the DSL, or None to fallback 
+                to built-in variables/defaults.
+        :rtype: str | None
+        """
+        return
     
     # ----------------------------------------------------------------------------
     # Redirect Logic
@@ -421,99 +533,62 @@ class TelekitDSLMixin(telekit.Handler):
     # ----------------------------------------------------------------------------
 
     def _on_timeout(self):
-        # on_timeout { ... } block
+        # "on timeout" handler api
         scene = self.script_data.get_current_scene()
-        template_mode: str = self.script_data.get_current_template_mode()
+        template_engine: str = self.script_data.get_template_engine()
 
         if "on_timeout" in scene:
-            self._call_api_methods(scene["on_timeout"], template_mode)
+            self._call_api_methods(scene["on_timeout"], template_engine)
 
-        # main logic
+        # timeout logic
         message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
         message = self.chain.sender.styles.no_sanitize(message)
         label   = self.script_data.config.get("timeout_label", "Yes, I'm here ✓")
 
         self.chain.set_timeout(None, 7)
         self.chain.sender.add_message("\n\n", self.chain.sender.styles.bold(message))
-        self.chain.set_inline_keyboard({label: self._continue})
+        self.chain.set_inline_keyboard({label: self._on_continue})
 
+        # edit the message
         self.chain.edit()
 
-    def _continue(self):
+    def _on_continue(self):
         if self.script_data.timeout_time:
             self.chain.set_timeout(self._on_timeout, self.script_data.timeout_time)
         else:
             self.chain.remove_timeout()
+
         self.prepare_scene(self.script_data.history.pop())()
 
     # ----------------------------------------------------------------------------
-    # Template Vars / Jinja
+    # Template Logic
     # ----------------------------------------------------------------------------
 
-    def _parse_template(self, template_str: str, parse_mode: str | None=None, template_mode: str="plain"):
-        match template_mode:
+    def _parse_template(self, template_str: str, parse_mode: str | None=None, template_engine: str="plain"):
+        match template_engine:
             case "vars":
                 return self._parse_variables(template_str, parse_mode)
             case "jinja":
-                return self._parse_jinja_template(template_str, parse_mode)
+                return self._parse_jinja_template(template_str)
             case _:
                 return template_str
+
+    def _get_jinja_context(self) -> dict[str, Any]:
+        return {"handler": self} | self.script_data.static_vars | self.jinja_context
             
-    def _parse_jinja_template(self, template_str: str, parse_mode: str | None = None):
-        env = jinja2.Environment(autoescape=False)
-
-        # custom escape filter: {{ value | e }}
-        def escape_filter(value):
-            if value is None:
-                return ""
-            return str(Sanitize(str(value), parse_mode=parse_mode))
-
-        env.filters["e"] = escape_filter
-
-        context = self._prepare_jinja_context()
+    def _parse_jinja_template(self, template_str: str):
+        context = self._get_jinja_context()
 
         try:
-            template = env.from_string(template_str)
+            template = self.jinja_env.from_string(template_str)
             rendered = template.render(context)
-        except Exception as e:
-            raise self._fail(f"Jinja template error: {e}")
+        except Exception as exception:
+            raise self._fail(f"Jinja Error: {exception}")
 
         return rendered
     
-    def set_jinja_context(self, context: dict[str, Any] | None=None, **kwcontext):
-        if context:
-            self.jinja_context = context | kwcontext
-        else:
-            self.jinja_context = kwcontext
-
-    def _prepare_jinja_context(self) -> dict[str, Any]:
-        return {"handler": self} | self._get_script_vars() | self.jinja_context
-    
-    def _get_script_vars(self):
-        return {k[len("vars_"):]: v for k, v in self.script_data.config.items() if k.startswith("vars_")}
-
-    def get_variable(self, name: str) -> str | None:
-        """
-        Return a custom variable value for use in Telekit DSL scripts.
-
-        Telekit DSL supports **template variables** using double curly braces: `{{variable}}`.
-
-        This method is called by the DSL engine when rendering template variables.
-        If you return a string, that value will be used in place of the variable 
-        `{{name}}` in the DSL script. If you return None, the engine will fallback 
-        to the built-in variables. If the variable is not found there either, the 
-        default value (if provided using the `:` syntax) will be used.
-
-        :param name: The name of the variable to retrieve.
-        :type name: str
-        :return: The value of the variable to use in the DSL, or None to fallback 
-                to built-in variables/defaults.
-        :rtype: str | None
-        """
-        return
-
     def _get_variable(self, name: str) -> str | None:
-        value = self._find_variable(name)
+        value = self._get_static_var(name)
 
         if isinstance(value, str):
             return value
@@ -522,7 +597,17 @@ class TelekitDSLMixin(telekit.Handler):
 
         if isinstance(value, str):
             return value
+        
+        value =  self._get_default_var(name)
 
+        if isinstance(value, str):
+            return value
+        
+    def _get_static_var(self, name: str) -> str | None:
+        value = self.script_data.static_vars.get(name)
+        return None if value is None else str(value)
+    
+    def _get_default_var(self, name: str):
         match name:
             case "first_name":
                 return self.user.first_name
@@ -552,20 +637,16 @@ class TelekitDSLMixin(telekit.Handler):
                 return self.script_data.get_current_scene().get("title")
             case "scene_message":
                 return self.script_data.get_current_scene().get("message")
+            case "next_scene_name":
+                return self.script_data.get_next_scene_name()
+            case "next_scene_title":
+                return self.script_data.get_next_scene().get("title")
+            case "next_scene_message":
+                return self.script_data.get_next_scene().get("message")
             case "entry":
-                return self.script_data.entry if isinstance(self.script_data.entry, str) else None
-            # case "next_scene_name": # TODO: check it in Analyzer
-            #     return self._get_next_scene_name()
-            # case "next_scene_title":
-            #     return str(self.script_data.scenes[self._get_next_scene_name()]["title"])
-            # case "next_scene_message":
-            #     return str(self.script_data.scenes[self._get_next_scene_name()]["message"])
+                return self.script_data.entry
             case _:
                 return
-            
-    def _find_variable(self, name: str) -> str | None:
-        value = self.script_data.config.get(f"vars_{name}")
-        return None if value is None else str(value)
 
     def _parse_variables(self, template_str: str, parse_mode: str | None=None):
         """
@@ -607,34 +688,8 @@ class TelekitDSLMixin(telekit.Handler):
         self.chain.sender.error("🤷 Something went wrong...", message)
         library.error(message)
         return exception(message)
-
-    def _get_next_scene_name(self):
-        if not self.script_data.next_order:
-            raise self._fail("Cannot use 'next' button: order is not defined", ValueError)
-
-        for item in self.script_data.history[::-1]:
-            if item not in self.script_data.next_order:
-                continue
-
-            index = self.script_data.next_order.index(item)
-
-            # check that next index exists
-            if index + 1 >= len(self.script_data.next_order):
-                raise self._fail("'next_order' index out of range: no next scene defined", IndexError)
-
-            return self.script_data.next_order[index + 1]
-
-        raise self._fail("Cannot determine next scene: no matching history entry", ValueError)
-    
-    def _get_prev_scene_name(self):
-        if self.script_data.history:
-            self.script_data.history.pop() # remove current
-        if self.script_data.history:
-            return self.script_data.history.pop() # get and remove previous
-        else:
-            return "main" # (impossible)
         
-    def _call_api_methods(self, api_calls: list[tuple[str, None | list[Any]]], template_mode: str):
+    def _call_api_methods(self, api_calls: list[tuple[str, None | list[Any]]], template_engine: str):
         """
         Execute API methods from the list. Each element is [method_name, args]:
             args can be a list or None if no arguments.
@@ -655,7 +710,7 @@ class TelekitDSLMixin(telekit.Handler):
                     method()
                 else:
                     args = [
-                        self._parse_template(arg, template_mode=template_mode) if isinstance(arg, str) else arg
+                        self._parse_template(arg, template_engine=template_engine) if isinstance(arg, str) else arg
                         for arg in args
                     ]
                     method(*args)
@@ -669,6 +724,18 @@ def missing(name: str):
     library.error(message)
     raise KeyError(message)
 
+class JinjaFilters:
+    @staticmethod
+    def escape_md(value):
+        if value is None:
+            return ""
+        return str(Sanitize(str(value), parse_mode="markdown"))
+
+    @staticmethod
+    def escape_html(value):
+        if value is None:
+            return ""
+        return str(Sanitize(str(value), parse_mode="html"))
 
 # ----------------------------------------------------
 # Script Data Structure (JSON)

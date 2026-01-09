@@ -751,7 +751,7 @@ class BaseSender:
 
         if not self.edit_message_id:
             raise ValueError("edit_message_id is None: Unable to edit message without a valid message ID.")
-
+        
         if self.photo:
             media = InputMediaPhoto(
                 media=self.photo, 
@@ -780,13 +780,14 @@ class BaseSender:
             try:
                 return self._edit(), True
             except Exception as exception:
+                if "Bad Request: there is no text in the message to edit" not in str(exception):
+                    library.warning(f"Failed to edit message {self.edit_message_id}, sending new one instead. Exception: {exception}")
                 self._delete_message(self.edit_message_id)
-                library.warning(f"Failed to edit message {self.edit_message_id}, sending new one instead. Exception: {exception}")
         
         return self._send(), False
     
     # --------------------------------------------------------
-    # Metods for deleting messages
+    # Methods for deleting messages
     # --------------------------------------------------------
     
     def _delete_message(self, message_id: int | None) -> bool:
@@ -899,10 +900,8 @@ class BaseSender:
         self._handle_temporary(message, edited)
 
         return message
-    
 
     # TODO: Add `send_or_edit` method that will return tuple[Message | None, bool]
-    # TODO: Add `delete`
 
     # --------------------------------------------------------
     # Methods for sending chat actions and retrieving message IDs

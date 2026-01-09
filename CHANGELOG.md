@@ -1,39 +1,24 @@
+## Sender Improvements
+
+- Message editing error warning has been deleted.
+
 ## DSL Improvements
 
-This update enhances Telekit DSL templating by introducing **Jinja** as an alternative template engine.
-
-- Added global `template` configuration option — `"jinja"`, `"vars"`, or `"plain"` (`"vars"` is the default):
-    ```js
-    $ {
-        template = "jinja"
-    }
-    ```
-
-- Added a per-scene `template` attribute — `"jinja"`, `"vars"`, or `"plain"`.  
-  If not specified, the global `template` configuration value is used by default.
-    ```js
-    @ main {
-        ...
-        template = "jinja"
-    }
-    ```
-
-- Added the `set_jinja_context` method — sets variables in the Jinja rendering context, making them available across all DSL templates (such as `title`, `message`, and others).
-    - Example 1 (keyword arguments):
+- New variables:
+    - `next_scene_name` – internal name of the next scene
+    - `next_scene_title` – title of the next scene
+    - `next_scene_message`  – message text of the next scene
+- Timeout changes:
+    - The default value for `timeout_time` congig is now 300 seconds (5 minutes).
+    - Set `timeout_time = 0` to disable the timeout.
+- Jinja:
+    - The Jinja environment is now shared globally (class attribute).
+    - You can configure the environment using:
     ```py
-    def handle(self):
-        self.set_jinja_context(
-            name="value"
-        )
-        self.start_script()
+    cls.set_jinja_env(jinja2.Environment(loader=jinja2.FileSystemLoader("templates")))
     ```
-    - Example 2 (dictionary-based context):
+    - Access the environment via:
     ```py
-    def handle(self):
-        self.set_jinja_context(
-            {
-                "name": "value"
-            }
-        )
-        self.start_script()
+    cls.jinja_env
+    self.jinja_env
     ```
