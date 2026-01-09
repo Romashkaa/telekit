@@ -2,8 +2,6 @@
 
 Telekit provides flexible decorators to handle various types of user input, from plain text to documents. These tools make it easy to process messages without manually parsing updates or managing states.
 
----
-
 ## Receive Any Message Type
 
 Use `@self.chain.entry()` to handle any message type. You can add a `filter_message` to process only messages that meet certain conditions (e.g., containing text).
@@ -17,29 +15,27 @@ def handler(message):
     print(message.text)  # Process the message
 ```
 
----
-
 ## Receive Text Messages
 
 Use `@self.chain.entry_text()` when you expect the user to send a text message and want Telekit to automatically extract it.
 
 ```python
 @self.chain.entry_text()
-def name_handler(message, name: str):
-    print(name)  # The text content is passed directly as `name`
+def text_handler(message, text: str):
+    print(text)  # The text content is passed directly as `text`
 ```
 
----
+### Suggested Inline Options (Quick Replies)
 
-## Suggested Inline Options (Quick Replies)
-
-You can provide suggested replies for the user to click instead of typing. This is useful for predefined options or guiding user input.
+You can provide suggested replies for the user to click instead of typing:
 
 ```python
 self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
 ```
 
----
+> [!WARNING]
+> Entry suggestions are mutually exclusive with inline keyboards  
+> (e.g. `set_inline_keyboard`).
 
 ## Receive Documents
 
@@ -68,10 +64,29 @@ def text_document_handler(message, text_document: telekit.types.TextDocument):
     )
 ```
 
----
+> [!NOTE]
+> You can explore all available entry types directly in the code by typing `self.chain.entry_` and checking the currently supported options.
 
-> [!TIP]
-> Entries and inline keyboards (or suggestions) can be combined to build more intuitive bots.
+## Combination
+
+Entries can be combined with inline keyboards or entry suggestions to create a more intuitive user experience:
+
+```py
+def handle(self):
+    self.set_inline_keyboard(
+        {
+            "Cancel": self.cancel_entry
+        }
+    )
+    @self.chain.entry_text()
+    def text_handler(message, text: str):
+        self.entered_text = text
+        ...
+```
+
+In this setup, Telekit automatically decides which handler to invoke:
+— if the user clicks an inline button, the `self.cancel_entry` callback is executed;
+— if the user types a message, the `text_handler` processes the input.
 
 ## Example
 

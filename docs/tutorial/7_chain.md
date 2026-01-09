@@ -5,7 +5,7 @@ A `Chain` is the core element of Telekit, combining a `Sender` (View) and an `In
 
 Proper usage of a Chain is crucial for predictable bot behavior.
 
-## Case 1 — Using the Same Chain Across All Methods
+## Using the Same Chain
 
 In this approach, the same Chain instance is used throughout all methods of the class:
 
@@ -33,7 +33,7 @@ class MyHandler(telekit.Handler):
 
 Using the same `Chain` can help save memory and automatically replaces the previous message with smooth animations. However, it also retains some previous settings.
 
-## Case 2 — Using Separate Chains for Each Step
+## Using Separate Chains
 
 In this approach, a new Chain instance is created for each step:
 
@@ -61,37 +61,46 @@ class MyHandler(telekit.Handler):
         chain.edit()
 ```
 
-Using a separate Chain for each step is also fine for memory usage, but it won’t provide automatic animations – you’ll need to call `chain.sender.set_edit_message(...)` yourself. 
+Using a separate Chain for each step is also fine for memory usage, but it won’t provide automatic animations – you’ll need to call `chain.sender.set_edit_message(...)` yourself. Also it doesn’t retain any previous settings.
 
-On the plus side, it doesn’t retain any previous settings.
+## Additional notes
 
-### By the way:
-
-- `self.new_chain()` updates the `chain` attribute in the `handler` (`self.chain`):
+- `new_chain()` creates a new `Chain` instance and assigns it to the handler.
+  This means the `self.chain` attribute is replaced with a new object:
 
 ```python
 old = self.chain
 self.new_chain()
-print(old == self.chain)             # False (the "сhain" object has been replaced)
-
-old2 = self.chain
-local_chain = self.get_local_chain()
-print(local_chain == self.chain)     # False ("local_chain" is local)
-print(old2 == self.chain)            # True  (The "сhain" object remained)
+print(old == self.chain)  # False — the previous Chain instance was replaced
 ```
+
+- `get_local_chain()` returns a new `Chain` instance **without** modifying the handler's current chain.
+  The original `self.chain` remains unchanged, while the returned chain is fully independent:
+
+```python
+old = self.chain
+local_chain = self.get_local_chain()
+
+print(old == self.chain)         # True  — the handler’s Chain was not changed
+print(local_chain == self.chain) # False — the local Chain is a separate instance
+```
+
+In practice, use `new_chain()` when you want to reset the handler’s chain state entirely.
+Use `get_local_chain()` when you need a temporary or isolated Chain for a single action,
+without affecting the handler’s main Chain.
 
 ## Attribute Cleanup
 
 Each time `.send()` or `.edit()` is called, the chain **automatically clears** its state:
-- timeouts  
-- entry handlers  
-- inline keyboards  
+- timeouts
+- entry handlers 
+- inline keyboards
 
 This behavior ensures predictability between steps.
 
 ### Disabling automatic cleanup
 
-You can selectively disable this behavior:
+You can selectively disable this behavior (`chain.*`):
 
 - `set_remove_timeout(False)`
 - `set_remove_entry_handler(False)`
@@ -104,13 +113,13 @@ Most often, timeout cleanup is disabled to avoid reconfiguring it on every step.
 You can also clear handlers explicitly:
 
 ```python
-self.remove_timeout()
-self.remove_entry_handler()
-self.remove_inline_keyboard()
+self.chain.remove_timeout()
+self.chain.remove_entry_handler()
+self.chain.remove_inline_keyboard()
 ```
 
 Or remove **all handlers at once**:
 
-- `remove_all_handlers()` — forcibly removes all handlers associated with the chain.
+- `self.chain.remove_all_handlers()` — forcibly removes all handlers associated with the chain.
 
 [Next: Timeouts »](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/10_timeouts.md)

@@ -17,11 +17,11 @@ class HelloHandler(telekit.Handler):
     def init_handler(cls) -> None:
         cls.on.text("Hello").invoke(cls.say_hello)
 
-    def say_hello(self, message):
+    def say_hello(self):
         self.chain.sender.set_text("Hello! Nice to see you 😄")
         self.chain.send()
 ```
-  
+
 Patterns can also include placeholders in curly braces `{name}` — they will be passed to the handler as arguments.
 
 ```python
@@ -30,7 +30,7 @@ class NameHandler(telekit.Handler):
     def init_handler(cls) -> None:
         cls.on.text("My name is {name}", "I am {name}").invoke(cls.handle_name)
 
-    def handle_name(self, message, name: str):
+    def handle_name(self, name: str):
         self.chain.sender.set_text(f"Hello, {name}!")
         self.chain.send()
 ```
@@ -50,7 +50,7 @@ Triggers can be used in two ways:
 ```python
 @cls.on.text("Hello")
 def say_hello(message):
-    ...
+    cls(message).say_hello()
 ```
 
 2. **Method-style with `.invoke()`** — attach a handler function dynamically:

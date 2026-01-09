@@ -2,8 +2,6 @@
 
 This section lists all triggers available in Telekit for handling messages and commands.
 
----
-
 ## All Triggers
 
 - `on.message(self, commands=None, regexp=None, func=None, content_types=None, chat_types=None, whitelist=None, **kwargs)` - registers a handler for any type of message; supports commands, regex patterns, content types, chat types, and whitelist restrictions  
@@ -13,9 +11,7 @@ This section lists all triggers available in Telekit for handling messages and c
 - `on.photo(self, chat_types=None, whitelist=None, **kwargs)` - registers a handler for incoming photos
 
 > [!NOTE]
-> This list may not be updated immediately
-
----
+> This list may not be updated immediately. You can explore all triggers directly in the code by typing `cls.on.` and checking the currently supported options.
 
 ## Usage
 

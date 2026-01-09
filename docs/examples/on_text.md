@@ -31,7 +31,7 @@ class OnTextHandler(telekit.Handler):
     # Handling Logic
     # ------------------------------------------
 
-    def handle_name_age(self, name: str | None, age: str | None) -> None: 
+    def handle_name_age(self, name: str | None=None, age: str | None=None) -> None: 
 
         if not name: 
             name = self.user.username

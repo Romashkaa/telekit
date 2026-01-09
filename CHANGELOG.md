@@ -22,3 +22,4 @@
     cls.jinja_env
     self.jinja_env
     ```
+- Internal DSL mixin refactoring

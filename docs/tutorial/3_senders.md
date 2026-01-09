@@ -173,5 +173,5 @@ class Start(telekit.Handler):
         self.chain.edit()
 ```
 
-- [Senders documentation (See more methods and features)](../documentation/3_senders.md)
+- [Senders documentation: See more methods and features](../documentation/3_senders.md)
 - [Next: Text Styling »](4_text_styling.md) 
