@@ -6,7 +6,7 @@ import telekit
 class QuizHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.analyze_source(guide)
+        cls.analyze_source(script)
         cls.on.command("start").invoke(cls.start_script)
 
 # ------------------------------------------------------
@@ -16,7 +16,7 @@ class QuizHandler(telekit.TelekitDSL.Mixin):
 # Tuturial on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md
 #
 
-guide = """
+script = """
 $ timeout {
     time = 20; // 20 sec.
 }
