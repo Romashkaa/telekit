@@ -47,7 +47,6 @@ To show text to the user, you have two options:
     text = "📖 FAQ – Here are answers to common questions to help you get started:"
 }
 ```
-**Output:**
 > 📖 FAQ – Here are answers to common questions to help you get started:
 
 2. Or, use the `title` and `message` attributes for more structured content:
@@ -58,14 +57,13 @@ To show text to the user, you have two options:
     message = "Here are answers to common questions to help you get started:"
 }
 ```
-
-**Output:**
 > <b>📖 FAQ - Frequently Asked Questions</b>
 >
 > Here are answers to common questions to help you get started:
 
 Each scene can either use a single `text` field for a simple message or a combination of `title` and `message` for a structured heading and body.
 
+> [!TIP] 
 > To see your scene in action, load this code using the methods described in [Telekit DSL Integration](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/12_telekit_dsl_integration.md).
 
 ## Let’s add another scene
