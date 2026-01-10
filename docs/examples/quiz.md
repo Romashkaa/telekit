@@ -161,3 +161,5 @@ $ timeout {
 
 telekit.Server(TOKEN).polling()
 ```
+
+- [See other examples »](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
