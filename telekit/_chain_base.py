@@ -33,7 +33,7 @@ class ChainBase:
     def __init__(self, chat_id: int):
         self.chat_id = chat_id
         self.sender = senders.AlertSender(chat_id)
-        self.handler = _input_handler.InputHandler(chat_id)
+        self._handler = _input_handler.InputHandler(chat_id)
         self._previous_message: Message | None = None
         self._timeout_handler = _timeout.TimeoutHandler()
 
@@ -45,7 +45,7 @@ class ChainBase:
     # Cleanup Logic: manages clearing input handlers, inline keyboards, and timeout after each step
     # -------------------------------------------
 
-    def _got_response_or_callback(self):
+    def _cancel_timeout_and_handlers(self):
         self._cancel_timeout()
         self._remove_all_handlers()
 
@@ -83,7 +83,7 @@ class ChainBase:
 
         You can also remove all handlers at once using `remove_all_handlers()`.
         """
-        self.handler.set_entry_callback(None)
+        self._handler.set_entry_callback(None)
 
     def remove_inline_keyboard(self):
         """
@@ -94,7 +94,7 @@ class ChainBase:
         You can also remove all handlers at once using `remove_all_handlers()`.
         """
         self.sender.set_reply_markup(None)
-        self.handler.set_callback_functions({})
+        self._handler.set_callback_functions({})
 
     def remove_all_handlers(self):
         """
@@ -158,9 +158,9 @@ class ChainBase:
 
     def _set_timeout_callback(self, callback: Callable):
         def wrapper():
-            self.handler.reset()
+            self._handler.reset()
             callback()
-        self.handler.set_cancel_timeout_callback(self._timeout_handler.cancel)
+        self._handler.set_cancel_timeout_callback(self._timeout_handler.cancel)
         self._timeout_handler.set_callback(wrapper)
 
     def _set_timeout_time(self, seconds: int=0, minutes: int=0, hours: int=0):

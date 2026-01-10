@@ -132,7 +132,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
     
     def _send(self)  -> Message | None:
         _timeout = self._start_timeout()
-        _handler = self.handler.handle_next_message()
+        _handler = self._handler.handle_next_message()
 
         message = self.sender.send_or_handle_error()
 

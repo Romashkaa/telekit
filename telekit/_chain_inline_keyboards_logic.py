@@ -69,7 +69,7 @@ class ChainInlineKeyboardLogic(ChainBase):
 
         def wrap_callback(callback: Callable[..., None]):
             def wrapper(*args):
-                self._got_response_or_callback()
+                self._cancel_timeout_and_handlers()
 
                 if self._accepts_parameter(callback):
                     callback(*args)
@@ -99,7 +99,7 @@ class ChainInlineKeyboardLogic(ChainBase):
         markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
-        self.handler.set_callback_functions(callback_functions)
+        self._handler.set_callback_functions(callback_functions)
 
     def inline_keyboard[Caption: str, Value](
             self, 
@@ -137,7 +137,7 @@ class ChainInlineKeyboardLogic(ChainBase):
 
             def get_callback(value: Value) -> Callable[[Message], None]:
                 def callback(message: Message) -> None:
-                    self._got_response_or_callback()
+                    self._cancel_timeout_and_handlers()
                     func(message, value)
                 return callback
 
@@ -155,7 +155,7 @@ class ChainInlineKeyboardLogic(ChainBase):
             markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
             self.sender.set_reply_markup(markup)
-            self.handler.set_callback_functions(callback_functions)
+            self._handler.set_callback_functions(callback_functions)
 
         return wrapper
     
