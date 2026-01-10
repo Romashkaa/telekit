@@ -28,8 +28,11 @@ You can use the following attributes for any scene in Telekit DSL:
 
 ```js
 @ main {
-    // -- Required --
+    // -- Required (choose one) --
+    // Option 1: simple text
+    text    = "Regular text"
 
+    // Option 2: let Telekit handle the layout for you
     title   = "Bold title text"
     message = "Regular text below"
 

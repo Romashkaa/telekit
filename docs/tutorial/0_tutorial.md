@@ -15,7 +15,7 @@ If you notice a bug, please report it in the Issues section on GitHub.
     - [Project structure](2_project_structure.md) ⭐
 - Simple Bots:
     - [Senders](3_senders.md) ⭐
-    - [Text Styling](4_text_styling.md) 
+    - [Text Styling](4_text_styling.md)
 - Interactive Bots:
     - [Inline Keyboards](8_inline_keyboards.md) ⭐
     - [Entries](9_entries.md) ⭐

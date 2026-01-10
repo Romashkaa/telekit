@@ -31,39 +31,54 @@
 
 ## Our first scene
 
-Each Telekit DSL script starts with the main block (also called the main "scene"). This is the entry point (start) of the script:
+Each Telekit DSL script starts with the main block (also called the main "scene"). This is the entry point of the script:
 
 ```js
 @ main {
-    // Attributes
+    // Scene attributes go here
 }
 ```
 
-Next, we define the mandatory attributes for each scene, `title` and `message` - alogically with a standard telekit:
+To show text to the user, you have two options:
+
+1. Use the `text` attribute for a simple message:
+```js
+@ main {
+    text = "📖 FAQ – Here are answers to common questions to help you get started:"
+}
+```
+**Output:**
+> 📖 FAQ – Here are answers to common questions to help you get started:
+
+2. Or, use the `title` and `message` attributes for more structured content:
 
 ```js
 @ main {
-    title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are answers to common questions to help you get started:";
+    title   = "📖 FAQ - Frequently Asked Questions"
+    message = "Here are answers to common questions to help you get started:"
 }
 ```
 
-If we now load this code using the methods shown on the [Telekit DSL Integration](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/12_telekit_dsl_integration.md) page, we’ll see the message: 
+**Output:**
 > <b>📖 FAQ - Frequently Asked Questions</b>
 >
 > Here are answers to common questions to help you get started:
+
+Each scene can either use a single `text` field for a simple message or a combination of `title` and `message` for a structured heading and body.
+
+> To see your scene in action, load this code using the methods described in [Telekit DSL Integration](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/12_telekit_dsl_integration.md).
 
 ## Let’s add another scene
 
 ```js
 @ main {
-    title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are answers to common questions to help you get started:";
+    title   = "📖 FAQ - Frequently Asked Questions"
+    message = "Here are answers to common questions to help you get started:"
 }
 
 @ devs {
-    title   = "👨‍💻 Telekit Developers";
-    message = "Only me, Romashka :]";
+    title   = "👨‍💻 Telekit Developers"
+    message = "Only me, Romashka :]"
 }
 ```
 
@@ -71,18 +86,18 @@ And of course, we need to add buttons to switch between scenes:
 
 ```js
 @ main {
-    title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are answers to common questions to help you get started:";
+    title   = "📖 FAQ - Frequently Asked Questions"
+    message = "Here are answers to common questions to help you get started:"
     buttons {
-        devs("👨‍💻 Developers");    // Opens @devs
+        devs("👨‍💻 Developers")    // Opens @devs
     }
 }
 
 @ devs {
-    title   = "👨‍💻 Telekit Developers";
-    message = "Only me, Romashka :]";
+    title   = "👨‍💻 Telekit Developers"
+    message = "Only me, Romashka :]"
     buttons {
-        main("« Back");          // Opens @main
+        main("« Back")          // Opens @main
     }
 }
 ```
@@ -99,23 +114,23 @@ Imagine we have a scene that can be accessed from two different places — the q
 @ main {
     ...
     buttons {
-        devs("👨‍💻 Developers");     // Opens @devs
-        docs("📚 Documentation");  // Opens @docs
+        devs("👨‍💻 Developers")     // Opens @devs
+        docs("📚 Documentation")  // Opens @docs
     }
 }
 
 @ devs {
     ...
     buttons {
-        main("« Back");      // Opens @main
-        docs("Next »");      // Opens @docs
+        main("« Back")      // Opens @main
+        docs("Next »")      // Opens @docs
     }
 }
 
 @ docs {
     ...
     buttons {
-        /*????*/("« Back");          // Opens what?
+        /*????*/("« Back")          // Opens what?
     }
 }
 ```
@@ -130,23 +145,23 @@ Let’s rewrite the previous example using `back`:
 @ main {
     ...
     buttons {
-        devs("👨‍💻 Developers");     // Opens @devs
-        docs("📚 Documentation");  // Opens @docs
+        devs("👨‍💻 Developers")     // Opens @devs
+        docs("📚 Documentation")  // Opens @docs
     }
 }
 
 @ devs {
     ...
     buttons {
-        back("« Back");    // Opens @main
-        docs("Next »");    // Opens @docs
+        back("« Back")    // Opens @main
+        docs("Next »")    // Opens @docs
     }
 }
 
 @ docs {
     ...
     buttons {
-        back("« Back");      // Opens @main or @devs (using a LIFO stack)
+        back("« Back")      // Opens @main or @devs (using a LIFO stack)
     }
 }
 ```
@@ -161,23 +176,23 @@ You can use the following attributes for any scene, like `@main`:
 @ main {
     // -- Required --
 
-    title   = "Bold title text";
-    message = "Regular text below";
+    title   = "Bold title text"
+    message = "Regular text below"
 
     // -- Optional --
 
     // path to local file, URL, or Telegram file ID
-    image = "path / reference / file_id";
+    image = "path / reference / file_id"
 
     // enable or disable italics in message
-    use_italics = false; // default: false
+    use_italics = false // default: false
     
     // change message parse mode
     parse_mode = "html" // (html | markdown) default: none
 
     //      ↓ button row width: `buttons(row_width)`
     buttons(2) { // default: 1    ↑↑↑↑↑↑↑↑↑
-        devs("👨‍💻 Developers"); docs("📚 Docs");
+        devs("👨‍💻 Developers"); docs("📚 Docs") // semicolon is optional
     }
 }
 ```
@@ -210,9 +225,9 @@ Unlike scenes (@), configuration block don’t create a UI — it just set param
 ```js
 $ {
     // set timeout (for example)
-    timeout_time    = 10; // disabled by default
-    timeout_message = "Are you still here?";
-    timeout_label   = "Yes, i'm here";
+    timeout_time    = 10 // disabled by default
+    timeout_message = "Are you still here?"
+    timeout_label   = "Yes, i'm here"
 }
 ```
 
@@ -222,9 +237,9 @@ You can also save time by creating a named block:
 
 ```js
 $ timeout {
-    time    = 10;
-    message = "Are you still here?";
-    label   = "Yes, i'm here";
+    time    = 10
+    message = "Are you still here?"
+    label   = "Yes, i'm here"
 }
 ```
 
@@ -235,7 +250,7 @@ So, you can configure a timeout that clears all callbacks associated with a chat
 
 ```js
 $ timeout {
-    time = 10; // 10 seconds
+    time = 10 // 10 seconds
 }
 ```
 
@@ -244,9 +259,9 @@ So when the timeout expires, it will first show a confirmation message:
 
 ```js
 $ timeout {
-    time    = 10;
-    message = "Are you still here?"; // optional
-    label   = "Yes, i'm here";       // optional
+    time    = 10
+    message = "Are you still here?" // optional
+    label   = "Yes, i'm here"       // optional
 }
 ```
 
@@ -261,11 +276,11 @@ If you need to write a long text, you can use multiline strings with backticks (
 
 ```js
 @ devs {
-    title   = "👨‍💻 Telekit Developers";
+    title   = "👨‍💻 Telekit Developers"
     message = `
         Only me, Romashka :]
         And nobody else.
-    `;
+    `
 }
 ```
 
@@ -283,7 +298,7 @@ message = `
         - Task 2.
     - Watchlist:
         - Movie 1.
-`;
+`
 ```
 
 Will be transformed into:
@@ -303,24 +318,24 @@ The button will automatically use the scene’s default label if provided, or fa
 
 ```js
 @ main {
-    title   = "📖 FAQ - Frequently Asked Questions";
-    message = "Here are answers to common questions to help you get started:";
+    title   = "📖 FAQ - Frequently Asked Questions"
+    message = "Here are answers to common questions to help you get started:"
     buttons {
-        developers;    // "Who are developers" - scene's default label
-        documentation; // "📚 Documentation" - fall back to the scene's title
+        developers    // "Who are developers" - scene's default label
+        documentation // "📚 Documentation" - fall back to the scene's title
     }
 }
 
 // default label ↓
 @ developers("Who are developers") {
-    title   = "👨‍💻 Developer";
-    message = "This bot was spellcrafted by [Telekit Wizard](https://t.me/+WsZ1SyGYSoI3YWQ8) 🪄✨";
+    title   = "👨‍💻 Developer"
+    message = "This bot was spellcrafted by [Telekit Wizard](https://t.me/+WsZ1SyGYSoI3YWQ8) 🪄✨"
 }
 
 @ documentation {
 // fall back to the title ↓
-    title   = "📚 Documentation";
-    message = "Here you can find helpful guides and references.";
+    title   = "📚 Documentation"
+    message = "Here you can find helpful guides and references."
 }
 ```
 
@@ -328,13 +343,13 @@ If you want a custom label, use parentheses with the text:
 
 ```js
 buttons {
-    developers("👨‍💻 Devs");
-    documentation("📚 Docs");
+    developers("👨‍💻 Devs")
+    documentation("📚 Docs")
 }
 ```
 
 > [!NOTE]
-> `scene_name;` and `scene_name();` are equivalent
+> `scene_name` and `scene_name()` are equivalent
 
 ## Next
 
@@ -342,17 +357,17 @@ When building a linear bot, it can get tedious to repeatedly type out button lab
 
 ```js
 @ main {
-    title   = "🧪 Quick Science Quiz";
-    message = "Test your knowledge with these 3 fun questions!";
+    title   = "🧪 Quick Science Quiz"
+    message = "Test your knowledge with these 3 fun questions!"
 
     buttons {
-        next("Start Quiz");
+        next("Start Quiz")
     }
 }
 
 @ _lose { // ignored by `next` when determining scene order
-    title   = "❌ Wrong Answer!";
-    message = "Oops! That was not correct. Don't worry, you can try again.";
+    title   = "❌ Wrong Answer!"
+    message = "Oops! That was not correct. Don't worry, you can try again."
 
     buttons {
         back("« Try Again")  // redirect back to the quiz start
@@ -360,45 +375,45 @@ When building a linear bot, it can get tedious to repeatedly type out button lab
 }
 
 @ question_1 {
-    title   = "🌍 Question 1";
-    message = "What is the largest planet in our Solar System?";
+    title   = "🌍 Question 1"
+    message = "What is the largest planet in our Solar System?"
     buttons {
     //  question_2("Jupiter")  // without `next` you’d have to write it like this
-        next("Jupiter");       // correct answer
-        _lose("Earth");        // incorrect
-        _lose("Mars");         // incorrect
-        _lose("Venus");        // incorrect
+        next("Jupiter")        // correct answer
+        _lose("Earth")         // incorrect
+        _lose("Mars")          // incorrect
+        _lose("Venus")         // incorrect
     }
 }
 
 @ question_2 {
-    title   = "🧬 Question 2";
-    message = "Which gas do plants absorb from the atmosphere during photosynthesis?";
+    title   = "🧬 Question 2"
+    message = "Which gas do plants absorb from the atmosphere during photosynthesis?"
     buttons {
-        _lose("Oxygen");         // incorrect
-        next("Carbon Dioxide");  // correct answer
-        _lose("Nitrogen");       // incorrect
-        _lose("Hydrogen");       // incorrect
+        _lose("Oxygen")         // incorrect
+        next("Carbon Dioxide")  // correct answer
+        _lose("Nitrogen")       // incorrect
+        _lose("Hydrogen")       // incorrect
     }
 }
 
 @ question_3 {
-    title   = "⚛️ Question 3";
-    message = "What particle in an atom has a positive charge?";
+    title   = "⚛️ Question 3"
+    message = "What particle in an atom has a positive charge?"
     buttons {
-        _lose("Electron");   // incorrect
-        _lose("Neutron");    // incorrect
-        _end("Proton");      // correct answer
-        _lose("Photon");     // incorrect
+        _lose("Electron")   // incorrect
+        _lose("Neutron")    // incorrect
+        _end("Proton")      // correct answer
+        _lose("Photon")     // incorrect
     }
 }
 
 @ _end {
-    title   = "🎉 Quiz Complete!";
-    message = "You've finished the Science Quiz. Great job! 🌟\n\nWant to try again?";
+    title   = "🎉 Quiz Complete!"
+    message = "You've finished the Science Quiz. Great job! 🌟\n\nWant to try again?"
 
     buttons {
-        main("↺ Restart Quiz");
+        main("↺ Restart Quiz")
     }
 }
 ```
@@ -419,10 +434,11 @@ $ next {
 - You can change default `next` button label:
 ```js
 $ next {
-    label = "Next »";
+    label = "Next »"
 }
 ```
 
+> [!TIP]
 > See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
 
 ## Template Variables
@@ -436,8 +452,8 @@ These variables can be used directly inside title, message, and button label fie
 
 ```js
 @ main {
-    title   = "Welcome, {{first_name}}!";
-    message = "Your username is {{username}}.";
+    title   = "Welcome, {{first_name}}!"
+    message = "Your username is {{username}}."
     buttons {
         back("« {{prev_scene_name}}")
     }
@@ -453,8 +469,8 @@ These variables can be used directly inside title, message, and button label fie
     - This prevents accidental formatting issues and injection problems.
     - Formatting must always be written explicitly in the DSL:
 ```js
-message = "Your username is <b>{{username}}</b>";
-parse_mode = "html";
+message = "Your username is <b>{{username}}</b>"
+parse_mode = "html"
 ```
 
 ### Available Variables
@@ -520,11 +536,11 @@ Then in your DSL script, you can reference the custom variable just like a built
 
 ```js
 @ _lose {
-    title   = "❌ Wrong Answer!";
-    message = "Oops! {{random_lose_phrase}}"; // here
+    title   = "❌ Wrong Answer!"
+    message = "Oops! {{random_lose_phrase}}" // here
 
     buttons {
-        back("« Retry");
+        back("« Retry")
     }
 }
 ```
@@ -539,8 +555,8 @@ If a variable is missing or has no value (for example, `{{last_name}}` for a use
 
 ```js
 @ main {
-    title = "Hello, {{first_name:User}}!";
-    message = "Welcome, {{last_name:there}}!";
+    title = "Hello, {{first_name:User}}!"
+    message = "Welcome, {{last_name:there}}!"
 }
 ```
 

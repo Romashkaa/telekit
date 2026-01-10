@@ -61,6 +61,8 @@ class Builder:
                 self.scenes_default_labels[item.name] = item.default_label
             elif isinstance(title := item.fields.get("title", None), str):
                 self.scenes_default_labels[item.name] = title
+            elif isinstance(text := item.fields.get("text", None), str):
+                self.scenes_default_labels[item.name] = text.split("\n")[0]
             else:
                 self.scenes_default_labels[item.name] = item.name
     
@@ -223,26 +225,41 @@ class Builder:
         if name in MAGIC_SCENES + SPECIAL_NAMES:
             raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
 
-        # required fields
-        required: tuple[tuple[str, type], ...] = (
-            ("title", str),
-            ("message", str),
-        )
-
-        # check required fields
-        for key, typ in required:
-            if key not in fields:
+        # required fields: either title + message or text
+        if "text" in fields:
+            text_val = fields["text"]
+            if not isinstance(text_val, str):
+                raise BuilderError(f"Field 'text' in scene '@{name}' must be of type str")
+            if not text_val.strip():
+                raise BuilderError(f"Scene '@{name}' has an empty text")
+            scene_data["text"] = text_val
+            scene_data["_use_text"] = True
+        else:
+            if "title" not in fields or "message" not in fields:
                 raise BuilderError(
-                    f"Scene '@ {name}' must contain '{key}' field\n\n"
+                    f"Scene '@{name}' must contain 'title' and 'message' field\n\n"
                     f"Example:\n"
-                    f"@ {name}" + " {\n"
-                    + "\n".join(f"  {k} = \"...\";" for k, _ in required)
-                    + "\n}"
+                    f"@ {name} {{\n"
+                    f"    title = \"...\"\n"
+                    f"    message = \"...\"\n"
+                    f"}}"
                 )
-            val = fields[key]
-            if not isinstance(val, typ):
-                raise BuilderError(f"Field '{key}' in scene '@ {name}' must be of type {self.type_name(typ)}")
-            scene_data[key] = val
+
+            title_val = fields["title"]
+            message_val = fields["message"]
+
+            if not isinstance(title_val, str):
+                raise BuilderError(f"Field 'title' in scene '@{name}' must be of type str")
+            if not isinstance(message_val, str):
+                raise BuilderError(f"Field 'message' in scene '@{name}' must be of type str")
+            
+            if not title_val.strip():
+                raise BuilderError(f"Scene '@{name}' has an empty title")
+            if not message_val.strip():
+                raise BuilderError(f"Scene '@{name}' has an empty message") 
+
+            scene_data["title"] = title_val
+            scene_data["message"] = message_val
 
         # optional fields
         optional: tuple[tuple[str, type | tuple[type, ...], Any], ...] = (
@@ -258,17 +275,12 @@ class Builder:
         # check optional fields
         for key, typ, default in optional:
             if key in fields:
-                val = fields[key]
-                if not isinstance(val, typ):
+                text_val = fields[key]
+                if not isinstance(text_val, typ):
                     raise BuilderError(f"Field '{key}' in scene '@ {name}' must be of type {self.type_name(typ)}")
-                scene_data[key] = val
+                scene_data[key] = text_val
             elif not isinstance(default, NoValue):
                 scene_data[key] = default
-
-        if not scene_data["title"].strip():
-            raise BuilderError(f"Scene '@{name}' has an empty title")
-        if not scene_data["message"].strip():
-            raise BuilderError(f"Scene '@{name}' has an empty message")
         
         # Style
         

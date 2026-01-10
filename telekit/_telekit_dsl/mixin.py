@@ -338,99 +338,125 @@ class TelekitDSLMixin(telekit.Handler):
         """
 
         def render():
-
-            scene_name = _scene_name
-
-            # magic scenes logic
-            if scene_name in MAGIC_SCENES:
-                match scene_name:
-                    case "back":
-                        scene_name = self.script_data._pop_prev_scene_name() or "main"
-                    case "next":
-                        scene_name = self.script_data.get_next_scene_name() or "main"
-
-            # main logic
-            self.script_data.history.append(scene_name)
-            scene = self.script_data.scenes[scene_name]
-
-            # template engine
-            template_engine: str = self.script_data.get_template_engine()
-
-            # "on enter" handler api
-            if "on_enter" in scene:
-                self._call_api_methods(scene["on_enter"], template_engine)
-            if "on_enter_once" in scene:
-                hook_key = f"{scene_name}.on_enter_once"
-                if hook_key not in self.script_data.executed_once_hooks:
-                    self._call_api_methods(scene["on_enter_once"], template_engine)
-                    self.script_data.executed_once_hooks.add(hook_key)
-
-            # view
-            real_parse_mode: str | None = scene.get("parse_mode")
-            parse_mode = real_parse_mode or "html"
-
-            self.chain.sender.set_parse_mode(parse_mode)
-            self.chain.sender.set_use_italics(scene.get("use_italics", False))
-            self.chain.sender.set_photo(scene.get("image"))
-
-            styles = self.chain.sender.styles
-            title = scene.get("title", "[ no title ]")
-            message = scene.get("message", "[ no message ]")
-            do_sanitize = not real_parse_mode
-
-            # variables
-            if "{{" in title or "{{" in message:
-                title = self._parse_template(title, real_parse_mode, template_engine)
-                message = self._parse_template(message, real_parse_mode, template_engine)
-
-            # title and message
-            if do_sanitize:
-                self.chain.sender.set_title(styles.sanitize(title))
-                self.chain.sender.set_message(styles.sanitize(message))
-            else:
-                self.chain.sender.set_title(styles.no_sanitize(title))
-                self.chain.sender.set_message(styles.no_sanitize(message))
-            
-            # buttons
-            keyboard: dict = {}
-
-            for button_label, button_attrs in scene.get("buttons", {}).items():
-                label = self._parse_template(button_label, template_engine=template_engine)
-                target = button_attrs["target"]
-
-                match button_attrs["type"]:
-                    case "scene":
-                        keyboard[label] = self.prepare_scene(target)
-                    case "suggest":
-                        keyboard[label] = self._prepare_suggestion(*target)
-                    case "redirect":
-                        keyboard[label] = self._prepare_redirect(target)
-                    case "handoff":
-                        keyboard[label] = self._prepare_handoff(target)
-                    case "link":
-                        keyboard[label] = target
-
-            self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
-
-            # entries
-            if scene.get("entries") or scene.get("_default_entry_target"):
-                self.chain.entry_text(self._filter_entry, True)(self._handle_entry)
-
-            # "on exit" handler api
-            if "on_exit" in scene:
-                self._call_api_methods(scene["on_exit"], template_engine)
-
-            # remove the garbage
-            self.script_data.entry = None
-
-            if not scene.get("_has_back_option"):
-                self.script_data.history.clear()
-                self.script_data.history.append(scene_name)
-
-            # send the message
-            self.chain.edit()
+            self._render(_scene_name)
 
         return render
+    
+    def _render(self, _scene_name: str):
+        scene_name = _scene_name
+
+        # magic scenes logic
+        if scene_name in MAGIC_SCENES:
+            match scene_name:
+                case "back":
+                    scene_name = self.script_data._pop_prev_scene_name() or "main"
+                case "next":
+                    scene_name = self.script_data.get_next_scene_name() or "main"
+
+        # get scene
+        self.script_data.history.append(scene_name)
+        scene = self.script_data.scenes[scene_name]
+
+        # metadata & parse mode setup
+        template_engine: str = self.script_data.get_template_engine()
+        real_parse_mode: str | None = scene.get("parse_mode")
+        parse_mode = real_parse_mode or "html"
+
+        # main logic
+        self._execute_on_enter_hooks(scene, scene_name, template_engine)
+        self._render_context(scene, parse_mode)
+        self._render_text_content(scene, real_parse_mode, template_engine)
+        self._apply_inline_keyboard(scene, template_engine)
+        self._apply_entry_handler(scene)
+        self._execute_on_exit_hooks(scene, template_engine)
+        self._remove_garbage(scene, scene_name)
+
+        # send the message
+        self.chain.edit()
+    
+    def _execute_on_enter_hooks(self, scene: dict, scene_name: str, template_engine: str):
+        if "on_enter" in scene:
+            self._execute_hook(scene["on_enter"], template_engine)
+        if "on_enter_once" in scene:
+            hook_key = f"{scene_name}.on_enter_once"
+            if hook_key not in self.script_data.executed_once_hooks:
+                self._execute_hook(scene["on_enter_once"], template_engine)
+                self.script_data.executed_once_hooks.add(hook_key)
+
+    def _render_context(self, scene: dict, parse_mode: str):
+        self.chain.sender.set_parse_mode(parse_mode)
+        self.chain.sender.set_use_italics(scene.get("use_italics", False))
+        self.chain.sender.set_photo(scene.get("image"))
+    
+    def _render_text_content(self, scene: dict, real_parse_mode: str | None, template_engine: str):
+        # get title/message or text
+        title = scene.get("title")
+        message = scene.get("message")
+        text = scene.get("text")
+
+        # process templates
+        if title and "{" in title:
+            title = self._parse_template(title, real_parse_mode, template_engine)
+        if message and "{" in message:
+            message = self._parse_template(message, real_parse_mode, template_engine)
+        if text and "{" in text:
+            text = self._parse_template(text, real_parse_mode, template_engine)
+
+        styles = self.chain.sender.styles
+        
+        # apply sanitization
+        if real_parse_mode:
+            # no sanitize
+            if title:
+                self.chain.sender.set_title(styles.no_sanitize(title))
+            if message:
+                self.chain.sender.set_message(styles.no_sanitize(message))
+            if text:
+                self.chain.sender.set_text(styles.no_sanitize(text))
+        else:
+            # sanitize
+            if title:
+                self.chain.sender.set_title(styles.sanitize(title))
+            if message:
+                self.chain.sender.set_message(styles.sanitize(message))
+            if text:
+                self.chain.sender.set_text(styles.sanitize(text))
+
+    def _apply_inline_keyboard(self, scene, template_engine):
+        keyboard: dict = {}
+
+        for button_label, button_attrs in scene.get("buttons", {}).items():
+            label = self._parse_template(button_label, template_engine=template_engine)
+            target = button_attrs["target"]
+
+            match button_attrs["type"]:
+                case "scene":
+                    keyboard[label] = self.prepare_scene(target)
+                case "suggest":
+                    keyboard[label] = self._prepare_suggestion(*target)
+                case "redirect":
+                    keyboard[label] = self._prepare_redirect(target)
+                case "handoff":
+                    keyboard[label] = self._prepare_handoff(target)
+                case "link":
+                    keyboard[label] = target
+
+        self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
+
+    def _apply_entry_handler(self, scene: dict):
+        if scene.get("entries") or scene.get("_default_entry_target"):
+            self.chain.entry_text(self._filter_entry, True)(self._handle_entry)
+
+    def _execute_on_exit_hooks(self, scene: dict, template_engine: str):
+        if "on_exit" in scene:
+            self._execute_hook(scene["on_exit"], template_engine)
+
+    def _remove_garbage(self, scene: dict, scene_name: str):
+        self.script_data.entry = None
+
+        if not scene.get("_has_back_option"):
+            self.script_data.history.clear()
+            self.script_data.history.append(scene_name)
     
     # ----------------------------------------------------------------------------
     # Jinja & Vars API
@@ -538,7 +564,7 @@ class TelekitDSLMixin(telekit.Handler):
         template_engine: str = self.script_data.get_template_engine()
 
         if "on_timeout" in scene:
-            self._call_api_methods(scene["on_timeout"], template_engine)
+            self._execute_hook(scene["on_timeout"], template_engine)
 
         # timeout logic
         message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
@@ -689,7 +715,7 @@ class TelekitDSLMixin(telekit.Handler):
         library.error(message)
         return exception(message)
         
-    def _call_api_methods(self, api_calls: list[tuple[str, None | list[Any]]], template_engine: str):
+    def _execute_hook(self, api_calls: list[tuple[str, None | list[Any]]], template_engine: str):
         """
         Execute API methods from the list. Each element is [method_name, args]:
             args can be a list or None if no arguments.
