@@ -33,7 +33,7 @@ You can analyze Telekit DSL code using the following methods:
 - `analyze_source` — Analyze a DSL script provided as a string.
 - `analyze_file` — Analyze a DSL script from a file.
 
-> **Note:**  
+> [!NOTE]
 > Both `analyze_source` and `analyze_file` will raise an exception if syntax errors or analyzer warnings are detected.
 
 Additional DSL-related methods are covered in later sections of the documentation.
