@@ -12,7 +12,7 @@ from telebot.types import Message
 from ._chain_base import ChainBase
 
 if typing.TYPE_CHECKING:
-    from ._chain import Chain  # only for type hints
+    from ._chain import Chain # only for type hints
 
 from dataclasses import dataclass
 
@@ -142,7 +142,7 @@ class ChainEntryLogic(ChainBase):
         def callback(message: Message) -> bool:
             if delete_user_response:
                 self.sender.delete_message(message, True)
-                
+
             if not message.text:
                 return False # only text messages
 
@@ -432,8 +432,7 @@ class ChainEntryLogic(ChainBase):
                     _encoding = encoding
 
                 text = downloaded_file.decode(_encoding, decoding_errors)
-            except Exception as extension:
-                print(extension)
+            except Exception:
                 return False
             
             text_doc = TextDocument(
