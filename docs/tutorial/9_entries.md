@@ -88,6 +88,38 @@ In this setup, Telekit automatically decides which handler to invoke:
 — if the user clicks an inline button, the `self.cancel_entry` callback is executed;
 — if the user types a message, the `text_handler` processes the input.
 
+## Other Handlers
+
+Telekit provides a set of specialized entry handlers for different message types:
+
+- `set_entry` - general callback for any message.
+- `set_entry_text` - callback for text messages only.
+- `set_entry_photo` - callback for photo messages.
+- `set_entry_document` - callback for document messages.
+- `set_entry_text_document` - callback for text-based documents; auto-downloads and decodes text.
+- `set_entry_location` - callback for location messages.
+- Each of these methods has a corresponding decorator with the same name, but without the `set_` prefix.
+    - Setter:
+    ```python
+    def handle_name(self, message: Message, name: str):
+        print(name)
+
+    def handle(self):
+        ...
+        self.chain.set_entry_text(self.handle_name) # self.handle_name: Callable[[Message, name], Any]
+        self.chain.send()
+    ```
+    - Decorator:
+    ```py
+    def handle(self):
+        ...
+        @self.chain.entry_text()
+        def _handle_name(message: Message, name: str):
+            print(name)
+            
+        self.chain.send()
+    ```
+
 ## Example
 
 ```python
