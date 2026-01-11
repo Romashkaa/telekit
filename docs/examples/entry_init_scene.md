@@ -7,10 +7,8 @@ from telekit.parameters import Str
 class FAQHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.command("faq", params=[Str()]).invoke(cls.start_script)
         cls.analyze_source(script)
-        
-        # cls.display_script_data() # see the ast of the script
+        cls.on.command("faq", params=[Str()]).invoke(cls.handle)
 
     def handle(self, initial_scene: str="main") -> None:
         self.start_script(initial_scene)
@@ -23,10 +21,6 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
 #
 
 script = """
-$ timeout {
-    time = 32 // seconds
-}
-
 @ main {
     title   = "🏢 Company FAQ"
     message = `

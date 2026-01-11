@@ -59,4 +59,5 @@ This approach automatically analyzes the script and binds the specified commands
 
 For a complete overview of the DSL language, supported syntax, and advanced features, continue with the next chapter:
 
-[Telekit DSL Syntax »](13_telekit_dsl_syntax.md)
+- [More Examples »](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
+- [Next: Syntax »](13_telekit_dsl_syntax.md)
