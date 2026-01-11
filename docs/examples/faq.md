@@ -1,22 +1,22 @@
 # FAQ (Telekit DSL)
 
+## main.py
+
 ```py
 import telekit
 
 class FAQHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.analyze_source(script)
+        cls.analyze_file("script.txt")
         cls.on.command("faq").invoke(cls.start_script)
 
-# ------------------------------------------------------
-# Telekit DSL
-# ------------------------------------------------------
-#
-# Tutorial on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md
-#
+telekit.Server(TOKEN).polling()
+```
 
-script = """
+## script.txt
+
+```js
 @ main {
     title   = "📖 FAQ - Frequently Asked Questions"
     message = "Here are answers to common questions to help you get started:"
@@ -67,7 +67,4 @@ script = """
 
     buttons { back }
 }
-"""
-
-telekit.Server(TOKEN).polling()
 ```
