@@ -391,8 +391,9 @@ class Builder:
             buttons_block = fields["buttons"]
             buttons: dict[str | NoLabel, tuple[str, str | None]] = buttons_block.get("buttons", [])
 
-            width = buttons_block.get("width", 1) # row_width
-            scene_data["row_width"] = int(width)
+            width = buttons_block.get("width") # row_width
+            if width is not None and width != 1:
+                scene_data["row_width"] = int(width)
 
             for label, [target_scene, argument] in buttons.items():
                 match target_scene:

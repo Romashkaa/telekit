@@ -13,6 +13,7 @@
 - [Multiline Strings](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#multiline-strings)
 - [Buttons Without Label](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label)
 - [Next Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next)
+- [Anonymous Scenes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#anonymous_scenes)
 - [Template Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables)
     - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#available-variables)
     - [Custom Static Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-static-variables)
@@ -395,7 +396,7 @@ When building a linear bot, it can get tedious to repeatedly type out button lab
     message = "Oops! That was not correct. Don't worry, you can try again."
 
     buttons {
-        back("« Try Again")  // redirect back to the quiz start
+        back("« Try Again") // back to the question
     }
 }
 
@@ -456,7 +457,8 @@ $ next {
     ]
 }
 ```
-- You can change default `next` button label:
+
+- You can change default `next` button label globally:
 ```js
 $ next {
     label = "Next »"
@@ -465,6 +467,75 @@ $ next {
 
 > [!TIP]
 > See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
+
+## Anonymous Scenes
+
+Sometimes the name of a scene is not important if you are using the `next` button. In such cases, you can omit the scene name entirely:
+
+```js
+@ main {
+    title   = "🧪 Quick Science Quiz"
+    message = "Test your knowledge with these 3 fun questions!"
+
+    buttons {
+        next("Start Quiz")
+    }
+}
+
+@ { // anonymous scene
+    title   = "🌍 Question 1"
+    message = "What is the largest planet in our Solar System?"
+    buttons {
+        next("Jupiter")        // correct answer
+        lose("Earth")         // incorrect
+        lose("Mars")          // incorrect
+        lose("Venus")         // incorrect
+    }
+}
+
+@ {
+    title   = "🧬 Question 2"
+    message = "Which gas do plants absorb from the atmosphere during photosynthesis?"
+    buttons {
+        lose("Oxygen")         // incorrect
+        next("Carbon Dioxide")  // correct answer
+        lose("Nitrogen")       // incorrect
+        lose("Hydrogen")       // incorrect
+    }
+}
+
+@ {
+    title   = "⚛️ Question 3"
+    message = "What particle in an atom has a positive charge?"
+    buttons {
+        lose("Electron")   // incorrect
+        lose("Neutron")    // incorrect
+        next("Proton")      // correct answer
+        lose("Photon")     // incorrect
+    }
+}
+
+@ end {
+    title   = "🎉 Quiz Complete!"
+    message = "You've finished the Science Quiz. Great job! 🌟\n\nWant to try again?"
+
+    buttons {
+        main("↺ Restart Quiz")
+    }
+}
+
+@ lose {
+    title   = "❌ Wrong Answer!"
+    message = "Oops! That was not correct. Don't worry, you can try again."
+
+    buttons {
+        back("« Try Again") // back to the question
+    }
+}
+```
+
+> [!NOTE]
+> Anonymous scenes are automatically assigned a name in the format "anonymous_NUMBER", where NUMBER is the scene number starting from one
 
 ## Template Variables
 

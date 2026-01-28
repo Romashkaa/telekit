@@ -32,6 +32,7 @@
 ## DSL Improvements
 
 - You can now use `text=` directly instead of separate `title` and `message` fields.
+- Anonymous Scene Declaration: `@ { ... }`
 - New button type: "return" – navigates to the specified scene and clears the history between the current state and the target scene.  
   For example, if the history looks like [`a`, `b`, `previous`, `rooms`, `d`, `f`, `current`] and `return("Menu ↺", "rooms")` is called from the `current` scene, the history after the transition becomes [`a`, `b`, `previous`, `rooms`]. (not [`a`, `b`, `previous`, `rooms`, `d`, `f`, `current`, `rooms`] as would happen with a regular `rooms("Menu ↺")`)
   This allows the `back` button in the `rooms` scene to return the user not to the `current` scene, but to the `previous`.  
