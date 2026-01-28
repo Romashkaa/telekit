@@ -13,7 +13,7 @@
 - [Multiline Strings](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#multiline-strings)
 - [Buttons Without Label](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label)
 - [Next Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next)
-- [Anonymous Scenes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#anonymous_scenes)
+- [Anonymous Scenes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#anonymous-scenes)
 - [Template Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables)
     - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#available-variables)
     - [Custom Static Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-static-variables)
@@ -483,41 +483,41 @@ Sometimes the name of a scene is not important if you are using the `next` butto
 }
 
 @ { // anonymous scene
-    title   = "🌍 Question 1"
-    message = "What is the largest planet in our Solar System?"
+    title   = "🌊 Question 1"
+    message = "What is the chemical formula for water?"
     buttons {
-        next("Jupiter")        // correct answer
-        lose("Earth")         // incorrect
-        lose("Mars")          // incorrect
-        lose("Venus")         // incorrect
+        next("H₂O")          // correct
+        lose("CO₂")          // incorrect
+        lose("O₂")           // incorrect
+        lose("H₂O₂")         // incorrect
     }
 }
 
 @ {
-    title   = "🧬 Question 2"
-    message = "Which gas do plants absorb from the atmosphere during photosynthesis?"
+    title   = "🧠 Question 2"
+    message = "Which part of the human brain controls balance and coordination?"
     buttons {
-        lose("Oxygen")         // incorrect
-        next("Carbon Dioxide")  // correct answer
-        lose("Nitrogen")       // incorrect
-        lose("Hydrogen")       // incorrect
+        lose("Cerebrum")     // incorrect
+        next("Cerebellum")   // correct
+        lose("Brainstem")    // incorrect
+        lose("Hypothalamus") // incorrect
     }
 }
 
 @ {
-    title   = "⚛️ Question 3"
-    message = "What particle in an atom has a positive charge?"
+    title   = "🌡️ Question 3"
+    message = "At what temperature does water freeze (at sea level)?"
     buttons {
-        lose("Electron")   // incorrect
-        lose("Neutron")    // incorrect
-        next("Proton")      // correct answer
-        lose("Photon")     // incorrect
+        lose("100°C")       // incorrect
+        next("0°C")         // correct
+        lose("-10°C")       // incorrect
+        lose("32°C")        // incorrect
     }
 }
 
 @ end {
     title   = "🎉 Quiz Complete!"
-    message = "You've finished the Science Quiz. Great job! 🌟\n\nWant to try again?"
+    message = "You've finished the Science Quiz. Well done! 🌟\n\nWant to try again?"
 
     buttons {
         main("↺ Restart Quiz")
@@ -526,10 +526,10 @@ Sometimes the name of a scene is not important if you are using the `next` butto
 
 @ lose {
     title   = "❌ Wrong Answer!"
-    message = "Oops! That was not correct. Don't worry, you can try again."
+    message = "Oops! That was not correct. Give it another try"
 
     buttons {
-        back("« Try Again") // back to the question
+        back("« Try Again")
     }
 }
 ```
