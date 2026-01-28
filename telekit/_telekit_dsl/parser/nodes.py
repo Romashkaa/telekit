@@ -47,10 +47,10 @@ class AnyTrigger:
 
 @dataclass
 class SceneBlock(Node):
-	name: str
+	name: str | None
 	fields: dict = field(default_factory=dict)
 
-	def __init__(self, name: str, default_label: str | None):
+	def __init__(self, name: str | None, default_label: str | None):
 		super().__init__(type="scene")
 		self.name = name
 		self.default_label = default_label

@@ -112,7 +112,11 @@ class Parser:
 
     def parse_scene_block(self):
         self.expect("op", "@")
-        name = self.expect("kw").value
+
+        if self.token().type == "kw":
+            name = self.expect("kw").value
+        else:
+            name = None
 
         # optional default label
         default_label = None

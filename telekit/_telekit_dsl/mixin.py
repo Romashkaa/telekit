@@ -103,17 +103,7 @@ class ScriptData:
         return self.scenes[self.get_prev_scene_name()]
     
     def get_next_scene_name(self) -> str | None:
-        if not self.next_order:
-            return None
-        for item in self.history[::-1]:
-            if item not in self.next_order:
-                continue
-            index = self.next_order.index(item)
-            # check that next index exists
-            if index + 1 >= len(self.next_order):
-                return None
-            return self.next_order[index + 1]
-        return None
+        return self.get_current_scene().get("_next")
     
     def get_next_scene(self) -> dict:
         return self.scenes[self.get_next_scene_name() or "main"]
@@ -127,6 +117,18 @@ class ScriptData:
             self.history.pop() # remove current
         if self.history:
             return self.history.pop() # get and remove previous
+        
+    def _trim_list(self, items: list[str], delimiter: str) -> list[str] | None:
+        if delimiter not in items:
+            return
+        last_index: int = len(items) - 1 - items[::-1].index(delimiter)
+        return items[:last_index]
+
+    def _rollback_to(self, rollback_point: str) -> None:
+        new_history = self._trim_list(self.history, rollback_point)
+
+        if new_history is not None:
+            self.history = new_history
 
     @classmethod
     def _script_data_factory(cls, executable_model: dict[str, Any]):
@@ -245,21 +247,28 @@ class TelekitDSLMixin(telekit.Handler):
         cls._prepare_script(cls.executable_model)
 
     @classmethod
-    def display_script_data(cls):
+    def display_script_data(cls, path: str | None=None):
         """
         Prints the semantic model of the script to the console.
         """
         if not hasattr(cls, "executable_model"):
             print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_source` first.")
             return
+        
+        executable_model = cls.executable_model.copy()
+        executable_model.pop("source", None)
 
-        print(
-            json.dumps(
-                cls.executable_model,
-                indent=4,
-                ensure_ascii=False
-            )
+        string = json.dumps(
+            executable_model,
+            indent=4,
+            ensure_ascii=False
         )
+
+        if path:
+            with open(path, "w") as f:
+                f.write(string)
+        else:
+            print(string)
 
     @classmethod
     def set_jinja_env(cls, env: jinja2.Environment | None=None):
@@ -326,13 +335,13 @@ class TelekitDSLMixin(telekit.Handler):
         if initial_scene not in self.script_data.scenes:
             initial_scene = "main"
             
-        self.prepare_scene(initial_scene)()
+        self._render(initial_scene)
     
     # ----------------------------------------------------------------------------
     # Scene Rendering
     # ----------------------------------------------------------------------------
 
-    def prepare_scene(self, _scene_name: str):
+    def _prepare_scene(self, _scene_name: str):
         """
         Prepare the scene renderer
         """
@@ -343,6 +352,7 @@ class TelekitDSLMixin(telekit.Handler):
         return render
     
     def _render(self, _scene_name: str):
+        print("H:", len(self.script_data.history))
         scene_name = _scene_name
 
         # magic scenes logic
@@ -431,7 +441,9 @@ class TelekitDSLMixin(telekit.Handler):
 
             match button_attrs["type"]:
                 case "scene":
-                    keyboard[label] = self.prepare_scene(target)
+                    keyboard[label] = self._prepare_scene(target)
+                case "return":
+                    keyboard[label] = self._prepare_return(target)
                 case "suggest":
                     keyboard[label] = self._prepare_suggestion(*target)
                 case "redirect":
@@ -454,7 +466,7 @@ class TelekitDSLMixin(telekit.Handler):
     def _remove_garbage(self, scene: dict, scene_name: str):
         self.script_data.entry = None
 
-        if not scene.get("_has_back_option"):
+        if not scene.get("_keep_history"):
             self.script_data.history.clear()
             self.script_data.history.append(scene_name)
     
@@ -504,7 +516,18 @@ class TelekitDSLMixin(telekit.Handler):
         return
     
     # ----------------------------------------------------------------------------
-    # Redirect Logic
+    # Return Logic
+    # ----------------------------------------------------------------------------
+
+    def _prepare_return(self, target: str):
+        def render():
+            self.script_data._rollback_to(target)
+            self._render(target)
+
+        return render
+    
+    # ----------------------------------------------------------------------------
+    # Redirect & Handoff Logic
     # ----------------------------------------------------------------------------
 
     def _prepare_handoff(self, target: str):
@@ -526,7 +549,7 @@ class TelekitDSLMixin(telekit.Handler):
     def _prepare_suggestion(self, target: str, text: str):
         def render():
             self.script_data.entry = text
-            self.prepare_scene(target)()
+            self._render(target)
 
         return render
 
@@ -552,7 +575,7 @@ class TelekitDSLMixin(telekit.Handler):
         if not choosed_scene:
             choosed_scene = scene.get("_default_entry_target", "main")
 
-        self.prepare_scene(choosed_scene)()
+        self._render(choosed_scene)
     
     # ----------------------------------------------------------------------------
     # Timeout Logic
@@ -584,7 +607,7 @@ class TelekitDSLMixin(telekit.Handler):
         else:
             self.chain.remove_timeout()
 
-        self.prepare_scene(self.script_data.history.pop())()
+        self._render(self.script_data.history.pop())
 
     # ----------------------------------------------------------------------------
     # Template Logic

@@ -10,4 +10,5 @@ from . import (
     pyapi,
     quiz,
     hotel,
+    complete_hotel,
 )

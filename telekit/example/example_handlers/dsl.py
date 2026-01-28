@@ -1,4 +1,3 @@
-from typing import Any
 import telekit
 
 class DSLHandler(telekit.TelekitDSL.Mixin):
@@ -18,7 +17,8 @@ class DSLHandler(telekit.TelekitDSL.Mixin):
                     handoff("📚 FAQ", "FAQHandler")
                     handoff("🤔 Quiz", "QuizHandler")
                     handoff("🐍 Python API", "PyAPIHandler")
-                    handoff("🏨 Hotel Booking", "HotelHandler")
+                    handoff("🛏️ Hotel (Simple)", "HotelHandler")
+                    handoff("🏨 Hotel (Complete)", "CompleteHotelHandler")
                 }
             }
         """)

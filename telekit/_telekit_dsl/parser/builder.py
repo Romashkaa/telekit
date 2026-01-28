@@ -5,7 +5,7 @@ class BuilderError(Exception):
     pass
 
 MAGIC_SCENES = ("back", "next")
-SPECIAL_NAMES = ("link", "suggest", "redirect", "handoff")
+SPECIAL_NAMES = ("link", "suggest", "redirect", "handoff", "return")
 
 class NoValue:
     pass
@@ -15,9 +15,9 @@ class Builder:
         self.src = src
         self.ast = ast
         self.result = {
+            "order": [],
             "config": {},
             "scenes": {},
-            "order": [],
             "source": self.src,
         }
         self.config_blocks: list[dict[str, Any]] = []
@@ -25,22 +25,25 @@ class Builder:
             "next": "Next »",
             "back": "« Back"
         }
+        self.RESERVED_NAMES = MAGIC_SCENES + SPECIAL_NAMES
+        self._anonymous_scenes_count = 0
 
     def build(self) -> dict:
-        # self.ensure_single_config_block()
+        for item in self.ast.body:
+            if isinstance(item, ConfigBlock):
+                self.analyze_config(item)
+        self.finalize_configs()
+
         self.check_main_scene()
+        self.analyze_anonimous_scenes()
         self.check_unique_scene_names()
 
         self.analyze_scenes_default_labels()
 
         for item in self.ast.body:
-            match item:
-                case ConfigBlock():
-                    self.analyze_config(item)
-                case SceneBlock():
-                    self.analyze_scene(item)
+            if isinstance(item, SceneBlock):
+                self.analyze_scene(item)
 
-        self.finalize_configs()
         self.post_analysis()
         self.check_last_scene_has_no_next()
 
@@ -51,20 +54,45 @@ class Builder:
     def remove_refers_to_attr(self):
         for _, scene in self.result["scenes"].items():
             scene.pop("refers_to", None)
+            scene.pop("_has_back_button", None)
+            scene.pop("_has_next_button", None)
+
+    def analyze_anonimous_scenes(self):
+        for scene in self.ast.body:
+            if not isinstance(scene, SceneBlock):
+                continue
+
+            if isinstance(scene.name, str):
+                if scene.name.startswith("anonymous_") or scene.name in self.RESERVED_NAMES:
+                    raise NameError(f"The scene name '{scene.name}' is reserved by the Telekit DSL. Please choose another one.")
+            else:
+                self._anonymous_scenes_count += 1
+                scene.name = f"anonymous_{self._anonymous_scenes_count}"
     
     def analyze_scenes_default_labels(self):
+        if next_label := self.result["config"].get("next_label"):
+            self.scenes_default_labels["next"] = next_label
+
+        if next_label := self.result["config"].get("back_label"):
+            self.scenes_default_labels["back"] = next_label
+
         for item in self.ast.body:
             if not isinstance(item, SceneBlock):
                 continue
 
+            scene_name = item.name
+
+            if not isinstance(scene_name, str):
+                raise TypeError()
+
             if item.default_label:
-                self.scenes_default_labels[item.name] = item.default_label
+                self.scenes_default_labels[scene_name] = item.default_label
             elif isinstance(title := item.fields.get("title", None), str):
-                self.scenes_default_labels[item.name] = title
+                self.scenes_default_labels[scene_name] = title
             elif isinstance(text := item.fields.get("text", None), str):
-                self.scenes_default_labels[item.name] = text.split("\n")[0]
+                self.scenes_default_labels[scene_name] = text.split("\n")[0]
             else:
-                self.scenes_default_labels[item.name] = item.name
+                self.scenes_default_labels[scene_name] = scene_name
     
     def post_analysis(self):
         for scene_name, scene in self.result["scenes"].items():
@@ -90,6 +118,25 @@ class Builder:
         if "main" not in self.result["config"]["next_order"]:
             self.result["config"]["next_order"] = ["main"] + self.result["config"]["next_order"]
 
+        # optimization:
+        next_order = self.result["config"]["next_order"]
+        for scene_name, scene in self.result["scenes"].items():
+            if scene.get("_has_back_button"):
+                self.result["scenes"][scene_name]["_keep_history"] = True
+
+        for scene_name, scene in self.result["scenes"].items():
+            if not scene.get("_has_next_button"):
+                continue
+
+            try:
+                current: int = self.result["order"].index(scene_name)
+                for next_name in self.result["order"][current+1:]:
+                    if next_name in next_order:
+                        self.result["scenes"][scene_name]["_next"] = next_name
+                        break
+            except ValueError:
+                continue
+
     def check_last_scene_has_no_next(self):
         next_order = self.result["config"].get("next_order", [])
         if not next_order:
@@ -105,7 +152,7 @@ class Builder:
         for _, target in last_scene.get("refers_to", {}).items():
             if target == "next":
                 raise BuilderError(
-                    f"Scene '@{last_scene_name}' is last in next_order but contains a 'next' button. "
+                    f"Scene '@{last_scene_name}' is last in next_order but contains a reference to 'next' scene. "
                     f"cannot use 'next' from the final scene in order."
                 )
             
@@ -178,6 +225,8 @@ class Builder:
             ("next_label", str),
             ("next_order", list),
 
+            ("back_label", str),
+
             ("template", str)
         )
 
@@ -217,13 +266,17 @@ class Builder:
         self.result["config"] = result
 
     def analyze_scene(self, scene: SceneBlock):
-        name: str = scene.name
+        name: str | None = scene.name
+
+        if not isinstance(name, str):
+            raise TypeError()
+
         fields: dict[str, Any] = scene.fields
 
         scene_data: dict[str, Any] = {"name": name}
 
         if name in MAGIC_SCENES + SPECIAL_NAMES:
-            raise ValueError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
+            raise NameError(f"The scene name '{name}' is reserved by the Telekit DSL. Please choose another one.")
 
         # required fields: either title + message or text
         if "text" in fields:
@@ -303,6 +356,8 @@ class Builder:
 
         # Entries
 
+        scene_data["refers_to"] = {}
+
         if "entries" in fields:
             scene_data["entries"] = {}
             for trigger, target_scene in fields["entries"].items():
@@ -320,12 +375,16 @@ class Builder:
                     scene_data["entries"][trigger] = target_scene
 
                 if target_scene == "back":
-                    scene_data["_has_back_option"] = True
+                    scene_data["_has_back_button"] = True
+                if target_scene == "next":
+                    scene_data["_has_next_button"] = True
+
+                scene_data["refers_to"][f"Entry '{trigger}'"] = target_scene
+                
 
         # Buttons
 
         scene_data["buttons"] = {}
-        scene_data["refers_to"] = {}
 
         # handle buttons if present
         if "buttons" in fields:
@@ -378,6 +437,24 @@ class Builder:
                             "type": "suggest",
                             "target": (target, argument)
                         }
+                    case "return":
+                        if isinstance(label, NoLabel):
+                            raise BuilderError(f"\n\nScene '@{name}' contains a return-button that needs a label and target scene name")
+                        if not label.strip():
+                            raise BuilderError(f"\n\nScene '@{name}' contains a return-button that needs a label AND target scene name")
+                        if argument is None:
+                            argument = label.strip()
+                            
+                            if label in self.scenes_default_labels:
+                                label = self.scenes_default_labels[label]
+                            else:
+                                raise BuilderError(f"Scene '@{name}' contains a return-button that points to unknown scene '{label}'")
+                        if argument in MAGIC_SCENES:
+                            raise BuilderError(f"Scene '@{name}' contains a return-button that points to magic scene '{argument}' (It is forbidden in this context)")
+                        scene_data["buttons"][label] = {
+                            "type": "return",
+                            "target": argument
+                        }
                     case "link":
                         if isinstance(label, NoLabel):
                             raise BuilderError(f"\n\nScene '@{name}' contains a link-button that needs a label and URL. \n\n- Example: link('YouTube', 'https://youtube.com')\n")
@@ -411,7 +488,10 @@ class Builder:
                         scene_data["refers_to"][f"Button '{label}'"] = target_scene
 
                         if target_scene == "back":
-                            scene_data["_has_back_option"] = True
+                            scene_data["_has_back_button"] = True
+
+                        if target_scene == "next":
+                            scene_data["_has_next_button"] = True
 
         self.result["scenes"][scene.name] = scene_data
         self.result["order"].append(scene.name)

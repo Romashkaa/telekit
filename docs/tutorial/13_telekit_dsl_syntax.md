@@ -13,6 +13,7 @@
 - [Multiline Strings](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#multiline-strings)
 - [Buttons Without Label](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label)
 - [Next Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next)
+        Please select the block you'd like:
 - [Template Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables)
     - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#available-variables)
     - [Custom Static Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-static-variables)
@@ -25,6 +26,7 @@
 - [Handling Text Input](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handling-text-input)
 - [Handoff Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handoff-button)
 - [Redirect Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#redirect-button)
+- [Return Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#return-button)
 - [Jinja Template Engine](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#jinja-extended-template-engine)
 - [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#additional-documentation)
 - [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
@@ -770,7 +772,7 @@ buttons {
 
 ## Handoff Button
 
-The `handoff` button is equivalent to the same method in the handler. It allows you to seamlessly switch control to another handler.
+The `handoff(label, target_handler)` button is equivalent to the same method in the handler. It allows you to seamlessly switch control to another handler.
 
 ```js
 @ main {
@@ -790,7 +792,7 @@ The `handoff` button is equivalent to the same method in the handler. It allows 
 
 ## Redirect Button
 
-The `redirect` button simulates the user sending a specific message or command when clicked:
+The `redirect(label, command)` button simulates the user sending a specific message or command when clicked:
 
 ```js
 @ main {
@@ -809,6 +811,46 @@ The `redirect` button simulates the user sending a specific message or command w
 
 > [!NOTE] 
 > Clicking a `redirect` button automatically ends the current script. Therefore, the value is **not passed** to `entries { ... }` in the scene.
+
+## Return Button
+
+The `return(label, target_scene)` button type allows you to **navigate to a specific scene** and **trim the history** between the current scene and the target scene: 
+
+```js
+// Example history:
+// ['a', 'b', 'previous', 'rooms', 'd', 'f', 'current']
+
+// In the "current" scene:
+rooms("Menu ↺") // regular scene transition
+
+// Resulting history after a regular rooms() transition:
+// ['a', 'b', 'previous', 'rooms', 'd', 'f', 'current', 'rooms']
+
+// Using "return" instead:
+return("Menu ↺", "rooms")
+
+// Resulting history after return():
+// ['a', 'b', 'previous', 'rooms']
+```
+
+This ensures that when the user presses `back`, they return to the scene that was visited **before the target**, rather than the current one.
+
+> [!NOTE] 
+> If the target scene (`rooms`) appears multiple times in the history, `return` moves to the **last occurrence** of the target scene.
+
+You can omit the label by specifying only the target scene name; the button label will be determined automatically:
+
+```js
+buttons {
+    return("rooms")
+}
+```
+
+> [!WARNING] 
+> It is also forbidden to use `return("next")`, `return("back")`, `return("Next", "next")` or `return("Back", "back")` as this does not make any sense.
+
+> [!TIP]
+> Check the [example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md)
 
 ## Jinja: Extended Template Engine
 

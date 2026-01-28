@@ -6,7 +6,7 @@ class HotelHandler(telekit.TelekitDSL.Mixin):
     def init_handler(cls) -> None:
         cls.on.message(commands=["hotel"]).invoke(cls.handle)
         cls.analyze_source(script)
-
+        
     def handle(self):
         self.cart = []
         self.start_script()
