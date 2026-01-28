@@ -48,7 +48,15 @@ To show text to the user, you have two options:
     text = "📖 FAQ – Here are answers to common questions to help you get started:"
 }
 ```
-> 📖 FAQ – Here are answers to common questions to help you get started:
+
+<details>
+  <summary>Result</summary>
+  <table>
+    <tr>
+      <td><img src="../images/dsl_tutorial/1st_scene_text.jpg" alt="Telekit Example 6" width="400"></td>
+    </tr>
+  </table>
+</details>
 
 2. Or, use the `title` and `message` attributes for more structured content:
 
@@ -58,9 +66,15 @@ To show text to the user, you have two options:
     message = "Here are answers to common questions to help you get started:"
 }
 ```
-> <b>📖 FAQ - Frequently Asked Questions</b>
->
-> Here are answers to common questions to help you get started:
+
+<details>
+  <summary>Result</summary>
+  <table>
+    <tr>
+      <td><img src="../images/dsl_tutorial/1st_scene_title_and_message.jpg" alt="Telekit Example 6" width="400"></td>
+    </tr>
+  </table>
+</details>
 
 Each scene can either use a single `text` field for a simple message or a combination of `title` and `message` for a structured heading and body.
 
