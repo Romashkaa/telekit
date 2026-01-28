@@ -696,7 +696,7 @@ class QuestHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.message(commands=["start"]).invoke(cls.handle)
-        cls.analyze_source(script)
+        cls.analyze_string(script)
 
     def handle(self):
         self.visited_endings = set()

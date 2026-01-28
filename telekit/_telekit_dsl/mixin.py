@@ -178,30 +178,22 @@ class ScriptData:
 
 class TelekitDSLMixin(telekit.Handler):
     """
-    TelekitDSLMixin — Mixin for creating interactive FAQ inside a Telekit handler.
+    TelekitDSLMixin — Mixin for creating interactive pages, such as FAQs. 
+    
+    It allows you to describe the message layout, add images, and buttons for navigation between pages in a convenient, structured format that your bot can easily process.
 
-    This class allows you to:
-    - Load script data from a Telekit DSL file or string.
-    - Automatically handle user navigation between scenes.
-    - Render scenes with inline keyboards and formatting.
+    [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
 
-    Requirements:
-    - The handler using this mixin must call `analyze_file()` or `analyze_source()` before `start_script()`.
-
-    [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
-
-    ## Usage:
+    ### Usage:
     ```
         import telekit
 
         class MyFAQHandler(telekit.TelekitDSL.Mixin):
             @classmethod
             def init_handler(cls) -> None:
-                cls.analyze_source(script)
+                cls.analyze_file("script.scr")
                 cls.on.command("faq").invoke(cls.start_script)
     ```
-
-    [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) · Tutorial
     """
 
     # class attributes
@@ -267,7 +259,7 @@ class TelekitDSLMixin(telekit.Handler):
         Prints the semantic model of the script to the console.
         """
         if not hasattr(cls, "executable_model"):
-            print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_source` first.")
+            print("display_script_data: Script data not loaded. Call `analyze_file` or `analyze_string` first.")
             return
         
         executable_model = cls.executable_model.copy()
@@ -310,7 +302,7 @@ class TelekitDSLMixin(telekit.Handler):
         """
 
         if not executable_model:
-            raise ValueError("Script data not loaded. Call `analyze_file` or `analyze_source` first.")
+            raise ValueError("Script data not loaded. Call `analyze_file` or `analyze_string` first.")
 
         # update script data factory
         cls._script_data_factory = ScriptData._script_data_factory(executable_model)
@@ -329,7 +321,7 @@ class TelekitDSLMixin(telekit.Handler):
         """
         # quick check
         if not hasattr(self, "_script_data_factory"):
-            message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_source() before starting it."
+            message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_string() before starting it."
             library.error(message)
             self.chain.sender.pyerror(RuntimeError(message))
             return
