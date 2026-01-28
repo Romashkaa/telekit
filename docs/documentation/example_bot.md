@@ -12,11 +12,11 @@ telekit.example(YOUR_BOT_TOKEN)
 
 ## Gallery
 
-![docs/images/telekit_example_1.jpg]
-![docs/images/telekit_example_2.jpg]
-![docs/images/telekit_example_3.jpg]
-![docs/images/telekit_example_4.jpg]
-![docs/images/telekit_example_5.jpg]
-![docs/images/telekit_example_6.jpg]
-![docs/images/telekit_example_7.jpg]
-![docs/images/telekit_example_8.jpg]
+![Telekit Example 1](docs/images/telekit_example_1.jpg)
+![Telekit Example 2](docs/images/telekit_example_2.jpg)
+![Telekit Example 3](docs/images/telekit_example_3.jpg)
+![Telekit Example 4](docs/images/telekit_example_4.jpg)
+![Telekit Example 5](docs/images/telekit_example_5.jpg)
+![Telekit Example 6](docs/images/telekit_example_6.jpg)
+![Telekit Example 7](docs/images/telekit_example_7.jpg)
+![Telekit Example 8](docs/images/telekit_example_8.jpg)
