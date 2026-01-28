@@ -132,7 +132,7 @@ If you want more control, you can use the following methods:
 ```python
 self.chain.sender.set_use_italics(True) # Italicize message body
 self.chain.sender.set_use_newline(False) # Disable spacing between title and message
-self.chain.sender.set_parse_mode(ParseMode.HTML) # Use enum or string
+self.chain.sender.set_parse_mode(ParseMode.HTML) # Set parse mode. Use enum or string
 self.chain.sender.set_reply_to(message)
 self.chain.sender.set_chat_id(chat_id)
 ```
@@ -140,9 +140,9 @@ self.chain.sender.set_chat_id(chat_id)
 Want to add an image, document or an effect in a single line?
 
 ```python
-self.chain.sender.set_effect(Effect.HEART) # Use enum or string
-self.chain.sender.set_photo("robot.png") # URL, FileID, or Path
-self.chain.sender.set_document("README.md") # URL, FileID or Path
+self.chain.sender.set_effect(Effect.HEART) # Add effect to message. Use enum or string
+self.chain.sender.set_photo("robot.png") # Attach photo. URL, file_id, or path
+self.chain.sender.set_document("README.md") # Attach document. URL, file_id, or path
 self.chain.sender.set_text_as_document("Hello, this is a text document!")
 self.chain.sender.send_chat_action(ChatAction.TYPING) # Use enum or string
 ```
