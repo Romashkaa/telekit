@@ -147,7 +147,7 @@ self.chain.sender.set_text_as_document("Hello, this is a text document!")
 self.chain.sender.send_chat_action(ChatAction.TYPING) # Use enum or string
 ```
 
-> [!INFO]
+> [!NOTE]
 > Telekit automatically decides whether to use `bot.send_message`, `bot.send_photo`, or other Telegram API methods.
 
 More styling options are available in the [documentation](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/3_senders.md).
