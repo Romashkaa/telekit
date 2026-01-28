@@ -1,5 +1,17 @@
 # Complete Hotel Example
 
+Template of a hotel bot.
+
+<details>
+  <summary>Click to See Results</summary>
+  <table>
+    <tr>
+      <td><img src="../images/telekit_example_7.jpg" alt="Telekit Example 7" width="300"></td>
+      <td><img src="../images/telekit_example_8.jpg" alt="Telekit Example 8" width="300"></td>
+    </tr>
+  </table>
+</details>
+
 > `main.py` file:
 
 ```py

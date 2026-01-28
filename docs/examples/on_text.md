@@ -1,5 +1,12 @@
 # On Text
 
+Example of handling specific templated messages.
+
+<details>
+  <summary>Click to See Result</summary>
+  <img src="../images/telekit_example_4.jpg" alt="Telekit Example 4" width="300">
+</details>
+
 ```py
 import telekit
 

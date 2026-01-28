@@ -1,5 +1,17 @@
 # Counter
 
+Counter with "+" and "-" buttons.
+
+<details>
+  <summary>Click to See Results</summary>
+  <table>
+    <tr>
+      <td><img src="../images/telekit_example_2.jpg" alt="Telekit Example 2" width="300"></td>
+      <td><img src="../images/telekit_example_3.jpg" alt="Telekit Example 3" width="300"></td>
+    </tr>
+  </table>
+</details>
+
 ```python
 import telebot.types
 import telekit
