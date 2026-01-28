@@ -7,8 +7,8 @@ class HotelHandler(telekit.TelekitDSL.Mixin):
 
     @classmethod
     def init_handler(cls) -> None:
+        cls.analyze_string(script)
         cls.on.command("start").invoke(cls.handle)
-        cls.analyze_source(script)
 
     def handle(self):
         # optional: add runtime data to Jinja

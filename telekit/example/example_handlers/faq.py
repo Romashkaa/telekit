@@ -5,7 +5,7 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.command("faq", params=[Str()]).invoke(cls.start_script)
-        cls.analyze_source(script)
+        cls.analyze_string(script)
         
         # cls.display_script_data() # see the ast of the script
 

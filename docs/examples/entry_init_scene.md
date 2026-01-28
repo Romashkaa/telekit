@@ -7,7 +7,7 @@ from telekit.parameters import Str
 class FAQHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.analyze_source(script)
+        cls.analyze_string(script)
         cls.on.command("faq", params=[Str()]).invoke(cls.handle)
 
     def handle(self, initial_scene: str="main") -> None:

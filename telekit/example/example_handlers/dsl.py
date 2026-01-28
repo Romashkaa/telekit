@@ -3,7 +3,7 @@ import telekit
 class DSLHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.analyze_source("""
+        cls.analyze_string("""
             @ main {
                 title = "📚 Telekit DSL Examples"
                 message = `

@@ -7,8 +7,8 @@ Use the cls.display_script_data() method inside init_handler to inspect the Exec
 ```py
 @classmethod
 def init_handler(cls) -> None:
+    cls.analyze_string(script)
     cls.on.command("start").invoke(cls.start_script)
-    cls.analyze_source(script)
     
     cls.display_script_data() # prints cls.executable_model
 ```

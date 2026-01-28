@@ -231,10 +231,10 @@ class TelekitDSLMixin(telekit.Handler):
         with open(path, "r", encoding=encoding) as f:
             content = f.read()
         
-        cls.analyze_source(content)
+        cls.analyze_string(content)
 
     @classmethod
-    def analyze_source(cls, script: str) -> None | NoReturn:
+    def analyze_string(cls, script: str) -> None | NoReturn:
         """
         Analyze an script from string and store parsed data in the class.
 
@@ -245,6 +245,21 @@ class TelekitDSLMixin(telekit.Handler):
         """
         cls.executable_model = parser.analyze(script)
         cls._prepare_script(cls.executable_model)
+
+    @classmethod # DEPRECATED
+    def analyze_source(cls, script: str) -> None | NoReturn:
+        """
+        .. deprecated:: 0.9.0
+        Use :meth:`analyze_string` instead.
+        
+        Analyze an script from string and store parsed data in the class.
+
+        Raises an error if there are syntax errors or analyzer warnings.
+        
+        :param script: Telekit DSL script
+        :type script: str
+        """
+        cls.analyze_string(script)
 
     @classmethod
     def display_script_data(cls, path: str | None=None):

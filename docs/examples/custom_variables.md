@@ -19,8 +19,8 @@ import telekit
 class QuizHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
+        cls.analyze_string(script)
         cls.on.message(commands=["quiz"]).invoke(cls.start_script)
-        cls.analyze_source(script)
 
     def get_variable(self, name: str) -> str | None:
         match name:

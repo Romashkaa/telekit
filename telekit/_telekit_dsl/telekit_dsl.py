@@ -54,6 +54,6 @@ class TelekitDSL:
             @classmethod
             def init_handler(cls) -> None:
                 cls.on.message(on_commands).invoke(cls.start_script)
-                cls.analyze_source(source)
+                cls.analyze_string(source)
 
 

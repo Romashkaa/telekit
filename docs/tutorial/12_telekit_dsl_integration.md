@@ -14,7 +14,7 @@ script = """...Telekit DSL source..."""
 class HelpHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
-        cls.analyze_source(script)
+        cls.analyze_string(script)
         cls.on.command("help").invoke(cls.start_script)
 
 telekit.Server(TOKEN).polling()
@@ -22,7 +22,7 @@ telekit.Server(TOKEN).polling()
 
 In this example:
 
-- `analyze_source()` parses and analyzes the DSL code stored in the `script` variable.
+- `analyze_string()` parses and analyzes the DSL code stored in the `script` variable.
 - The `/help` command is registered and bound to `start_script`, a method provided by the DSL mixin.
 - When the command is triggered, the "main" scene of the script is executed.
 
@@ -30,11 +30,11 @@ In this example:
 
 You can analyze Telekit DSL code using the following methods:
 
-- `analyze_source` — Analyze a DSL script provided as a string.
+- `analyze_string` — Analyze a DSL script provided as a string.
 - `analyze_file` — Analyze a DSL script from a file.
 
 > [!NOTE]
-> Both `analyze_source` and `analyze_file` will raise an exception if syntax errors or analyzer warnings are detected.
+> Both `analyze_string` and `analyze_file` will raise an exception if syntax errors or analyzer warnings are detected.
 
 Additional DSL-related methods are covered in later sections of the documentation.
 
@@ -46,9 +46,18 @@ For quick setups, you can initialize and bind a DSL script in a single call:
 import telekit
 
 telekit.TelekitDSL.from_string(
-    """...Telekit DSL source...""",
-    commands=["help"]
+    """...Telekit DSL script...""", ["help"]
 )
+
+telekit.Server(TOKEN).polling()
+```
+
+Or:
+
+```python
+import telekit
+
+telekit.TelekitDSL.from_file("script.scr", ["help"])
 
 telekit.Server(TOKEN).polling()
 ```

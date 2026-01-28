@@ -6,7 +6,7 @@ class QuizHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.message(commands=["quiz"]).invoke(cls.start_script)
-        cls.analyze_source(script)
+        cls.analyze_string(script)
 
     def handle(self) -> None:
         self.start_script()
