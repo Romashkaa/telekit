@@ -14,13 +14,15 @@ class ParseMode(str, Enum):
     MARKDOWN = "markdown"
 
 __all__ = [
+    # Types / Dataclasses
     "TextDocument",
     "User",
 
+    # Namespaces
     "Styles",
-
+    
+    # Enums
     "ChatAction",
     "Effect",
-
     "ParseMode",
 ]

@@ -53,7 +53,11 @@ self.chain.sender.set_parse_mode(ParseMode.HTML)
 from telekit.types import ChatAction
 self.chain.sender.send_chat_action(ChatAction.TYPING)
 
+from telekit.types import Effect
+self.chain.sender.set_effect(Effect.HEART)
+
 # Other:
 from telekit.types import TextDocument
+from telekit.types import Styles
 from telekit.types import User
 ```
