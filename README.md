@@ -118,37 +118,39 @@ self.chain.sender.set_parse_mode("markdown")
 - Or let Telekit handle the layout for you:
 ```python
 self.chain.sender.set_title("👋 Hello, user!") # Bold title
-self.chain.sender.set_message("Welcome to the Bot!")  # Italic message after the title
+self.chain.sender.set_message("Welcome to the Bot!")  # Text after the title
 ```
 
 Approximate result:
 
 > **👋 Hello, user!**
 > 
-> _Welcome to the Bot!_
+> Welcome to the Bot!
 
 If you want more control, you can use the following methods:
 
 ```python
-self.chain.sender.set_use_italics(False)
-self.chain.sender.set_use_newline(False)
-self.chain.sender.set_parse_mode("HTML")
+self.chain.sender.set_use_italics(True) # Italicize message body
+self.chain.sender.set_use_newline(False) # Disable spacing between title and message
+self.chain.sender.set_parse_mode(ParseMode.HTML) # Use enum or string
 self.chain.sender.set_reply_to(message)
 self.chain.sender.set_chat_id(chat_id)
-
-# And this is just the beginning...
 ```
 
 Want to add an image, document or an effect in a single line?
 
 ```python
-self.chain.sender.set_effect(self.chain.sender.Effect.HEART)
-self.chain.sender.set_photo("url, bytes or path")
-self.chain.sender.set_document("url, bytes or path")
+self.chain.sender.set_effect(Effect.HEART) # Use enum or string
+self.chain.sender.set_photo("robot.png") # URL, FileID, or Path
+self.chain.sender.set_document("README.md") # URL, FileID or Path
 self.chain.sender.set_text_as_document("Hello, this is a text document!")
+self.chain.sender.send_chat_action(ChatAction.TYPING) # Use enum or string
 ```
 
-Telekit decides whether to use `bot.send_message` or `bot.send_photo` automatically!
+> [!INFO]
+> Telekit automatically decides whether to use `bot.send_message`, `bot.send_photo`, or other Telegram API methods.
+
+More styling options are available in the [documentation](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/3_senders.md).
 
 ## Text Styling with `Styles`
 

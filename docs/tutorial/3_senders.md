@@ -12,8 +12,8 @@ There are two main ways to create a message: a simple text message or a structur
     - `set_text(text)`: Update the message text (regular).
 - Or let Telekit handle the layout for you: 
     - `set_title(title)` and `set_message(message)`
-    - `set_use_italics(...)` – Enable/disable italics for the message body.
-    - `set_use_newline(...)` – Add/remove a blank line between title and message.
+    - `set_use_italics(True)` – Enable italics for the message body.
+    - `set_use_newline(False)` – Disable spacing between title and message.
 
 Example:
 
@@ -60,6 +60,26 @@ self.chain.sender.set_photo("file_id")     # Telegram -> Telegram (super fast)
 ```python
 self.chain.sender.set_effect(self.chain.sender.Effect.FIRE)
 ```
+
+## Chat Actions
+
+To send a chat action (typing indicator, upload status, etc.), use the
+send_chat_action(action) method. The action argument can be either a string or a ChatAction enum value.
+
+> Using ChatAction from the sender
+```py
+self.chain.sender.send_chat_action(self.chain.sender.ChatAction.UPLOAD_AUDIO)
+self.chain.sender.send_chat_action("upload_audio")
+```
+
+> Importing ChatAction directly
+```py
+from telekit.types import ChatAction
+self.chain.sender.send_chat_action(ChatAction.TYPING)
+```
+
+> [!TIP]
+> Chat actions are useful for long-running operations to let the user know the bot is working (e.g. database queries, file uploads, API calls).
 
 ## Creating a New Sender
 

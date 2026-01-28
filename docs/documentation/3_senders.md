@@ -63,8 +63,12 @@ Sends a previously configured message.
 ```py
 # Usage example
 message, error = self.chain.sender.try_send()
+if message:
+    print(f"Message #{message.message_id} was sent")
+else:
+    print(f"Exception: {error}")
 ```  
-- `send_or_handle_error() -> Message | None` - Attempts to send the message with error handling. Returns `Message` if the message was sent successfully, or `None` if an error occurred. If an error occurs, an error message containing the **exception type and description** is automatically sent to the chat:
+- `send_or_handle_error() -> Message | None` - Attempts to send the message with error handling. Returns `Message` if the message was sent successfully, or `None` if an error occurred. If an error occurs, an error message containing the **exception type and description** is automatically sent to the user:
 ```
 ApiTelegramException
 

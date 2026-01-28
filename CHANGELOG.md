@@ -43,3 +43,17 @@
 ## Sender Improvements
 
 - `_use_italics` is now `False` by default. Use `sender.set_use_italics()` to enable italics in message.
+
+## Other Improvements
+- `types` module:
+```py
+from telekit.types import ParseMode
+self.chain.sender.set_parse_mode(ParseMode.HTML)
+
+from telekit.types import ChatAction
+self.chain.sender.send_chat_action(ChatAction.TYPING)
+
+# Other:
+from telekit.types import TextDocument
+from telekit.types import User
+```
