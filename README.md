@@ -51,6 +51,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
 [Community](https://t.me/+wu-dFrOBFIwyNzc0)
+[Gallery](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/gallery.md)
 [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
 [Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
 

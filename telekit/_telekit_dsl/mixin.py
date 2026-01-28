@@ -352,7 +352,6 @@ class TelekitDSLMixin(telekit.Handler):
         return render
     
     def _render(self, _scene_name: str):
-        print("H:", len(self.script_data.history))
         scene_name = _scene_name
 
         # magic scenes logic

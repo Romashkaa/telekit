@@ -7,7 +7,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 > Use Command ⌘ + F to quickly find a specific method, attribute, or parameter.
 
 > [!TIP] 
-> You can launch a example bot with a wide range of demonstration commands by following the link and performing a few simple steps.
+> You can launch a example bot with a wide range of demonstration commands by [following the link](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/example_bot.md) and performing a few simple steps.
 
 ## Basic
 

@@ -1,16 +1,6 @@
-# Telekit Example Bot / Gallery
+# Telekit Gallery
 
-## Example Bot
-
-You can launch an example bot with a wide range of demonstration commands by **running the following code**:
-
-```py
-import telekit
-
-telekit.example(YOUR_BOT_TOKEN)
-```
-
-> Some screenshots of this bot:
+Some screenshots of [example bot](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/example_bot.md):
 
 ![Telekit Example 1](../images/telekit_example_1.jpg)
 ![Telekit Example 2](../images/telekit_example_2.jpg)
