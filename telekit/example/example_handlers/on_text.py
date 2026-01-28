@@ -38,6 +38,7 @@ class OnTextHandler(telekit.Handler):
 
         self.chain.sender.set_title(Composite("Hello, ", Italic(name), "!"))
         self.chain.sender.set_message(Bold(age), " years is a wonderful stage of life!")
+        self.chain.disable_timeout_warnings()
         self.chain.send()
 
     # command

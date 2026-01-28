@@ -43,4 +43,5 @@ class CounterHandler(telekit.Handler):
             self.chain.edit()
             
         self.chain.set_remove_inline_keyboard(False)
+        self.chain.disable_timeout_warnings()
         self.chain.edit()

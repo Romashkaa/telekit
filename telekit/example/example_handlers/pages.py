@@ -53,6 +53,7 @@ class PagesHandler(telekit.Handler):
         def _(message: telebot.types.Message, page: tuple[str, str]) -> None:
             self.display_page(page)
 
+        self.chain.disable_timeout_warnings()
         self.chain.edit()
 
     def display_page(self, page: tuple[str, str]):

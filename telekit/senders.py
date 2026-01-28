@@ -1013,7 +1013,7 @@ class AlertSender(BaseSender):
             self._use_newline = True
         
         if not hasattr(self, "_use_italics"):
-            self._use_italics = True
+            self._use_italics = False
 
         if not hasattr(self, "_text"):
             self._text = ""
@@ -1206,6 +1206,9 @@ class AlertSender(BaseSender):
     def set_use_italics(self, use_italics: bool=True):
         """
         Enable or disable italics for message body.
+
+        This is a stylistic option where the title is rendered in bold,
+        while the message text is rendered in italics.
 
         Args:
             use_italics (bool): True to enable italics, False to disable.

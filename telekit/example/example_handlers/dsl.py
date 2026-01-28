@@ -11,7 +11,6 @@ class DSLHandler(telekit.TelekitDSL.Mixin):
 
                     Use the buttons below to try them out:
                 `
-                use_italics = true;
 
                 buttons (2) {
                     handoff("📚 FAQ", "FAQHandler")

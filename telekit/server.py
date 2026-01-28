@@ -1,8 +1,7 @@
 # -*- encoding:utf-8 -*-
-# Copyright (c) 2025 Romashka
-# Licensed under the MIT License.
 
 # Copyright (c) 2025 Romashka
+# Licensed under the MIT License.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +26,7 @@ import traceback
 import sys
 
 from . import _init
-import telebot # type: ignore
+import telebot
 
 from ._logger import logger
 server_logger = logger.server

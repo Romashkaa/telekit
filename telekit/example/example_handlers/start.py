@@ -19,14 +19,16 @@ class StartHandler(telekit.Handler):
 
         @self.chain.inline_keyboard(
             {
-                "🧮 Counter": "CounterHandler",
-                "⌨️ Entry":     "EntryHandler",
-                "📚 Telekit DSL Examples":"DSLHandler",
-                "📄 Pages":     "PagesHandler",
-                "🦻 On Text":  "OnTextHandler",
-            }, row_width=[2, 1, 2]
+                "🧮 Counter":            "CounterHandler",
+                "⌨️ Entry":                "EntryHandler",
+                "📚 Telekit DSL Examples":   "DSLHandler",
+                "📖 Pages":                "PagesHandler",
+                "🦻 On Text":             "OnTextHandler",
+                "📄 File Info":     "TextDocumentHandler",
+            }, row_width=[2, 1, 3]
         )
         def handle_response(message, handler: str):
             self.handoff(handler).handle()
         
+        self.chain.disable_timeout_warnings()
         self.chain.edit()

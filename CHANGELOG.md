@@ -39,3 +39,7 @@
   If the target scene (`rooms`) appears multiple times in the history, `return` moves to the **last occurrence** of the target scene.
 - Complete refactor of the rendering process.
 - Improved performance.
+
+## Sender Improvements
+
+- `_use_italics` is now `False` by default. Use `sender.set_use_italics()` to enable italics in message.

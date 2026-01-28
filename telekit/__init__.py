@@ -1,4 +1,5 @@
 # Copyright (c) 2025 Romashka
+# Licensed under the MIT License.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +27,17 @@ from ._snapvault import Vault
 from ._chapters import chapters
 from ._user import User
 from ._telekit_dsl.telekit_dsl import TelekitDSL
+from ._logger import enable_file_logging
 from . import senders
+from . import types
 from . import styles
 
 Styles = styles.Styles
 
-from ._logger import enable_file_logging
-
 from ._version import __version__
-
-class types:
-    TextDocument = TextDocument
-    User = User
-
+    
 __all__ = [
-    "types", 
+    "types",
 
     "styles",
     "Styles", 
