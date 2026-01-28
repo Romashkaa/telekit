@@ -17,5 +17,5 @@ The parser and analyzer provide an excellent system of warnings and errors with 
 ```
 
 - [Integration »](12_telekit_dsl_integration.md)
-- [Syntax »](13_telekit_dsl_syntax.md)
+- [Learn Syntax »](13_telekit_dsl_syntax.md)
 - [Examples »](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)

@@ -13,7 +13,6 @@
 - [Multiline Strings](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#multiline-strings)
 - [Buttons Without Label](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label)
 - [Next Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next)
-        Please select the block you'd like:
 - [Template Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables)
     - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#available-variables)
     - [Custom Static Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-static-variables)
@@ -833,10 +832,11 @@ return("Menu ↺", "rooms")
 // ['a', 'b', 'previous', 'rooms']
 ```
 
-This ensures that when the user presses `back`, they return to the scene that was visited **before the target**, rather than the current one.
+This ensures that when the user presses `back`, they return to the scene that was visited **before the target** (`rooms` → `previous`), rather than the current one (`rooms` → `current`).
 
 > [!NOTE] 
-> If the target scene (`rooms`) appears multiple times in the history, `return` moves to the **last occurrence** of the target scene.
+> If the target scene (`rooms`) appears multiple times in the history, `return` moves to the **last occurrence** of the target scene:
+> [`a`,`rooms`, `b`, `previous`, `rooms`, `d`, `f`, `current`] → [`a`,`rooms`, `b`, `previous`, `rooms`]
 
 You can omit the label by specifying only the target scene name; the button label will be determined automatically:
 
