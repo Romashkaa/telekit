@@ -4,7 +4,11 @@ Example of a quiz that uses custom variables.
 
 <details>
   <summary>Click to See Result</summary>
-    <img src="../images/telekit_example_6.jpg" alt="Telekit Example 6" width="300">
+  <table>
+    <tr>
+      <td><img src="../images/telekit_example_6.jpg" alt="Telekit Example 6" width="300"></td>
+    </tr>
+  </table>
 </details>
 
 ```py
