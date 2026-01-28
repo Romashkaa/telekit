@@ -125,7 +125,8 @@ Imagine we have a scene that can be accessed from two different places — the q
 
 ```js
 @ main {
-    ...
+    // title and message
+
     buttons {
         devs("👨‍💻 Developers")     // Opens @devs
         docs("📚 Documentation")  // Opens @docs
@@ -133,7 +134,8 @@ Imagine we have a scene that can be accessed from two different places — the q
 }
 
 @ devs {
-    ...
+    // title and message
+
     buttons {
         main("« Back")      // Opens @main
         docs("Next »")      // Opens @docs
@@ -141,9 +143,10 @@ Imagine we have a scene that can be accessed from two different places — the q
 }
 
 @ docs {
-    ...
+    // title and message
+
     buttons {
-        /*????*/("« Back")          // Opens what?
+        /*????*/("« Back")      // Which scene should we leave a link to? "main" or "devs"?
     }
 }
 ```
@@ -277,6 +280,15 @@ $ timeout {
     label   = "Yes, i'm here"       // optional
 }
 ```
+
+<details>
+  <summary>See Result</summary>
+  <table>
+    <tr>
+      <td><img src="../images/dsl_tutorial/timeout.jpg" alt="Telekit Example 6" width="300"></td>
+    </tr>
+  </table>
+</details>
 
 If the user clicks the "Yes, I’m here" button, they will continue from where they left off.
 
