@@ -10,8 +10,8 @@ This guide will help you quickly get familiar with the library and understand it
 
 - Getting started:
     - [Getting started](1_getting_started.md)
-    - [Basic handler](2_basic_handler.md.md)
-    - [Triggers](3_triggers.md.md)
+    - [Basic handler](2_basic_handler.md)
+    - [Triggers](3_triggers.md)
 - [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md) ⭐
 
 (⭐ Important)
