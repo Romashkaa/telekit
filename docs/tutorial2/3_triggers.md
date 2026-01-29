@@ -43,6 +43,7 @@ Used to listen for specific text messages. The matching is case-sensitive, and y
 ```py
 cls.on.text("Hola", "hola").invoke(cls.handle)
 ```
+</details>
 
 <details>
 <summary><b>photo</b> trigger</summary>

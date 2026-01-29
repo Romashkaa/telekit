@@ -14,6 +14,7 @@ pip install telekit
 ## Getting a Bot Token
 
 First, get your bot token from [BotFather](https://t.me/BotFather). 
+
 After that, you can run the example bot to explore Telekit’s basic features:
 
 ```py
