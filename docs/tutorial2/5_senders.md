@@ -6,7 +6,8 @@ Senders in Telekit provide a high-level interface for sending and managing messa
 
 There are two main ways to create a message: a plain text message or a structured message with a title and body:
 
-<details><summary>Plain Text Message</summary>
+<details>
+<summary>Plain Text Message</summary>
 
 Use `set_text()` to send a plain text message to the chat:
 
@@ -70,7 +71,8 @@ For quick replies or single-line messages, prefer `set_text()` instead.
 
 </details>
 
-<details><summary>Append Additional Text</summary>
+<details>
+<summary>Append Additional Text</summary>
 
 Append additional text to the current message content:
 
@@ -84,7 +86,8 @@ self.chain.send()
 > Useful for building messages in a for-loop.
 </details>
 
-<details><summary>set_parse_mode</summary>
+<details>
+<summary>set_parse_mode</summary>
 
 Set the parse mode for message formatting (e.g., Markdown, HTML):
 
@@ -107,7 +110,8 @@ self.chain.sender.set_parse_mode(ParseMode.HTML)
 
 ## Attach Media to Messages
 
-<details><summary>Photos</summary>
+<details>
+<summary>Photos</summary>
 
 To attach a photo to your message, simply call the `set_photo()` method before sending.
 
@@ -127,7 +131,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Documents</summary>
+<details>
+<summary>Documents</summary>
 
 Use `set_document()` to attach a file to message
 
@@ -147,7 +152,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Videos</summary>
+<details>
+<summary>Videos</summary>
 
 Attach a video file using `set_video()` before sending:
 
@@ -161,7 +167,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Video Notes</summary>
+<details>
+<summary>Video Notes</summary>
 
 Send circular video notes with `set_video_note()`:
 
@@ -174,7 +181,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Animation</summary>
+<details>
+<summary>Animation</summary>
 
 Send GIF animations using `set_animation()`:
 
@@ -187,7 +195,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Audio</summary>
+<details>
+<summary>Audio</summary>
 
 Attach audio files with `set_audio()`:
 
@@ -200,7 +209,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Voice</summary>
+<details>
+<summary>Voice</summary>
 
 Send voice messages using `set_voice()`:
 
@@ -213,7 +223,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Media Groups</summary>
+<details>
+<summary>Media Groups</summary>
 
 Send multiple media items as a group using `set_media()`:
 
@@ -234,7 +245,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>Removing Attachments</summary>
+<details>
+<summary>Removing Attachments</summary>
 
 Remove any attached media or documents before sending with `remove_attachments()`:
 
@@ -251,7 +263,8 @@ self.chain.send()
 
 ## Message Control
 
-<details><summary>set_parse_mode</summary>
+<details>
+<summary>set_parse_mode</summary>
 
 Set the parse mode for message formatting (e.g., Markdown, HTML):
 
@@ -272,7 +285,8 @@ self.chain.sender.set_parse_mode(ParseMode.HTML)
 
 </details>
 
-<details><summary>set_reply_to</summary>
+<details>
+<summary>set_reply_to</summary>
 
 Make the message a reply to another message object:
 
@@ -286,7 +300,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>set_reply_to_message_id</summary>
+<details>
+<summary>set_reply_to_message_id</summary>
 
 Reply by specifying the message ID directly:
 
@@ -300,7 +315,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>set_edit_message</summary>
+<details>
+<summary>set_edit_message</summary>
 
 Edit an existing message object instead of sending a new one:
 
@@ -314,7 +330,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>set_edit_message_id</summary>
+<details>
+<summary>set_edit_message_id</summary>
 
 Edit a message by specifying its ID:
 
@@ -328,7 +345,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>set_chat_id</summary>
+<details>
+<summary>set_chat_id</summary>
 
 Specify the chat ID to send or edit the message in:
 
@@ -344,7 +362,8 @@ self.chain.send()
 
 ## Effects
 
-<details><summary>set_effect</summary>
+<details>
+<summary>set_effect</summary>
 
 Apply an effect to an message using enum, string, or integer: 
 
@@ -366,7 +385,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>set_message_effect_id</summary>
+<details>
+<summary>set_message_effect_id</summary>
 
 Apply an effect to an message by its ID:
 
@@ -391,7 +411,8 @@ self.chain.send()
 
 Temporary messages are messages marked for later deletion and managed automatically during sending.
 
-<details><summary>set_temporary</summary>
+<details>
+<summary>set_temporary</summary>
 
 Mark the current message as temporary. It will be deleted later if `set_delete_temporaries(True)` is enabled:
 
@@ -406,7 +427,8 @@ self.chain.send()
 
 </details>
 
-<details><summary>set_delete_temporaries</summary>
+<details>
+<summary>set_delete_temporaries</summary>
 
 Enable deletion of previously marked temporary messages in the current chat:
 
@@ -426,7 +448,8 @@ self.chain.send()
 
 ## Sending & Error Handling
 
-<details><summary>send</summary>
+<details>
+<summary>send</summary>
 
 Sends or edits the message, including management of temporary messages. Does **not** handle exceptions — any error will be raised:
 
@@ -439,7 +462,8 @@ self.chain.sender.send()
 
 </details>
 
-<details><summary>try_send</summary>
+<details>
+<summary>try_send</summary>
 
 Attempt to send the message, returning message OR exception:
 
@@ -460,7 +484,8 @@ Returns:
 
 </details>
 
-<details><summary>send_or_handle_error</summary>
+<details>
+<summary>send_or_handle_error</summary>
 
 Attempts to send the message with error handling. Returns `Message` if the message was sent successfully, or `None` if an error occurred:
 
@@ -489,7 +514,8 @@ A request to the Telegram API was unsuccessful. Error code: 400. Description: Ba
 
 These methods do not configure the current message; instead, they perform a specific action immediately.
 
-<details><summary>send_chat_action</summary>
+<details>
+<summary>send_chat_action</summary>
 
 Send chat actions like typing indicators:
 
@@ -562,7 +588,8 @@ msg_id = self.chain.sender.get_message_id(message)
 
 # Context Manager
 
-<details><summary>Normal Usage</summary>
+<details>
+<summary>Normal Usage</summary>
 
 This form **does not automatically send** the message.  
 It only groups your setter calls in a clean block:
@@ -577,7 +604,8 @@ You still need to call `self.chain.send()` afterward.
 
 </details>
 
-<details><summary>then_send()</summary>
+<details>
+<summary>then_send()</summary>
 
 If you want the message to be sent automatically at the end of the block, use:
 
