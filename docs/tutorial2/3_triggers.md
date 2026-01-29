@@ -18,7 +18,7 @@ class MyHandler(telekit.Handler):
         cls.on.message(content_types=["document"]).invoke(cls.handle)
 
     def handle(self):
-        self.chain.sender.set_text("Hello!")
+        self.chain.sender.set_text("Hello! Nice to see you 😄")
         self.chain.send()
 
 telekit.Server(BOT_TOKEN).polling() # start your bot
@@ -38,11 +38,20 @@ cls.on.command("start", "greet").invoke(cls.handle)
 <details>
 <summary><b>text</b> trigger</summary>
 
-Used to listen for specific text messages. The matching is case-sensitive, and you can provide multiple text options to listen for:
+Used to listen for specific text messages. 
+
+The matching is case-sensitive, and you can provide multiple text options to listen for:
 
 ```py
 cls.on.text("Hola", "hola").invoke(cls.handle)
 ```
+
+If you don’t pass any parameters, the trigger will respond to **any text message**:
+
+```py
+cls.on.text().invoke(cls.handle) # accepts all text messages
+```
+
 </details>
 
 <details>
@@ -119,6 +128,23 @@ Available chat types:
 
 To access a sent photo or document, you can use `self.message` — this is the message sent by the user that triggered the handler.
 
-todo:
-Params for commands
-Params for texts
+<details><summary>Example: Echo Bot</summary>
+
+```python
+import telekit
+
+class EchoHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.text().invoke(cls.echo) # accepts any text message
+
+    def echo(self) -> None:
+        self.chain.sender.set_text(f"{self.message.text}!")
+        self.chain.send()
+
+telekit.Server("TOKEN").polling()
+```
+</details>
+
+[Next: What’s Next? »](4_library_or_dsl.md)
