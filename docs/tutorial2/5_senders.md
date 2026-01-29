@@ -29,7 +29,8 @@ self.chain.send()
 > ![Result](hello_world.png)
 </details>
 
-<details><summary>Message with a Title and Body</summary>
+<details>
+<summary>Message with a Title and Body</summary>
 
 Use a structured message when you want to separate a **title** from the **message body**.
 This layout is useful for notifications, and other messages.
@@ -337,7 +338,7 @@ self.chain.sender.set_text("Message to specific chat.")
 self.chain.send()
 ```
 
-> Overrides the default chat ID (self.message.chat.id).
+> Overrides the default chat ID (`self.message.chat.id`).
 
 </details>
 
@@ -427,13 +428,11 @@ self.chain.send()
 
 <details><summary>send</summary>
 
-Send the prepared message:
+Sends or edits the message, including management of temporary messages. Does **not** handle exceptions — any error will be raised:
 
 ```py
 self.chain.sender.send()
 ```
-
-> Sends or edits the message, including management of temporary messages. Does **not** handle exceptions — any error will be raised.
 
 > [!IMPORTANT]
 > `self.chain.sender.send()` only sends the message itself. It does not handle inline keyboards or other interactions — for those, you should use `self.chain.send()` or `self.chain.edit()`!
@@ -475,9 +474,9 @@ if message:
 If an error occurs, an error message containing the **exception type and description** is automatically sent to the user:
 
 ```md
-**ApiTelegramException**
+ApiTelegramException
 
-_A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse entities: Can't find end tag corresponding to start tag "b"._
+A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse entities: Can't find end tag corresponding to start tag "b".
 ```
 
 > [!IMPORTANT]
