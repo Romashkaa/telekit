@@ -77,6 +77,7 @@ self.chain.send()
 ```
 
 > Useful for building messages in a for-loop.
+</details>
 
 <details><summary>set_parse_mode</summary>
 
