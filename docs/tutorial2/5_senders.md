@@ -23,7 +23,6 @@ self.chain.sender.set_text(
 )
 ```
 
-> Result:
 > ![Result](hello_world.png)
 
 </details>
