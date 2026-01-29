@@ -20,7 +20,7 @@ setup(
     author='romashka',
     author_email='notromashka@gmail.com',
     description='Declarative, developer-friendly library for building Telegram bots',
-    long_description=readme() + f"\n\n---\n\n# {version} changelog:\n\n" + changelog(),
+    long_description=readme() + f"\n\n---\n\n# Changes in version {version}\n\n" + changelog(),
     include_package_data=True,
     long_description_content_type='text/markdown',
     url='https://github.com/Romashkaa/telekit',
