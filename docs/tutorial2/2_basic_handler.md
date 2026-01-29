@@ -36,4 +36,4 @@ Here:
 > That is why `handle` is defined as an instance method (using `self`),  
 > but is passed to the trigger via `cls.handle`.
 
-[Next: Triggers »](triggers.md)
+[Next: Triggers »](3_triggers.md)

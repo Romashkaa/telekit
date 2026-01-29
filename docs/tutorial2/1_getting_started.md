@@ -36,4 +36,4 @@ That’s it — your bot is connected.
 
 However, the bot doesn’t do anything yet. Let’s fix that by adding our first message handler.
 
-[Next: Create Basic Handler »](basic_handler.md)
+[Next: Create Basic Handler »](2_basic_handler.md)
