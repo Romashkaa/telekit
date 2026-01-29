@@ -31,41 +31,41 @@ self.chain.send()
 
 <details><summary>Message with a Title and Body</summary>
 
-    Use a structured message when you want to separate a **title** from the **message body**.
-    This layout is useful for notifications, and other messages.
+Use a structured message when you want to separate a **title** from the **message body**.
+This layout is useful for notifications, and other messages.
 
-    ```py
-    self.chain.sender.set_title("Hello!")
-    self.chain.sender.set_message("This is the message body.")
-    self.chain.send()
-    ```
+```py
+self.chain.sender.set_title("Hello!")
+self.chain.sender.set_message("This is the message body.")
+self.chain.send()
+```
 
-    By default:
-    - The **title** is rendered in bold
-    - The **message body** is rendered below title
-    - A blank line is inserted between them
+By default:
+- The **title** is rendered in bold
+- The **message body** is rendered below title
+- A blank line is inserted between them
 
-    > [!NOTE]
-    > `set_message()` also supports multiple text parts. All parts are automatically joined using the `sep` parameter.
+> [!NOTE]
+> `set_message()` also supports multiple text parts. All parts are automatically joined using the `sep` parameter.
 
-    You can fine-tune the appearance using sender options:
+You can fine-tune the appearance using sender options:
 
-    ```py
-    self.chain.sender.set_title("Hello!")
-    self.chain.sender.set_message("This is the message body.")
+```py
+self.chain.sender.set_title("Hello!")
+self.chain.sender.set_message("This is the message body.")
 
-    self.chain.sender.set_use_italics(True)    # enable italics for body
-    self.chain.sender.set_use_newline(False)   # disable spacing between title and message
+self.chain.sender.set_use_italics(True)    # enable italics for body
+self.chain.sender.set_use_newline(False)   # disable spacing between title and message
 
-    self.chain.send()
-    ```
+self.chain.send()
+```
 
-    Use **title + body** messages when:
-    - You want a clear visual hierarchy
-    - The message has a heading and explanation
-    - You are building menus
+Use **title + body** messages when:
+- You want a clear visual hierarchy
+- The message has a heading and explanation
+- You are building menus
 
-    For quick replies or single-line messages, prefer `set_text()` instead.
+For quick replies or single-line messages, prefer `set_text()` instead.
 
 </details>
 
