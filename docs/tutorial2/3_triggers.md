@@ -24,7 +24,7 @@ class MyHandler(telekit.Handler):
 telekit.Server(BOT_TOKEN).polling() # start your bot
 ```
 
-Click to expand for details:
+**Click to expand for details:**
 <details>
 <summary><b>command</b> trigger</summary>
 
