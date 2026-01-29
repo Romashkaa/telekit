@@ -4,7 +4,7 @@ Senders in Telekit provide a high-level interface for sending and managing messa
 
 ## Send Text Messages
 
-There are two main ways to create a message: a simple text message or a structured message with a title and body:
+There are two main ways to create a message: a plain text message or a structured message with a title and body:
 
 <details><summary>Plain Text Message</summary>
 
@@ -45,6 +45,9 @@ By default:
 - The **message body** is rendered below title
 - A blank line is inserted between them
 
+> [!NOTE]
+> `set_message()` also supports multiple text parts. All parts are automatically joined using the `sep` parameter.
+
 You can fine-tune the appearance using sender options:
 
 ```py
@@ -63,6 +66,7 @@ Use **title + body** messages when:
 - You are building menus
 
 For quick replies or single-line messages, prefer `set_text()` instead.
+
 </details>
 
 <details><summary>Append Additional Text</summary>
@@ -245,6 +249,27 @@ self.chain.send()
 </details>
 
 ## Message Control
+
+<details><summary>set_parse_mode</summary>
+
+Set the parse mode for message formatting (e.g., Markdown, HTML):
+
+```py
+self.chain.sender.set_parse_mode("markdown")
+self.chain.sender.set_text("*Bold text* and _italic text_.")
+self.chain.send()
+```
+
+You can also use constants:
+
+```py
+from telekit.types import ParseMode
+self.chain.sender.set_parse_mode(ParseMode.HTML)
+```
+
+> Choose the appropriate parse mode for your formatting needs.
+
+</details>
 
 <details><summary>set_reply_to</summary>
 
