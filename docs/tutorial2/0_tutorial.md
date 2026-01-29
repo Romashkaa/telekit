@@ -12,11 +12,14 @@ This guide will help you quickly get familiar with the library and understand it
     - [Getting started](1_getting_started.md)
     - [Basic handler](2_basic_handler.md)
     - [Triggers](3_triggers.md)
+    - [Senders](5_senders.md)
     - Handle Parameters:
-        - [Command Parameters: Deep Linking](command_trigger_parameters.md)
+        - [Command Parameters: Deep Linking](command_trigger_parameters.md) ⭐
         - [Text Parameters: Templates](text_trigger_parameters.md)
 - Building Bots with Telekit DSL:
     - [Introduction](../tutorial/11_telekit_dsl.md) ⭐
     - [Learn Syntax](../tutorial/13_telekit_dsl_syntax.md)
     - [DSL Examples](../examples/examples.md#telekit-dsl)
 - [Examples](../examples/examples.md) ⭐
+
+( ⭐ interesting )

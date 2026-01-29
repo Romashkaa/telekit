@@ -582,6 +582,7 @@ msg_id = self.chain.sender.get_message_id(message)
 
 **Parameters:**
 - `message: Message | None` — The message object.
+
 **Returns:** `int | None`
 </details>
 
