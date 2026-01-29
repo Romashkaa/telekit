@@ -363,6 +363,8 @@ self.chain.send()
 
 ## Temporary Messages
 
+Temporary messages are messages marked for later deletion and managed automatically during sending.
+
 <details><summary>set_temporary</summary>
 
 Mark the current message as temporary. It will be deleted later if `set_delete_temporaries(True)` is enabled:
