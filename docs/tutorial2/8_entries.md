@@ -52,7 +52,7 @@ This structure allows the bot to greet users dynamically by name, provide an inl
 The most popular entry types:
 
 <details>
-<summary>`entry` – receive any messages</summary>
+<summary><code>entry</code> – receive any messages</summary>
 
 Use `@self.chain.entry()` to handle any message type. You can add a `filter_message` to process only messages that meet certain conditions (e.g., containing text).
 
@@ -68,7 +68,7 @@ def handler(message):
 </details>
 
 <details>
-<summary>`entry_text` – receive text messages</summary>
+<summary><code>entry_text</code> – receive text messages</summary>
 
 Use `@self.chain.entry_text()` when you expect the user to send a text message and want Telekit to automatically extract it.
 
@@ -87,7 +87,7 @@ self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
 </details>
 
 <details>
-<summary>`entry_document` – receive document</summary>
+<summary><code>entry_document</code> – receive document</summary>
 
 Use `@self.chain.entry_document()` to handle file uploads and filter by extension.
 
@@ -100,7 +100,7 @@ def doc_handler(message: telebot.types.Message, document: telebot.types.Document
 </details>
 
 <details>
-<summary>`entry_text_document` – receive text document</summary>
+<summary><code>entry_text_document</code> – receive text document</summary>
 
 Telekit can automatically decode text files using `@self.chain.entry_text_document()`. It supports multiple file types like `.txt`, `.py`, `.js`, etc.
 
