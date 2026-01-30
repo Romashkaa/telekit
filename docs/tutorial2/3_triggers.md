@@ -40,10 +40,10 @@ cls.on.command("start", "greet").invoke(cls.handle)
 
 Used to listen for specific text messages. 
 
-The matching is case-sensitive, and you can provide multiple text options to listen for:
+The matching is case-insensitive, and you can provide multiple text options to listen for:
 
 ```py
-cls.on.text("Hola", "hola").invoke(cls.handle)
+cls.on.text("hello", "hola").invoke(cls.handle)
 ```
 
 If you don’t pass any parameters, the trigger will respond to **any text message**:

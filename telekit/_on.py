@@ -162,24 +162,39 @@ class On:
             Callable: A decorator that registers the message handler.
         """
         if patterns:
-            regexes = []
+            compiled = []
+
             for p in patterns:
                 # {name} -> (?P<name>.+)
                 regex = re.sub(r"{(\w+)}", r"(?P<\1>.+)", p)
-                regexes.append(f"^{regex}$")
-            big_pattern = "|".join(regexes)
+                compiled.append(re.compile(
+                    f"^{regex}$",
+                    re.IGNORECASE
+                ))
+
+            def _filter_func(message: telebot.types.Message) -> bool:
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return False
+                
+                if not message.text:
+                    return False
+                
+                for cregex in compiled:
+                    match = cregex.match(message.text)
+                    if match:
+                        return True
+                    
+                return False
 
             def decorator(func: Callable):
-                @self.bot.message_handler(regexp=big_pattern, chat_types=chat_types)
+                @self.bot.message_handler(func=_filter_func, chat_types=chat_types)
                 def _(message):
-                    if whitelist is not None and message.chat.id not in whitelist:
-                        return
-                    text = message.text
-                    for regex in regexes:
-                        match = re.match(regex, text)
+                    for cregex in compiled:
+                        match = cregex.match(message.text)
                         if match:
                             func(message, **match.groupdict())
-                            break
+                            return
+                        
                 return func
         else:
             def decorator(func: Callable):
