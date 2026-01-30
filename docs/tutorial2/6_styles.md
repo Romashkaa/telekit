@@ -155,3 +155,5 @@ telekit.Server("BOT_TOKEN").polling()
 ```
 
 [Next: Entries »](7_inline_keyboards.md)
+
+// TODO: Explain all styles

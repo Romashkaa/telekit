@@ -1,6 +1,43 @@
 # Inline Keyboards
 
-In Telekit, inline keyboards enable interactive buttons directly within messages. There are two primary types:
+In Telekit, inline keyboards enable interactive buttons directly within messages: 
+
+```python
+import telekit
+
+class NameHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.text("My name is {name}").invoke(cls.display_name)
+
+    def display_name(self, name: str) -> None:
+        self.chain.sender.set_title(f"Hello {name}!")
+        self.chain.sender.set_message("Your name has been set. You can change it below if you want")
+        self.chain.set_inline_keyboard(
+            {
+                "✏️ Change": self.change_name
+            }
+        )
+        self.chain.send()
+
+    def change_name(self):
+        self.chain.sender.set_title("⌨️ Enter your new name")
+        self.chain.sender.set_message("Oops, this feature will be available in the next section...")
+        self.chain.edit()
+
+telekit.Server("TOKEN").polling()
+```
+
+Explanation:  
+- The bot reacts to messages like `"My name is {name}"`.  
+- It greets the user using the received name.  
+- `self.chain.set_inline_keyboard` adds a "✏️ Change" button, which calls the `change_name` method when pressed.  
+- In the `change_name` method, we update the message title and message body.  
+- Using `self.chain.edit()`, we edit the previous bot message.  
+- Next, we would allow the user to input text, but that will be covered in the following section.
+
+There are two primary types of inline keyboards in Telekit:
 
 1. **Label-Callback** Setter
 2. **Label-Value** Decorator
@@ -79,35 +116,6 @@ You can provide suggested replies for the user to click instead of typing. This 
 
 ```python
 self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
-```
-
-## Example:
-
-```python
-import telekit
-
-class NameHandler(telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        cls.on.text("My name is {name}").invoke(cls.display_name)
-
-    def display_name(self, name: str) -> None:
-        self.chain.sender.set_title(f"Hello {name}!")
-        self.chain.sender.set_message("Your name has been set. You can change it below if you want")
-        self.chain.set_inline_keyboard(
-            {
-                "✏️ Change": self.change_name
-            }
-        )
-        self.chain.edit()
-
-    def change_name(self):
-        self.chain.sender.set_title("⌨️ Enter your new name")
-        self.chain.sender.set_message("Oops, this feature will be available in the next section...")
-        self.chain.edit()
-
-telekit.Server("TOKEN").polling()
 ```
 
 [Next: Entries »](8_entries.md)

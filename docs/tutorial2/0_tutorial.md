@@ -15,7 +15,7 @@ This guide will help you quickly get familiar with the library and understand it
     - [Senders](5_senders.md)
     - [Styles](6_styles.md)
     - [Inline Keyboards](7_inline_keyboards.md)
-    - Entries
+    - [Entries](8_entries.md)
     - Timeouts
     - Chain
 - Handle Parameters:
