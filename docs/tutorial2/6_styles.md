@@ -151,7 +151,7 @@ class Start(telekit.Handler):
         self.chain.sender.set_parse_mode(ParseMode.HTML)
         self.chain.send()
 
-telekit.Server("BOT_TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 
 [Next: Entries »](7_inline_keyboards.md)

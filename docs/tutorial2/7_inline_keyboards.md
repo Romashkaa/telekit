@@ -26,7 +26,7 @@ class NameHandler(telekit.Handler):
         self.chain.sender.set_message("Oops, this feature will be available in the next section...")
         self.chain.edit()
 
-telekit.Server("TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 
 Explanation:  

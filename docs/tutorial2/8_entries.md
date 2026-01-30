@@ -31,7 +31,7 @@ class NameHandler(telekit.Handler):
     def handle_entered_name(self, message, name: str):
         self.display_name(name)
 
-telekit.Server("TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 
 Explanation:
@@ -215,7 +215,8 @@ class NameHandler(telekit.Handler):
 
         self.chain.edit()
 
-telekit.Server("TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
-
 </details>
+
+[Next: ]

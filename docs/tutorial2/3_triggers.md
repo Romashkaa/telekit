@@ -148,7 +148,7 @@ class EchoHandler(telekit.Handler):
         self.chain.sender.set_text(f"{self.message.text}!")
         self.chain.send()
 
-telekit.Server("TOKEN").polling()
+telekit.Server(BOT_TOKEN).polling()
 ```
 </details>
 
