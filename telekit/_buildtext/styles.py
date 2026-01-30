@@ -100,6 +100,8 @@ class UserLink(Link):
         self.content = list(content)
         self.set_parse_mode(parse_mode)
 
+        username = username.lstrip("@")
+
         if text is None:
             self.url = f"https://t.me/{username}"
         else:
@@ -110,6 +112,8 @@ class BotLink(Link):
     def __init__(self, *content, username: str, start: str | None=None, parse_mode: str | None = "html"):
         self.content = list(content)
         self.set_parse_mode(parse_mode)
+
+        username = username.lstrip("@")
 
         if start is None:
             self.url = f"https://t.me/{username}"

@@ -1,8 +1,8 @@
 # Text-Trigger Parameters
 
-Patterns in "on.text" trigger can also include placeholders in curly braces (like `{name}`) — they will be passed to the handle method as arguments.
+Patterns in `on.text` trigger can include placeholders in curly braces (like `{name}`) — they will be passed to the handle method as arguments.
 
-Let’s react to messages like "My name is Alice":
+Let’s react to messages like "My name is Alice" or "My Name Is Roman":
 
 ```python
 import telekit
@@ -12,7 +12,7 @@ class NameHandler(telekit.Handler):
     @classmethod
     def init_handler(cls) -> None:
         # when a message matches "My name is {name}", call "handle_name" method:
-        cls.on.text("My name is {name}").invoke(cls.handle_name)
+        cls.on.text("my name is {name}").invoke(cls.handle_name)
 
     def handle_name(self, name: str) -> None:
         self.chain.sender.set_text(f"👋 Hello {name}!")
@@ -21,8 +21,8 @@ class NameHandler(telekit.Handler):
 telekit.Server(BOT_TOKEN).polling()
 ```
 
-Here, `cls.on.text("My name is {name}")` listens for that pattern.  
-When triggered, the bot calls `display_name()` with the extracted variable `name`.
+Here, `cls.on.text("my name is {name}")` listens for that pattern.
+When triggered, the bot calls `handle_name()` with the extracted variable `name`.
 
 ## Multiple Patterns with Multiple Placeholders
 
@@ -52,4 +52,4 @@ class NameHandler(telekit.Handler):
 > [!IMPORTANT]
 > Start with more specific patterns first, then fall back to more general ones
 
-<img src="on_text.png" alt="alt text" width="400">
+<img src="on_text.png" alt="Result" width="400">

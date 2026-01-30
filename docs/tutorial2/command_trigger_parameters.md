@@ -34,6 +34,8 @@ class StartHandler(telekit.Handler):
 - `Str()` accepts any string input (`Name` or `"Name Surname"`).
 - Default values in the `handle` method (`age: int | None = None`) are used if the user does not provide these parameters.
 
+<img src="command_with_parameters.png" alt="Result" width="400">
+
 ## Using Deep Links
 
 You can pass parameters directly via deep links:
@@ -46,7 +48,7 @@ Use the built-in `BotLink` class for this:
 
 ```py
 from telekit.styles import BotLink
-BotLink(Bold("Invitation link"), username=self.bot.get_me().username, start="airplane")
+BotLink("Invitation link", username="BotUsername", start="airplane")
 ```
 
 When someone opens a chat with your bot via this link, you will receive:

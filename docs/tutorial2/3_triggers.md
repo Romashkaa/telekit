@@ -33,6 +33,9 @@ Used to listen for specific commands sent by the user. You can specify one or mo
 ```py
 cls.on.command("start", "greet").invoke(cls.handle)
 ```
+
+[Learn more about "command" trigger: Parameters »](command_trigger_parameters.md)
+
 </details>
 
 <details>
@@ -51,6 +54,8 @@ If you don’t pass any parameters, the trigger will respond to **any text messa
 ```py
 cls.on.text().invoke(cls.handle) # accepts all text messages
 ```
+
+[Learn more about "text" trigger: Parameters »](text_trigger_parameters.md)
 
 </details>
 
