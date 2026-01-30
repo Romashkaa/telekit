@@ -53,7 +53,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 [Community](https://t.me/+wu-dFrOBFIwyNzc0)
 [Gallery](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/gallery.md)
 [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
-[Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
+[Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md)
 
 ## Contents
 
@@ -71,7 +71,7 @@ Even in its beta stage, Telekit accelerates bot development, offering ready-to-u
 
 ## Overview
 
-> To get the most out of Telekit, we recommend following the full, [step-by-step tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) that covers everything from installation to advanced features and DSL usage.
+> To get the most out of Telekit, we recommend following the full, [step-by-step tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md) that covers everything from installation to advanced features and DSL usage.
 
 Even if you don’t go through the entire guide right now, you can quickly familiarize yourself with the core concepts of Telekit below. This section will introduce you to chains, handlers, message formatting, and some examples, giving you a solid foundation to start building bots right away.
 
@@ -134,7 +134,7 @@ self.chain.sender.set_use_italics(True) # Italicize message body
 self.chain.sender.set_use_newline(False) # Disable spacing between title and message
 self.chain.sender.set_parse_mode(ParseMode.HTML) # Set parse mode. Use enum or string
 self.chain.sender.set_reply_to(message)
-self.chain.sender.set_chat_id(chat_id)
+self.chain.sender.set_chat_id(472584)
 ```
 
 Want to add an image, document or an effect in a single line?
@@ -150,7 +150,7 @@ self.chain.sender.send_chat_action(ChatAction.TYPING) # Use enum or string
 > [!NOTE]
 > Telekit automatically decides whether to use `bot.send_message`, `bot.send_photo`, or other Telegram API methods.
 
-More styling options are available in the [documentation](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/3_senders.md).
+More styling options are available in the [documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/5_senders.md).
 
 ## Text Styling with `Styles`
 
@@ -168,9 +168,10 @@ Strikethrough(Bold("Hello") + Italic("World!"))
 
 Then pass it to set_text, `set_title`, or other sender methods, and the sender will automatically determine the correct `parse_mode`.
 
-For more details, [see our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md)
+For more details, [see our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md)
 
 ## Handling callbacks and Logic
+
 If your focus is on logic and functionality, Telekit is the ideal library:
 
 **Inline keyboard** with callback support:
@@ -338,7 +339,7 @@ class EchoHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-For a full walkthrough, [check out Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) or [see more Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
+For a full walkthrough, [check out Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md) or [see more Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
 
 ---
 

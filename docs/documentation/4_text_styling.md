@@ -1,10 +1,6 @@
-# Text Styling in Telekit
+# Text Styling
 
-This document lists all available style classes and their purpose.
-
----
-
-## Styles
+This document lists all available style classes and their purpose:
 
 - `Bold` - makes text bold (`*text*` in Markdown, `<b>text</b>` in HTML)
 - `Italic` - makes text italic (`_text_` in Markdown, `<i>text</i>` in HTML)
@@ -20,52 +16,8 @@ This document lists all available style classes and their purpose.
 - `UserLink` - creates a link to a user with an optional pre-filled (default) message
 - `BotLink` - creates a link to bot, optionally including a pre-filled start command
 - `Styles.*`:
-    - All previously mentioned styles are available in snake_case. For example: `bot_link`, `no_sanitize`, ...
+    - All previously mentioned styles are available in snake_case. For example: `bold`, `bot_link`, `no_sanitize`, ...
     - `Styles.use_markdown()` - switches parse mode to Markdown
     - `Styles.use_html()` - switches parse mode to HTML
     - `Styles.use_plain()` - switches parse mode to None
     - `Styles.set_parse_mode(parse_mode)` - manually sets parse mode (`"html"`, `"markdown"`, or `None`)
-
-## Sanitizing
-
-- **set_text**: strings remain unchanged, HTML/Markdown tags are not modified.  
-  To safely include user input, use `Sanitize(...)`.
-
-```python
-# If parse_mode=None, the text is not sanitized
-# and will be displayed literally as "<b>Romashka</b>" in the chat
-self.chain.sender.set_text("<b>Romashka</b>")       # "<b>Romashka</b>"
-self.chain.sender.set_text("<b>Romashka<i></b>")    # "<b>Romashka<i></b>"
-
-# The text will be displayed literally, and with no tags
-self.chain.sender.set_text(Bold("Romashka"))     # "Romashka"
-self.chain.sender.set_text(Bold("Romashka<i>"))  # "Romashka<i>"
-
-# HTML formatting enabled; text is not sanitized
-# Any HTML tags will be interpreted by Telegram
-self.chain.sender.set_parse_mode("html")
-self.chain.sender.set_text("<b>Romashka</b>")    # Bold "Romashka"
-self.chain.sender.set_text("<b>Romashka<i></b>") # Error code: 400.
-
-# HTML formatting enabled; text is sanitized
-self.chain.sender.set_parse_mode("html")
-self.chain.sender.set_text(Bold("Romashka"))     # Bold "Romashka"
-self.chain.sender.set_text(Bold("Romashka<i>"))  # Bold "Romashka<i>"
-
-# Sanitized — HTML tags are escaped
-self.chain.sender.set_text(Sanitize("<b>Romashka</b>")) # "<b>Romashka</b>"
-```
-
-- **set_title** and **set_message** behave similarly, BUT:
-  1. If `parse_mode` was not set previously, they automatically set it to `"HTML"`.
-  2. **set_title** automatically applies **Bold** to the text.
-  3. **set_message** automatically applies **Italic** to the text.
-
-```python
-# HTML tags will be interpreted:
-self.chain.sender.set_title("<i>Hello, user!</i>") # Bold + Italic "Hello, user!"
-```
-
----
-
-[Back to tutorial](../tutorial/4_text_styling.md)

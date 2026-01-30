@@ -13,6 +13,11 @@ This guide will help you quickly get familiar with the library and understand it
     - [Basic handler](2_basic_handler.md)
     - [Triggers](3_triggers.md)
     - [Senders](5_senders.md)
+    - [Styles](6_styles.md)
+    - [Inline Keyboards](7_inline_keyboards.md)
+    - Entries
+    - Timeouts
+    - Chain
 - Handle Parameters:
     - [Command Parameters: Deep Linking](command_trigger_parameters.md)
     - [Text Parameters: Templates](text_trigger_parameters.md)

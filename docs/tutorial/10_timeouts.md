@@ -17,12 +17,8 @@ Typical use cases:
 
 A timeout is scheduled when `chain.send()` or `chain.edit()` is called.
 
-If the user interacts before the timeout expires:
-- the timeout is automatically cancelled
-- the corresponding handler or callback is executed
-
-If the user does nothing:
-- the timeout callback is executed
+- If the user interacts before the timeout expires, the timeout is automatically cancelled
+- If the user does nothing, the timeout callback is executed
 
 ## Basic timeout usage
 
