@@ -41,7 +41,7 @@ class StartHandler(telekit.Handler):
 You can pass parameters directly via deep links:
 
 ```
-https://t.me/YourBot?start=airplane
+https://t.me/BotUsername?start=airplane
 ```
 
 Use the built-in `BotLink` class for this:

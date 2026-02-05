@@ -26,15 +26,23 @@ class Invoker:
         to add callback/trigger functionality.
         """
         self._decorator: Callable = decorator
-        self._handler = handler
+        self._Handler = handler
 
     def __call__(self, func: Callable):
-        """Use as decorator"""
+        """Use as decorator.
+        
+        Example:
+        ```
+        @cls.on.command("help")
+        def _handle(message: Message, *args, **kwargs):
+            cls(message).handle(*args, **kwargs)
+        ```
+        """
         return self._decorator(func)
 
     def invoke(self, callback: Callable, pass_args: bool = True):
         """
-        Assign a callback to be executed by this handler.
+        Assign a callback to be executed by this trigger.
 
         Example:
             >>> cls.on.command("help").invoke(cls.handle)
@@ -42,9 +50,9 @@ class Invoker:
 
         def handler(message, *args, **kwargs):
             if pass_args:
-                callback(self._handler(message), *args, **kwargs)
+                callback(self._Handler(message), *args, **kwargs)
             else:
-                callback(self._handler(message))
+                callback(self._Handler(message))
 
         self._decorator(handler)
 
@@ -241,7 +249,7 @@ class On:
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
         """
         original_decorator = self.bot.message_handler(
-            commands=list(commands),
+            commands=[c.lstrip("/") for c in commands],
             chat_types=chat_types,
             **kwargs
         )
@@ -368,3 +376,75 @@ class On:
             return original_decorator(wrapped)
 
         return Invoker(decorator, self.handler) 
+    
+    def func(
+        self,
+        func: Callable[[telebot.types.Message], bool],
+        invoke_args: list | tuple | None = None,
+        invoke_kwargs: dict[str, typing.Any] | None = None,
+        chat_types: list[str] | None = None,
+        whitelist: list[int] | None = None,
+        **kwargs
+    ):
+        """
+        Handles New incoming message of any kind - text, photo, sticker, etc. As a parameter to the decorator function, it passes telebot.types.Message object. All message handlers are tested in the order they were added.
+
+        ---
+
+        ## Example:
+        ```
+        class HelpHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls) -> None:
+            
+                cls.on.message(commands=['help']).invoke(cls.handle)
+            
+                # Or define the handler manually:
+            
+                @cls.on.message(commands=['help'])
+                def handler(message: telebot.types.Message) -> None:
+                    cls(message).handle()
+        ```
+
+        ---
+
+        Args:
+            commands (list[str] | None): List of command strings (e.g., ['/start', '/help']) that trigger the handler.
+            regexp (str | None): Regular expression string to match messages.
+            func (Callable[..., Any] | None): Optional function to pass directly to the TeleBot decorator.
+            content_types (list[str] | None): List of content types like ['text', 'photo', 'sticker'].
+            chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
+            whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
+            **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+        """
+
+        def _filter(message):
+            if whitelist is not None and message.chat.id not in whitelist:
+                return False
+            return bool(func(message))
+
+        original_decorator = self.bot.message_handler(
+            func=_filter,
+            chat_types=chat_types,
+            **kwargs
+        )
+
+        def decorator(handler: Callable[..., typing.Any]):
+            if not invoke_args and not invoke_kwargs:
+                return original_decorator(handler)
+
+            def _wrap_args(message, *args, **kwargs):
+                final_args = args
+                final_kwargs = kwargs
+
+                if invoke_args is not None:
+                    final_args = invoke_args
+
+                if invoke_kwargs is not None:
+                    final_kwargs = invoke_kwargs
+
+                return handler(message, *final_args, **final_kwargs)
+
+            return original_decorator(_wrap_args)
+
+        return Invoker(decorator, self.handler)

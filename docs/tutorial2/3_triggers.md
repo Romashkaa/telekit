@@ -1,6 +1,6 @@
 # Triggers
 
-Each handler class has an `on` object that provides trigger methods such as `command`, який ми використали в минулому прикладі. These triggers listen for incoming updates from the server and initiate processing. 
+Each handler class has an `on` object that provides trigger methods such as `command` (that we used in the previous example). These triggers listen for incoming updates from the server and initiate processing. 
 
 Each handler may define multiple triggers:
 

@@ -70,6 +70,16 @@ class InputHandler:
             return True
         
         return False
+    
+    def _has_message_handler(self, message) -> bool:
+        """
+        Checks if there is a handler in the bot that will accept this message.
+        """
+        for handler in self.bot.message_handlers:
+            if self.bot._test_message_handler(handler, message):
+                return True
+
+        return False
 
     def handle_callback(self, message: Message) -> None:
         """
@@ -84,6 +94,9 @@ class InputHandler:
             self.bot.process_new_messages([message])
         elif self.entry_callback:
             self.handle_entry(message)
+        elif self._has_message_handler(message): # BETA
+            self.cancel_timeout()
+            self.bot.process_new_messages([message])
         else:
             self.handle_next_message()
 
@@ -97,6 +110,9 @@ class InputHandler:
         elif self.entry_callback:
             if not self.entry_callback(message):
                 self.handle_next_message()
+        elif self._has_message_handler(message): # BETA
+            self.cancel_timeout()
+            self.bot.process_new_messages([message])
         else:
             self.handle_next_message()
 
