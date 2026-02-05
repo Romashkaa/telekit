@@ -20,6 +20,10 @@ if typing.TYPE_CHECKING:
 # --------------------------------------------------------
 
 class Invoker:
+    """
+    • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
+    """
+
     def __init__(self, decorator: Callable[[Callable], Callable | None], handler: type["Handler"]):
         """
         Wraps an existing decorator (like cls.on_text) 
@@ -62,6 +66,10 @@ class Invoker:
 
 class On:
 
+    """
+    • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
+    """
+
     bot: telebot.TeleBot
     handler: type["Handler"]
 
@@ -83,26 +91,35 @@ class On:
         **kwargs
     ):
         """
-        Handles New incoming message of any kind - text, photo, sticker, etc. As a parameter to the decorator function, it passes telebot.types.Message object. All message handlers are tested in the order they were added.
+        Handles new incoming messages of any kind (text, photo, sticker, etc.). As a parameter to the decorator function, it passes a `telebot.types.Message` object. All message handlers are tested in the order they were added.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
 
         ---
-
         ## Example:
         ```
         class HelpHandler(telekit.Handler):
             @classmethod
             def init_handler(cls) -> None:
-            
                 cls.on.message(commands=['help']).invoke(cls.handle)
-            
-                # Or define the handler manually:
-            
+
+                # Or define the trigger manually:
                 @cls.on.message(commands=['help'])
                 def handler(message: telebot.types.Message) -> None:
                     cls(message).handle()
         ```
-
         ---
+
+        Triggers:
+            - By command(s) (via `commands` argument)
+            - By regular expression (via `regexp` argument)
+            - By custom filter function (via `func` argument)
+            - By content type(s) (via `content_types` argument)
+
+        Filters:
+            - By whitelist (via `whitelist` argument)
+            - By chat type(s) (via `chat_types` argument)
+            - All filters supported by telebot.TeleBot.message_handler can be used via keyword arguments.
 
         Args:
             commands (list[str] | None): List of command strings (e.g., ['/start', '/help']) that trigger the handler.
@@ -112,6 +129,9 @@ class On:
             chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
             **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or @decorator-style usage.
         """
         original_decorator = self.bot.message_handler(
             commands=commands,
@@ -139,10 +159,12 @@ class On:
             whitelist: list[int] | None = None
         ):
         """
-        Decorator for registering a handler that triggers when a message matches one or more text patterns.
+        Triggers when a message matches one or more text patterns.
 
         Patterns can include placeholders in curly braces (e.g., "My name is {name}"), 
         which will be captured as keyword arguments and passed to the handler function.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
 
         ---
         ## Example:
@@ -150,16 +172,23 @@ class On:
         class NameHandler(telekit.Handler):
             @classmethod
             def init_handler(cls) -> None:
-            
                 cls.on.text("My name is {name}", "I am {name}").invoke(cls.handle_name)
-            
+
                 # Or define the handler manually:
-            
                 @cls.on.text("My name is {name}", "I am {name}")
                 def handle_name(message, name: str):
                     cls(message).handle_name(name)
         ```
         ---
+
+        Triggers:
+            - By matching one or more text patterns (with optional curly-brace placeholders)
+
+        Filters:
+            - Only messages of type "text" are considered.
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
 
         Args:
             *patterns (str): One or more text patterns to match against incoming messages.
@@ -167,7 +196,7 @@ class On:
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
 
         Returns:
-            Callable: A decorator that registers the message handler.
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
         if patterns:
             compiled = []
@@ -223,7 +252,9 @@ class On:
         **kwargs
     ):
         """
-        Handles new incoming commands. All message handlers are tested in the order they were added.
+        Handles new incoming commands.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
 
         ---
         ## Example:
@@ -231,22 +262,32 @@ class On:
         class MyHandler(telekit.Handler):
             @classmethod
             def init_handler(cls) -> None:
-            
                 cls.on.command("help").invoke(cls.handle)
-            
+
                 # Or define the handler manually:
-            
                 @cls.on.command("help")
                 def handler(message: telebot.types.Message) -> None:
                     cls(message).handle()
         ```
-
         ---
+
+        Triggers:
+            - By command(s) (via `*commands` argument)
+
+        Filters:
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
 
         Args:
             *commands (str): List of command strings (e.g., ['start', 'help']) that trigger the handler.
+            params (list[Parameter] | None): Optional list of parameter types to parse from the command arguments.
             chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
+            **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
         original_decorator = self.bot.message_handler(
             commands=[c.lstrip("/") for c in commands],
@@ -260,8 +301,8 @@ class On:
                     return
                 if params:
                     return handler(message, *self._analyze_params(message.text, params))
-                else:
-                    return handler(message)
+                
+                return handler(message)
 
             return original_decorator(wrapped)
 
@@ -289,6 +330,8 @@ class On:
         """
         Registers a handler that triggers when an incoming message matches the given regular expression.
 
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
+
         ---
         ## Example:
         ```
@@ -303,6 +346,14 @@ class On:
                     cls(message).handle()
         ```
         ---
+
+        Triggers:
+            - By regular expression match (via `regexp` argument)
+
+        Filters:
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
 
         Args:
             regexp (str): Regular expression that must match the message text.
@@ -336,7 +387,9 @@ class On:
         **kwargs
     ):
         """
-        Handles new incoming commands. All message handlers are tested in the order they were added.
+        Handles new incoming photo messages. All message handlers are tested in the order they were added.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
 
         ---
         ## Example:
@@ -344,22 +397,30 @@ class On:
         class MyHandler(telekit.Handler):
             @classmethod
             def init_handler(cls) -> None:
-            
-                cls.on.command("help").invoke(cls.handle)
-            
+                cls.on.photo().invoke(cls.handle)
+
                 # Or define the handler manually:
-            
-                @cls.on.command("help")
+                @cls.on.photo()
                 def handler(message: telebot.types.Message) -> None:
                     cls(message).handle()
         ```
-
         ---
 
+        Triggers:
+            - By receiving a photo message (content_type="photo")
+
+        Filters:
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
+
         Args:
-            *commands (str): List of command strings (e.g., ['start', 'help']) that trigger the handler.
             chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
+            **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
         original_decorator = self.bot.message_handler(
             content_types=["photo"],
@@ -387,35 +448,43 @@ class On:
         **kwargs
     ):
         """
-        Handles New incoming message of any kind - text, photo, sticker, etc. As a parameter to the decorator function, it passes telebot.types.Message object. All message handlers are tested in the order they were added.
+        Handles new incoming messages of any kind (text, photo, sticker, etc.) using a custom filter function. As a parameter to the decorator function, it passes a telebot.types.Message object. All message handlers are tested in the order they were added.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
 
         ---
-
         ## Example:
         ```
         class HelpHandler(telekit.Handler):
             @classmethod
             def init_handler(cls) -> None:
-            
-                cls.on.message(commands=['help']).invoke(cls.handle)
-            
+                cls.on.func(lambda m: m.text == "help").invoke(cls.handle)
+
                 # Or define the handler manually:
-            
-                @cls.on.message(commands=['help'])
+                @cls.on.func(lambda m: m.text == "help")
                 def handler(message: telebot.types.Message) -> None:
                     cls(message).handle()
         ```
-
         ---
 
+        Triggers:
+            - By custom filter function (via `func` argument, should return True for matching messages)
+
+        Filters:
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
+
         Args:
-            commands (list[str] | None): List of command strings (e.g., ['/start', '/help']) that trigger the handler.
-            regexp (str | None): Regular expression string to match messages.
-            func (Callable[..., Any] | None): Optional function to pass directly to the TeleBot decorator.
-            content_types (list[str] | None): List of content types like ['text', 'photo', 'sticker'].
+            func (Callable[[telebot.types.Message], bool]): Custom filter function that must return True for messages to trigger the handler.
+            invoke_args (list | tuple | None): Optional positional arguments to pass to the handler function when invoked.
+            invoke_kwargs (dict[str, Any] | None): Optional keyword arguments to pass to the handler function when invoked.
             chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
             **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
 
         def _filter(message):

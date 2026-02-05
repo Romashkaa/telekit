@@ -4,7 +4,7 @@ Each handler class has an `on` object that provides trigger methods such as `com
 
 Each handler may define multiple triggers:
 
-```py
+```python
 import telekit
 
 class MyHandler(telekit.Handler):
@@ -77,6 +77,20 @@ Used to listen for text messages that match a given regular expression pattern:
 ```py
 cls.on.regexp(r"^hi|hello|hey$").invoke(cls.handle)
 ```
+</details>
+
+<details>
+<summary><b>func</b> trigger</summary>
+
+Used to listen for specific messages:
+
+```py
+cls.on.func(
+    lambda message: message.text is not None and message.text.isdigit()
+).invoke(cls.handle)
+```
+
+[Learn more about "func" trigger: Parameters »](func_trigger_parameters.md)
 </details>
 
 <details>

@@ -1,4 +1,4 @@
-# Telekit or Telekit DSL?
+# Python or Telekit DSL?
 
 At this point, you’ve learned enough to start exploring **Telekit DSL** — a custom language used to create interactive bots.  
 

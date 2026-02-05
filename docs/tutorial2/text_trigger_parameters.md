@@ -1,4 +1,4 @@
-# Text-Trigger Parameters
+# Text Trigger Parameters
 
 Patterns in `on.text` trigger can include placeholders in curly braces (like `{name}`) — they will be passed to the handle method as arguments.
 
