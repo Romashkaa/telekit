@@ -2,10 +2,10 @@
 
 This example demonstrates how to build a simple multi-scene FAQ using **Telekit DSL**.
 
-> `main.py`
-
 The handler analyzes the DSL script, registers the `/faq` command, and starts the script
 from the "main" scene.
+
+> `main.py` file:
 
 ```py
 import telekit
@@ -19,10 +19,10 @@ class FAQHandler(telekit.TelekitDSL.Mixin):
 telekit.Server(TOKEN).polling()
 ```
 
-> `script.scr`
-
 The script is loaded once and executed starting from the `@ main` scene when the `/faq`
 command is triggered.
+
+> `script.scr` file:
 
 ```js
 @ main {
