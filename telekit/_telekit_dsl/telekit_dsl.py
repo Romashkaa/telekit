@@ -27,11 +27,18 @@ class TelekitDSL:
 
         [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
         """
-        class _DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
-            @classmethod
-            def init_handler(cls) -> None:
-                cls.on.message(on_commands).invoke(cls.start_script)
-                cls.analyze_file(path)
+        @classmethod
+        def init_handler(cls) -> None:
+            cls.analyze_file(path)
+            cls.on.message(on_commands).invoke(cls.start_script)
+
+        class_name = f"_DLSFromPath_{id(path)}"
+        class_dict = {
+            "init_handler": init_handler
+        }
+
+        return type(class_name, (mixin.TelekitDSLMixin,), class_dict)
+
 
     @classmethod
     def from_string(cls, script: str, on_commands: list[str]=["help"]):
@@ -44,10 +51,16 @@ class TelekitDSL:
 
         [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
         """
-        class _DefaultTelekitDSLHandler(mixin.TelekitDSLMixin):
-            @classmethod
-            def init_handler(cls) -> None:
-                cls.on.message(on_commands).invoke(cls.start_script)
-                cls.analyze_string(script)
+        @classmethod
+        def init_handler(cls) -> None:
+            cls.analyze_string(script)
+            cls.on.message(on_commands).invoke(cls.start_script)
+
+        class_name = f"_DSLFromString_{id(script)}"
+        class_dict = {
+            "init_handler": init_handler
+        }
+
+        return type(class_name, (mixin.TelekitDSLMixin,), class_dict)
 
 

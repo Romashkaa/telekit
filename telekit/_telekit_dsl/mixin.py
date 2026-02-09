@@ -199,7 +199,7 @@ class TelekitDSLMixin(telekit.Handler):
     # class attributes
     _script_data_factory: Callable[..., ScriptData]
     executable_model: dict
-    jinja_env: jinja2.Environment
+    _jinja_env: jinja2.Environment
 
     # instance attributes
     jinja_context: dict[str, Any]
@@ -207,6 +207,10 @@ class TelekitDSLMixin(telekit.Handler):
     # ----------------------------------------------------------------------------
     # Class Attributes
     # ----------------------------------------------------------------------------
+
+    @classmethod
+    def get_jinja_env(cls):
+        return cls._jinja_env
 
     @classmethod
     def analyze_file(cls, path: str, encoding: str="utf-8")  -> None | NoReturn:
@@ -288,12 +292,12 @@ class TelekitDSLMixin(telekit.Handler):
         - The Environment is shared across all instances of this class.
         """
         if env is None:
-            cls.jinja_env = jinja2.Environment(autoescape=False)
+            cls._jinja_env = jinja2.Environment(autoescape=False)
         else:
-            cls.jinja_env = env
+            cls._jinja_env = env
 
-        cls.jinja_env.filters["e_md"] = JinjaFilters.escape_md
-        cls.jinja_env.filters["e_html"] = JinjaFilters.escape_html
+        cls._jinja_env.filters["e_md"] = JinjaFilters.escape_md
+        cls._jinja_env.filters["e_html"] = JinjaFilters.escape_html
 
     @classmethod
     def _prepare_script(cls, executable_model: dict[str, Any]):
@@ -457,9 +461,9 @@ class TelekitDSLMixin(telekit.Handler):
                 case "handoff":
                     keyboard[label] = self._prepare_handoff(target)
                 case "link":
-                    keyboard[label] = target
+                    keyboard[label] = self._prepare_link(target)
 
-        self.chain.set_inline_keyboard(keyboard, scene.get("row_width", 1))
+        self.chain.set_inline_keyboard(keyboard, row_width=scene.get("row_width", 1))
 
     def _apply_entry_handler(self, scene: dict):
         if scene.get("entries") or scene.get("_default_entry_target"):
@@ -496,7 +500,7 @@ class TelekitDSLMixin(telekit.Handler):
         - the built-in `handler` variable
         - variables defined in the DSL (`$ vars { ... }`)
         """
-        if context:
+        if context is not None:
             self.jinja_context = context | kwcontext
         else:
             self.jinja_context = kwcontext
@@ -520,6 +524,13 @@ class TelekitDSLMixin(telekit.Handler):
         :rtype: str | None
         """
         return
+    
+    # ----------------------------------------------------------------------------
+    # Link Logic
+    # ----------------------------------------------------------------------------
+    
+    def _prepare_link(self, url: str):
+        return telekit.types.LinkButton(url)
     
     # ----------------------------------------------------------------------------
     # Return Logic
@@ -635,7 +646,7 @@ class TelekitDSLMixin(telekit.Handler):
         context = self._get_jinja_context()
 
         try:
-            template = self.jinja_env.from_string(template_str)
+            template = self._jinja_env.from_string(template_str)
             rendered = template.render(context)
         except Exception as exception:
             raise self._fail(f"Jinja Error: {exception}")

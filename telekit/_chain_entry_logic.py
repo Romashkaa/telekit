@@ -5,6 +5,7 @@
 import typing
 import telebot
 from typing import Callable, Any
+from pathlib import Path
 
 # Third-party packages
 import charset_normalizer
@@ -124,19 +125,23 @@ class ChainEntryLogic(ChainBase):
 
     def set_entry_text(
         self,
-        func: Callable[[Message, str], Any],
-        filter_message: Callable[[Message, str], bool] | None = None,
+        func: Callable[[Message, str], Any] | Callable[[str], Any],
+        filter_message: Callable[[Message, str], bool] | Callable[[str], bool] | None = None,
         delete_user_response: bool = False,
+        include_message: bool = False
     ) -> None:
         """
         Registers a text-only entry callback with optional message filtering.
 
         Args:
-            filter_message (Callable[[Message, str], bool] | None): 
-                A filter function that takes a Message and its text,
-                returns True if it should be processed.
-            delete_user_response (bool): 
+            filter_message (Callable[[Message, str], bool] | Callable[[str], bool] | None):
+                A filter function that takes either (message, text) or just (text), and returns True if it should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, text) or only (text).
+            delete_user_response (bool):
                 If True, deletes the user's message after receiving it.
+            include_message (bool):
+                If True, passes both message and text to callbacks and filters.
+                If False, passes only text.
         """
 
         def callback(message: Message) -> bool:
@@ -146,20 +151,22 @@ class ChainEntryLogic(ChainBase):
             if not message.text:
                 return False # only text messages
 
-            if filter_message and not filter_message(message, message.text):
+            if filter_message and not self._invoke_adaptive(filter_message, message, message.text, include_message):
                 return False
 
             self._cancel_timeout_and_handlers()
-            func(message, message.text)
+            self._invoke_adaptive(func, message, message.text, include_message)
+                
             return True
 
         self._handler.set_entry_callback(callback)
 
     def entry_text(
         self,
-        filter_message: Callable[[Message, str], bool] | None = None,
+        filter_message: Callable[[Message, str], bool] | Callable[[str], bool] | None = None,
         delete_user_response: bool = False,
-    ) -> Callable[[Callable[[Message, str], Any]], None]:
+        include_message: bool = False
+    ) -> Callable[[Callable[[Message, str], Any] | Callable[[str], Any]], None]:
         """
         Decorator for registering a text-only entry callback with optional message filtering.
 
@@ -167,15 +174,15 @@ class ChainEntryLogic(ChainBase):
         ## Example:
         ```
         @self.chain.entry_text(
-            filter_message=lambda _, name: " " not in name)
-        def name_handler(message, name: str):
+            filter_message=lambda name: " " not in name)
+        def name_handler(name: str):
             print(name)
         ```
         ## Example 2 (Suggestions):
         ```
         # Receive text message:
         @self.chain.entry_text()
-        def name_handler(message, name: str):
+        def name_handler(name: str):
             print(name)
 
         # Add inline keyboard with suggested options:
@@ -184,18 +191,22 @@ class ChainEntryLogic(ChainBase):
         ---
 
         Args:
-            filter_message (Callable[[Message, str], bool] | None): 
-                A filter function that takes a Message and its text, 
-                returns True if it should be processed.
-            delete_user_response (bool): 
+            filter_message (Callable[[Message, str], bool] | Callable[[str], bool] | None):
+                A filter function that takes either (message, text) or just (text), and returns True if it should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, text) or only (text).
+            delete_user_response (bool):
                 If True, deletes the user's message after receiving it.
+            include_message (bool):
+                If True, passes both message and text to callbacks and filters.
+                If False, passes only text.
         """
 
-        def wrapper(func: Callable[[Message, str], Any]) -> None:
+        def wrapper(func: Callable[[Message, str], Any] | Callable[[str], Any]) -> None:
             self.set_entry_text(
                 func,
                 filter_message=filter_message,
                 delete_user_response=delete_user_response,
+                include_message=include_message
             )
 
         return wrapper
@@ -204,20 +215,25 @@ class ChainEntryLogic(ChainBase):
     
     def set_entry_photo(
         self,
-        func: Callable[[Message, list[telebot.types.PhotoSize]], Any],
-        filter_message: Callable[[Message, list[telebot.types.PhotoSize]], bool] | None = None,
+        func: Callable[[Message, list[telebot.types.PhotoSize]], Any] | Callable[[list[telebot.types.PhotoSize]], Any],
+        filter_message: Callable[[Message, list[telebot.types.PhotoSize]], bool] | Callable[[list[telebot.types.PhotoSize]], bool] | None = None,
         delete_user_response: bool = False,
+        include_message: bool = False
     ) -> None:
         """
         Registers a callback that only processes messages containing photos.
         Optionally applies a custom filter or deletes the user's message.
 
         Args:
-            filter_message (Callable[[Message, list[telebot.types.PhotoSize]], bool] | None): 
-                A custom filter function that takes a Message and its list of PhotoSize objects. 
+            filter_message (Callable[[Message, list[telebot.types.PhotoSize]], bool] | Callable[[list[telebot.types.PhotoSize]], bool] | None):
+                A custom filter function that takes either (message, photos) or just (photos).
+                The callable signature depends on the `include_message` parameter: it may accept either (message, photos) or only (photos).
                 Returns True if the message should be processed.
-            delete_user_response (bool): 
+            delete_user_response (bool):
                 If True, the user's photo message will be deleted after being received.
+            include_message (bool):
+                If True, passes both message and photos to callbacks and filters.
+                If False, passes only photos.
         """
 
         def callback(message: Message) -> bool:
@@ -227,20 +243,21 @@ class ChainEntryLogic(ChainBase):
             if not message.photo:
                 return False  # only photos
 
-            if filter_message and not filter_message(message, message.photo):
+            if filter_message and not self._invoke_adaptive(filter_message, message, message.photo, include_message):
                 return False
 
             self._cancel_timeout_and_handlers()
-            func(message, message.photo)
+            self._invoke_adaptive(func, message, message.photo, include_message)
             return True
 
         self._handler.set_entry_callback(callback)
 
     def entry_photo(
         self,
-        filter_message: Callable[[Message, list[telebot.types.PhotoSize]], bool] | None = None,
+        filter_message: Callable[[Message, list[telebot.types.PhotoSize]], bool] | Callable[[list[telebot.types.PhotoSize]], bool] | None = None,
         delete_user_response: bool = False,
-    ) -> Callable[[Callable[[Message, list[telebot.types.PhotoSize]], Any]], None]:
+        include_message: bool = False
+    ) -> Callable[[Callable[[Message, list[telebot.types.PhotoSize]], Any] | Callable[[list[telebot.types.PhotoSize]], Any]], None]:
         """
         Decorator for registering a callback that only processes messages containing photos.
         Optionally applies a custom filter or deletes the user's message.
@@ -248,7 +265,7 @@ class ChainEntryLogic(ChainBase):
         ---
         ## Example:
         ```
-        @self.chain.entry_photo()
+        @self.chain.entry_photo(include_message=True)
         def save_photos(message: Message, photos: list[telebot.types.PhotoSize]):
             for i, photo in enumerate(photos):
                 file_info = bot.get_file(photo.file_id)
@@ -260,18 +277,23 @@ class ChainEntryLogic(ChainBase):
         ---
 
         Args:
-            filter_message (Callable[[Message, list[telebot.types.PhotoSize]], bool] | None): 
-                A custom filter function that takes a Message and its list of PhotoSize objects. 
+            filter_message (Callable[[Message, list[telebot.types.PhotoSize]], bool] | Callable[[list[telebot.types.PhotoSize]], bool] | None):
+                A custom filter function that takes either (message, photos) or just (photos).
+                The callable signature depends on the `include_message` parameter: it may accept either (message, photos) or only (photos).
                 Returns True if the message should be processed.
-            delete_user_response (bool): 
+            delete_user_response (bool):
                 If True, the user's photo message will be deleted after being received.
+            include_message (bool):
+                If True, passes both message and photos to callbacks and filters.
+                If False, passes only photos.
         """
 
-        def wrapper(func: Callable[[Message, list[telebot.types.PhotoSize]], Any]) -> None:
+        def wrapper(func: Callable[[Message, list[telebot.types.PhotoSize]], Any] | Callable[[list[telebot.types.PhotoSize]], Any]) -> None:
             self.set_entry_photo(
                 func,
                 filter_message=filter_message,
                 delete_user_response=delete_user_response,
+                include_message=include_message
             )
 
         return wrapper
@@ -280,10 +302,11 @@ class ChainEntryLogic(ChainBase):
 
     def set_entry_document(
         self,
-        func: Callable[[Message, telebot.types.Document], Any],
-        filter_message: Callable[[Message, telebot.types.Document], bool] | None = None,
+        func: Callable[[Message, telebot.types.Document], Any] | Callable[[telebot.types.Document], Any],
+        filter_message: Callable[[Message, telebot.types.Document], bool] | Callable[[telebot.types.Document], bool] | None = None,
         allowed_extensions: tuple[str, ...] | None = None,
         delete_user_response: bool = False,
+        include_message: bool = False
     ) -> None:
         """
         Registers a callback that processes messages containing documents.
@@ -292,15 +315,19 @@ class ChainEntryLogic(ChainBase):
         and optionally deleting the user's document message after processing.
 
         Args:
-            filter_message (Callable[[Message, Document], bool] | None): 
-                Optional function to filter messages. Receives the message and document,
-                should return True if the message should be processed.
+            filter_message (Callable[[Message, Document], bool] | Callable[[telebot.types.Document], bool] | None):
+                Optional function to filter messages. Receives either (message, document) or just (document),
+                and should return True if the message should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, document) or only (document).
             allowed_extensions (tuple[str, ...] | None):
                 Only documents with these file extensions will be processed.
                 Example: (".txt", ".js")
                 If None, all document types are allowed.
-            delete_user_response (bool): 
+            delete_user_response (bool):
                 If True, deletes the user's document message after it is received.
+            include_message (bool):
+                If True, passes both message and document to callbacks and filters.
+                If False, passes only document.
         """
 
         def callback(message: Message) -> bool:
@@ -313,57 +340,67 @@ class ChainEntryLogic(ChainBase):
             if message.content_type != "document":
                 return False  # only documents
 
-            if allowed_extensions and not str(message.document.file_name).endswith(allowed_extensions):
-                return False  # only allowed extensions
+            if allowed_extensions:
+                file_name = Path(str(message.document.file_name))
+                if len(file_name.suffixes) > 1:
+                    return False
+                if file_name.suffix not in allowed_extensions:
+                    return False
 
-            if filter_message and not filter_message(message, message.document):
-                return False  # filtered out
+            if filter_message and not self._invoke_adaptive(filter_message, message, message.document, include_message):
+                return False # filtered out
 
             self._cancel_timeout_and_handlers()
-            func(message, message.document)
-            return True       # ok
+            self._invoke_adaptive(func, message, message.document, include_message)
+            return True # ok
 
         self._handler.set_entry_callback(callback)
     
     def entry_document(
         self,
-        filter_message: Callable[[Message, telebot.types.Document], bool] | None = None,
+        filter_message: Callable[[Message, telebot.types.Document], bool] | Callable[[telebot.types.Document], bool] | None = None,
         allowed_extensions: tuple[str, ...] | None = None,
         delete_user_response: bool = False,
-    ) -> Callable[[Callable[[Message, telebot.types.Document], Any]], None]:
+        include_message: bool = False
+    ) -> Callable[[Callable[[Message, telebot.types.Document], Any] | Callable[[telebot.types.Document], Any]], None]:
         """
         Decorator for registering a callback that processes messages containing documents.
 
-        This decorator allows filtering by file extensions, applying a custom filter, 
+        This decorator allows filtering by file extensions, applying a custom filter,
         and optionally deleting the user's document message after processing.
 
         ---
         ## Example:
         ```
         @self.chain.entry_document(allowed_extensions=(".zip",))
-        def doc_handler(message, document: telebot.types.Document):
+        def doc_handler(document: telebot.types.Document):
             print(document.file_name, document)
         ```
         ---
 
         Args:
-            filter_message (Callable[[Message, Document], bool] | None): 
-                Optional function to filter messages. Receives the message and document,
-                should return True if the message should be processed.
+            filter_message (Callable[[Message, Document], bool] | Callable[[telebot.types.Document], bool] | None):
+                Optional function to filter messages. Receives either (message, document) or just (document),
+                and should return True if the message should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, document) or only (document).
             allowed_extensions (tuple[str, ...] | None):
                 Only documents with these file extensions will be processed.
                 Example: (".txt", ".js")
                 If None, all document types are allowed.
-            delete_user_response (bool): 
+            delete_user_response (bool):
                 If True, deletes the user's document message after it is received.
+            include_message (bool):
+                If True, passes both message and document to callbacks and filters.
+                If False, passes only document.
         """
 
-        def wrapper(func: Callable[[Message, telebot.types.Document], Any]) -> None:
+        def wrapper(func: Callable[[Message, telebot.types.Document], Any] | Callable[[telebot.types.Document], Any]) -> None:
             self.set_entry_document(
                 func,
                 filter_message=filter_message,
                 allowed_extensions=allowed_extensions,
                 delete_user_response=delete_user_response,
+                include_message=include_message
             )
 
         return wrapper
@@ -372,12 +409,13 @@ class ChainEntryLogic(ChainBase):
     
     def set_entry_text_document(
         self,
-        func: Callable[[Message, TextDocument], Any],
-        filter_message: Callable[[Message, TextDocument], bool] | None = None,
+        func: Callable[[Message, TextDocument], Any] | Callable[[TextDocument], Any],
+        filter_message: Callable[[Message, TextDocument], bool] | Callable[[TextDocument], bool] | None = None,
         allowed_extensions: tuple[str, ...] = (".txt",),
         encoding: str | None = None,
         decoding_errors: str = "strict",
         delete_user_response: bool = False,
+        include_message: bool = False
     ) -> None:
         """
         Registers a callback that processes text-based documents.
@@ -387,9 +425,10 @@ class ChainEntryLogic(ChainBase):
         and passes it to the callback.
 
         Args:
-            filter_message (Callable[[Message, TextDocument], bool] | None):
-                Optional function to filter messages. Receives the message and TextDocument,
-                should return True if the message should be processed.
+            filter_message (Callable[[Message, TextDocument], bool] | Callable[[TextDocument], bool] | None):
+                Optional function to filter messages. Receives either (message, text_document) or just (text_document),
+                and should return True if the message should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, text_document) or only (text_document).
             allowed_extensions (tuple[str, ...]):
                 File extensions that are allowed. Defaults to (".txt",).
             encoding (str | None):
@@ -399,6 +438,9 @@ class ChainEntryLogic(ChainBase):
                 Other options: "ignore", "replace".
             delete_user_response (bool):
                 If True, deletes the user's document message after it is received.
+            include_message (bool):
+                If True, passes both message and TextDocument to callbacks and filters.
+                If False, passes only TextDocument.
         """
 
         def callback(message: Message) -> bool:
@@ -412,9 +454,12 @@ class ChainEntryLogic(ChainBase):
                 return False # only documents
             
             file_name = str(message.document.file_name)
-            
-            if not file_name.endswith(allowed_extensions):
-                return False # only allowed_extensions
+            file_path = Path(file_name)
+
+            if len(file_path.suffixes) > 1:
+                return False
+            if file_path.suffix not in allowed_extensions:
+                return False
             
             try:
                 file_info = self.bot.get_file(message.document.file_id)
@@ -440,23 +485,25 @@ class ChainEntryLogic(ChainBase):
                 file_name, _encoding, text
             )
                 
-            if filter_message and not filter_message(message, text_doc):
+            if filter_message and not self._invoke_adaptive(filter_message, message, text_doc, include_message):
                 return False # only filtered
             
             self._cancel_timeout_and_handlers()
-            func(message, text_doc)
+            self._invoke_adaptive(func, message, text_doc, include_message)
+
             return True # ok
 
         self._handler.set_entry_callback(callback)
 
     def entry_text_document(
         self,
-        filter_message: Callable[[Message, TextDocument], bool] | None = None,
+        filter_message: Callable[[Message, TextDocument], bool] | Callable[[TextDocument], bool] | None = None,
         allowed_extensions: tuple[str, ...] = (".txt",),
         encoding: str | None = None,
         decoding_errors: str = "strict",
         delete_user_response: bool = False,
-    ) -> Callable[[Callable[[Message, TextDocument], Any]], None]:
+        include_message: bool = False
+    ) -> Callable[[Callable[[Message, TextDocument], Any] | Callable[[TextDocument], Any]], None]:
         """
         Decorator for registering a callback that processes text-based documents.
 
@@ -480,9 +527,10 @@ class ChainEntryLogic(ChainBase):
         ---
 
         Args:
-            filter_message (Callable[[Message, TextDocument], bool] | None):
-                Optional function to filter messages. Receives the message and TextDocument,
-                should return True if the message should be processed.
+            filter_message (Callable[[Message, TextDocument], bool] | Callable[[TextDocument], bool] | None):
+                Optional function to filter messages. Receives either (message, text_document) or just (text_document),
+                and should return True if the message should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, text_document) or only (text_document).
             allowed_extensions (tuple[str, ...]):
                 File extensions that are allowed. Defaults to (".txt",).
             encoding (str | None):
@@ -492,9 +540,12 @@ class ChainEntryLogic(ChainBase):
                 Other options: "ignore", "replace".
             delete_user_response (bool):
                 If True, deletes the user's document message after it is received.
+            include_message (bool):
+                If True, passes both message and TextDocument to callbacks and filters.
+                If False, passes only TextDocument.
         """
 
-        def wrapper(func: Callable[[Message, TextDocument], Any]) -> None:
+        def wrapper(func: Callable[[Message, TextDocument], Any] | Callable[[TextDocument], Any]) -> None:
             self.set_entry_text_document(
                 func,
                 filter_message=filter_message,
@@ -502,6 +553,7 @@ class ChainEntryLogic(ChainBase):
                 encoding=encoding,
                 decoding_errors=decoding_errors,
                 delete_user_response=delete_user_response,
+                include_message=include_message
             )
 
         return wrapper
@@ -510,19 +562,24 @@ class ChainEntryLogic(ChainBase):
 
     def set_entry_location(
         self,
-        func: Callable[[Message, telebot.types.Location], Any],
-        filter_message: Callable[[Message, telebot.types.Location], bool] | None = None,
+        func: Callable[[Message, telebot.types.Location], Any] | Callable[[telebot.types.Location], Any],
+        filter_message: Callable[[Message, telebot.types.Location], bool] | Callable[[telebot.types.Location], bool] | None = None,
         delete_user_response: bool = False,
+        include_message: bool = False
     ) -> None:
         """
         Registers a callback that processes messages containing a location.
 
         Args:
-            filter_message:
-                Optional function to filter messages. Receives message and location,
-                should return True if the message should be processed.
-            delete_user_response:
+            filter_message (Callable[[Message, telebot.types.Location], bool] | Callable[[telebot.types.Location], bool] | None):
+                Optional function to filter messages. Receives either (message, location) or just (location),
+                and should return True if the message should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, location) or only (location).
+            delete_user_response (bool):
                 If True, deletes the user's location message after it is received.
+            include_message (bool):
+                If True, passes both message and location to callbacks and filters.
+                If False, passes only location.
         """
 
         def callback(message: Message) -> bool:
@@ -534,20 +591,21 @@ class ChainEntryLogic(ChainBase):
 
             location = message.location
 
-            if filter_message and not filter_message(message, location):
+            if filter_message and not self._invoke_adaptive(filter_message, message, location, include_message):
                 return False  # filtered out
 
             self._cancel_timeout_and_handlers()
-            func(message, location)
+            self._invoke_adaptive(func, message, location, include_message)
             return True  # ok
 
         self._handler.set_entry_callback(callback)
 
     def entry_location(
         self,
-        filter_message: Callable[[Message, telebot.types.Location], bool] | None = None,
+        filter_message: Callable[[Message, telebot.types.Location], bool] | Callable[[telebot.types.Location], bool] | None = None,
         delete_user_response: bool = False,
-    ) -> Callable[[Callable[[Message, telebot.types.Location], Any]], None]:
+        include_message: bool = False
+    ) -> Callable[[Callable[[Message, telebot.types.Location], Any] | Callable[[telebot.types.Location], Any]], None]:
         """
         Decorator for registering a callback that processes messages containing a location.
 
@@ -561,18 +619,29 @@ class ChainEntryLogic(ChainBase):
         ---
 
         Args:
-            filter_message:
-                Optional function to filter messages. Receives message and location,
-                should return True if the message should be processed.
-            delete_user_response:
+            filter_message (Callable[[Message, telebot.types.Location], bool] | Callable[[telebot.types.Location], bool] | None):
+                Optional function to filter messages. Receives either (message, location) or just (location),
+                and should return True if the message should be processed.
+                The callable signature depends on the `include_message` parameter: it may accept either (message, location) or only (location).
+            delete_user_response (bool):
                 If True, deletes the user's location message after it is received.
+            include_message (bool):
+                If True, passes both message and location to callbacks and filters.
+                If False, passes only location.
         """
 
-        def wrapper(func: Callable[[Message, telebot.types.Location], Any]) -> None:
+        def wrapper(func: Callable[[Message, telebot.types.Location], Any] | Callable[[telebot.types.Location], Any]) -> None:
             self.set_entry_location(
                 func,
                 filter_message=filter_message,
                 delete_user_response=delete_user_response,
+                include_message=include_message
             )
 
         return wrapper
+    
+    def _invoke_adaptive(self, func: Callable, message: Message, argument: Any, include_message: bool):
+        if include_message:
+            return func(message, argument)
+        else:
+            return func(argument)
