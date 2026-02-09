@@ -6,21 +6,12 @@ class OnTextHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        @cls.on.text("Name: {name}. Age: {age}")
-        def _(message, name: str, age: str):
-            cls(message).handle_name_age(name, age)
-
-        @cls.on.text("My name is {name} and I am {age} years old")
-        def _(message, name: str, age: str):
-            cls(message).handle_name_age(name, age)
-
-        @cls.on.text("My name is {name}")
-        def _(message, name: str):
-            cls(message).handle_name_age(name, None)
-
-        @cls.on.text("I'm {age} years old")
-        def _(message, age: str):
-            cls(message).handle_name_age(None, age)
+        cls.on.text(
+            "Name: {name}. Age: {age}",
+            "My name is {name} and I am {age} years old",
+            "My name is {name}",
+            "I'm {age} years old"
+        ).invoke(cls.handle_name_age)
 
         cls.on.command("on_text").invoke(cls.handle)
             
@@ -28,16 +19,16 @@ class OnTextHandler(telekit.Handler):
     # Handling Logic
     # ------------------------------------------
 
-    def handle_name_age(self, name: str | None, age: str | None) -> None: 
+    def handle_name_age(self, name: str | None=None, age: str | None=None) -> None: 
 
         if not name: 
-            name = self.user.username
+            name = self.user.first_name
 
         if not age:
             age = "An unknown number of"
 
         self.chain.sender.set_title(Composite("Hello, ", Italic(name), "!"))
-        self.chain.sender.set_message(Bold(age), " years is a wonderful stage of life!")
+        self.chain.sender.set_message(Italic(age), " years is a wonderful stage of life!")
         self.chain.disable_timeout_warnings()
         self.chain.send()
 
@@ -48,10 +39,19 @@ class OnTextHandler(telekit.Handler):
         self.chain.sender.set_message(
             "Try sending any of these example phrases to see the handler in action:\n\n"
 
-            f"- ", Code('Name: John. Age: 25'), "\n"
-            f"- ", Code('My name is Alice and I am 30 years old'), "\n"
-            f"- ", Code('My name is Romashka'), "\n"
-            f"- ", Code('I\'m 18 years old'), "\n\n"
-            f"The bot will respond according to the information you provide."
+            "- ", Code('Name: John. Age: 25'), "\n"
+            "- ", Code('My name is Alice and I am 30 years old'), "\n"
+            "- ", Code('My name is Romashka'), "\n"
+            "- ", Code('I\'m 18 years old'), "\n\n"
+
+            "The bot will respond according to the information you provide."
+        )
+        self.chain.set_entry_suggestions(
+            {
+                "Test 1": "Name: John. Age: 25",
+                "2": "My name is Alice and I am 30 years old",
+                "3": "My name is Romashka",
+                "4": "I'm 18 years old"
+            }, row_width=4
         )
         self.chain.edit()

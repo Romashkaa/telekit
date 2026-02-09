@@ -1,5 +1,31 @@
 ## Chain Improvements
-- ...
+- Improved file extension validation in  
+  `set_entry_text_document`, `entry_text_document`, `entry_document`, and `set_entry_document`.  
+  Validation is now performed using **pathlib**.
+
+- All `entry_*` and `set_entry_*` handlers **no longer pass the `Message` object to the callback by default**.  
+  A new `include_message` parameter was added to restore the previous behavior when needed.
+
+- Introduced a new `InlineButton` base class.
+  Its subclasses - `LinkButton`, `WebAppButton`, `SuggestButton`, and `CopyTextButton` provide support for special inline buttons such as:
+  - external links  
+  - web apps  
+  - suggestions  
+  - text copying  
+  These can now be passed as dictionary values in `set_inline_keyboard` and related methods.
+
+- Reduced closure size and improved performance for each callback button.
+
+- Added new inline keyboard methods:  
+  `inline_choice` and `set_inline_choice`.
+
+- `set_entry_suggestions` now warns when **Telegram Bot API limits** are exceeded.
+
+## DSL Improvements
+- **Mixin update:** the `jinja_env` attribute is now private.
+- Added a new method: `get_jinja_env`.
+- In `TelekitDSL`, all `from_*` factory methods now create classes using `type()`
+  instead of standard class definitions.
 
 ## Handler Improvements
 - Add new trigger:
@@ -10,6 +36,5 @@
 
 ## Planned:
 - Add new triggers:
-    - [x] func
-    - [ ] document
-    - [ ] text_document
+    - document
+    - text_document

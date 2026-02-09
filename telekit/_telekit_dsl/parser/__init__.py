@@ -7,9 +7,9 @@ from . import (
 def analyze(src: str):
     tokens = lexer.Lexer(src).tokenize()
     ast = parser.Parser(tokens).parse()
-    data = builder.Builder(ast, src).build()
+    model = builder.Builder(ast, src).build()
 
-    return data
+    return model
 
 MAGIC_SCENES = builder.MAGIC_SCENES
 

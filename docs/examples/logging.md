@@ -1,10 +1,6 @@
 # Logging
 
 ```py
-
-import telebot.types
-import telekit
-
 source = """
 # Page Title
 
@@ -33,9 +29,10 @@ class PagesHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.command("pages").invoke(cls.handle)
+        cls.on.command("start").invoke(cls.handle)
 
     def handle(self) -> None:
+        self.chain.disable_timeout_warnings()
         self.display_home_page()
 
     def display_home_page(self) -> None:
@@ -46,9 +43,7 @@ class PagesHandler(telekit.Handler):
         self.chain.sender.set_title("Simple Pages Example")
         self.chain.sender.set_message("Here are some common questions and answers to help you get started:")
 
-        @self.chain.inline_keyboard(pages)
-        def _(message: telebot.types.Message, page: tuple[str, str]) -> None:
-            self.display_page(page)
+        self.chain.set_inline_choice(self.display_page, pages)
 
         self.chain.edit()
 

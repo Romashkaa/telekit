@@ -1,7 +1,6 @@
 # Registration
 
 ```python
-import telebot.types
 import telekit
 
 class UserData:
@@ -34,17 +33,14 @@ class UserData:
     def set_age(self, value: int):
         self.ages[self.chat_id] = value
 
-class EntryHandler(telekit.Handler):
+class StartHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.command('entry').invoke(cls.handle)
-
-        # Or define the handler manually:
-
-        # @cls.on.command('entry')
-        # def handler(message: telebot.types.Message) -> None:
-        #     cls(message).handle()
+        """
+        Initializes the command handler.
+        """
+        cls.on.command('start').invoke(cls.handle)
 
     # ------------------------------------------
     # Handling Logic
@@ -52,6 +48,7 @@ class EntryHandler(telekit.Handler):
 
     def handle(self) -> None:
         self._user_data = UserData(self.message.chat.id)
+        self.chain.disable_timeout_warnings()
         self.entry_name()
 
     # -------------------------------
@@ -61,11 +58,15 @@ class EntryHandler(telekit.Handler):
     def entry_name(self) -> None:
         self.chain.sender.set_title("⌨️ What`s your name?")
         self.chain.sender.set_message("Please, send a text message")
+        self.chain.sender.set_use_italics()
 
-        self.add_name_listener()
+        self.chain.set_entry_text(self.handle_name, delete_user_response=True)
 
-        name: str | None = self._user_data.get_name( # from own data base
-            default=self.user.username # from telebot API
+        # Priority:
+        # 1. Previous response (internal database)
+        # 2. Telegram username (fallback)
+        name: str | None = self._user_data.get_name(
+            default=self.user.username
         )
         
         if name:
@@ -73,32 +74,34 @@ class EntryHandler(telekit.Handler):
 
         self.chain.edit()
 
-    def add_name_listener(self):
-        @self.chain.entry_text(delete_user_response=True)
-        def _(message: telebot.types.Message, name: str) -> None:
-            self.chain.sender.set_title(f"👋 Bonjour, {name}!")
-            self.chain.sender.set_message(f"Is that your name?")
+    def handle_name(self, name: str) -> None:
+        self.chain.sender.set_title(f"👋 Bonjour, {name}!")
+        self.chain.sender.set_message(f"Is that your name?")
 
-            self._user_data.set_name(name)
+        self._user_data.set_name(name)
 
-            self.chain.set_inline_keyboard(
-                {
-                    "« Change": self.entry_name,
-                    "Yes »": self.entry_age,
-                }, row_width=2
-            )
+        self.chain.set_inline_keyboard(
+            {
+                "« Change": self.entry_name,
+                "Yes »": self.entry_age,
+            }, row_width=2
+        )
 
-            self.chain.edit()
+        self.chain.edit()
 
     # -------------------------------
     # AGE HANDLING
     # -------------------------------
-
-    def entry_age(self, message: telebot.types.Message | None=None) -> None:
+    
+    def entry_age(self) -> None:
         self.chain.sender.set_title("⏳ How old are you?")
         self.chain.sender.set_message("Please, send a numeric message")
 
-        self.add_age_listener()
+        self.chain.set_entry_text(
+            self.handle_age, 
+            filter_message=lambda text: text.isdigit() and 0 < int(text) < 130,
+            delete_user_response=True
+        )
 
         age: int | None = self._user_data.get_age()
 
@@ -107,24 +110,19 @@ class EntryHandler(telekit.Handler):
 
         self.chain.edit()
 
-    def add_age_listener(self):
-        @self.chain.entry_text(
-            filter_message=lambda message, text: text.isdigit() and 0 < int(text) < 130,
-            delete_user_response=True
+    def handle_age(self, text: str) -> None:
+        self._user_data.set_age(int(text))
+
+        self.chain.sender.set_title(f"😏 {text} years old?")
+        self.chain.sender.set_message("Noted. Now I know which memes you prefer")
+
+        self.chain.set_inline_keyboard(
+            {
+                "« Change": self.entry_age,
+                "Ok »": self.show_result,
+            }, row_width=2
         )
-        def _(message: telebot.types.Message, text: str) -> None:
-            self._user_data.set_age(int(text))
-
-            self.chain.sender.set_title(f"😏 {text} years old?")
-            self.chain.sender.set_message("Noted. Now I know which memes are safe to show you")
-
-            self.chain.set_inline_keyboard(
-                {
-                    "« Change": self.entry_age,
-                    "Ok »": self.show_result,
-                }, row_width=2
-            )
-            self.chain.edit()
+        self.chain.edit()
 
     # ------------------------------------------
     # RESULT
@@ -134,7 +132,7 @@ class EntryHandler(telekit.Handler):
         name = self._user_data.get_name()
         age = self._user_data.get_age()
 
-        self.chain.sender.set_title("😏 Well well well")
+        self.chain.sender.set_title("😄 Well well well")
         self.chain.sender.set_message(f"So your name is {name} and you're {age}? Fancy!")
 
         self.chain.set_inline_keyboard({
@@ -142,4 +140,6 @@ class EntryHandler(telekit.Handler):
         }, row_width=2)
 
         self.chain.edit()
+
+telekit.Server(TOKEN).polling()
 ```

@@ -1,11 +1,11 @@
-# Append method
+# Append method + Timeout
 
 ```py
 import telekit
 
 from telekit.styles import Group, Sanitize, Quote
 
-class Start(telekit.Handler):
+class StartHandler(telekit.Handler):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.command("start").invoke(cls.start)
@@ -19,7 +19,6 @@ class Start(telekit.Handler):
             Quote("The only way out is through."),
             "- "
         )
-        self.chain.sender.set_use_italics(False)
         self.chain.set_timeout(self.update, 1)
         self.chain.send()
 

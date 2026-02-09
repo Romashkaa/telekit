@@ -1,5 +1,7 @@
 from telebot.types import Message
-from telekit.types import TextDocument
+from telekit.types import (
+    TextDocument, CopyTextButton, ParseMode
+)
 from telekit.styles import Quote, Sanitize
 import telekit
     
@@ -7,9 +9,6 @@ class TextDocumentHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the command handler.
-        """
         cls.on.command("entry_document").invoke(cls.handle)
 
     # ------------------------------------------
@@ -18,10 +17,6 @@ class TextDocumentHandler(telekit.Handler):
 
     def handle(self) -> None:
         self.entry_text_document()
-
-    # -------------------------------
-    # NAME HANDLING
-    # -------------------------------
 
     def entry_text_document(self) -> None:
         self.chain.sender.set_title("📄 Send text document...")
@@ -35,16 +30,22 @@ class TextDocumentHandler(telekit.Handler):
         self.chain.disable_timeout_warnings()
         self.chain.edit()
 
-    def handle_text_document(self, message: Message, response: TextDocument):
-        self.chain.sender.set_title(Sanitize(f"🔎 File ", repr(response.file_name), " info"))
+    def handle_text_document(self, message: Message, document: TextDocument):
+        self.chain.sender.set_title(Sanitize(f"🔎 File ", repr(document.file_name), " info"))
         self.chain.sender.set_message(
             Quote(
-                response.text[:64].strip(), 
-                "..." if len(response.text) > 64 else ""
+                document.text[:64].strip(), 
+                "..." if len(document.text) > 64 else ""
             ), "\n",
-            f"• Encoding {response.encoding!r}\n",
-            f"• Length {len(response.text)}\n",
-            f"• Size {response.document.file_size}\n",
+            f"• Encoding {document.encoding!r}\n",
+            f"• Length {len(document.text)}\n",
+            f"• Size {document.document.file_size}\n",
         )
-        self.chain.sender.set_parse_mode("html")
+        self.chain.set_inline_keyboard(
+            {
+                "Copy Name": CopyTextButton(document.file_name),
+                "Resend ↺": self.entry_text_document
+            }, row_width=2
+        )
+        self.chain.sender.set_parse_mode(ParseMode.HTML)
         self.chain.send()

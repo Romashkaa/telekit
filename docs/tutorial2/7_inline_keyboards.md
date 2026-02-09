@@ -54,14 +54,34 @@ Supported callback types include:
 
 To add a Label-Callback keyboard, call `chain.set_inline_keyboard()` with a dictionary `{Label: Callback}`, optionally specifying `row_width`:
 
-```python
+```py
+from telekit.types import LinkButton, CopyTextButton
+
 self.chain.set_inline_keyboard(
-    {
-        "« Change": prompt,  # Executes `prompt()` when clicked
-        "Yes »": lambda: print("User: Okay!"),  # Runs this lambda when clicked
-        "Youtube": "https://youtube.com"  # Opens a link
-    }, row_width=2
+    {   
+        # When the user clicks this button, `change_name()` will be executed
+        "Change": change_name,
+        # When the user clicks this button, this lambda function will run
+        "Okay": lambda: print("User: Okay!"),
+        # When the user clicks this button, this method will be executed
+        "Reload": self.reload,
+        # Can even be a link (`str` or `LinkButton` object)
+        "PyPi": "https://pypi.org/project/telekit/",
+        "GitHub": LinkButton("https://github.com/Romashkaa/telekit"),
+        # Or copy button
+        "Copy Text": CopyTextButton("Text to copy")
+    }, row_width=(3, 2, 1)
 )
+```
+- Result
+```
+╭────────────┬──────────┬──────────╮
+│   Change   │   Okay   │  Reload  │
+├────────────┴────┬─────┴──────────┤
+│       PyPi      │     GitHub     │
+├─────────────────┴────────────────┤
+│            Copy Text             │
+╰──────────────────────────────────╯
 ```
 
 Explanation:  
@@ -86,7 +106,7 @@ To use the `inline_keyboard` decorator, provide a dictionary `{Label: Value}` an
     "Green": (0, 255, 0),
     "Blue": (0, 0, 255),
 }, row_width=3)
-def _(message, value: tuple[int, int, int]) -> None:
+def _(value: tuple[int, int, int]) -> None:
     r, g, b = value
     self.chain.set_text(f"You selected RGB color: ({r}, {g}, {b})")
     self.chain.edit()
@@ -99,6 +119,25 @@ Explanation:
 
 > [!CAUTION] 
 > Values remain stored in memory until the user clicks a button or switches commands. To forcibly end waiting, see [Timeouts](10_timeouts.md).
+
+## Other Keyboards
+
+While `(set_)inline_keyboard` focuses on **mapping actions** (calling different functions or passing static data), the `(set_)inline_choice` methods are specialized for **selecting from a set of options**.
+
+- `set_inline_choice` – A method that takes an existing function and a collection of options. Ideal when your processing logic is already defined elsewhere – this is the most "Telekit-style" way to build selection menus.
+- `inline_choice` – A decorator that turns the following function into a handler for the selected value. 
+
+```py
+pages = {
+    "💻 MacBook Pro": "Specs: M3 Chip, 16GB RAM, 512GB SSD. Price: $1999.",
+    "📱 iPhone 17": "Features: 48MP Camera. Price: $799.",
+    "🎧 AirPods Max": "High-fidelity audio with Active Noise Cancellation. Price: $549."
+}
+self.chain.set_inline_choice(self.display_page, pages)
+```
+
+> [!TIP]
+> See full [example](../examples/logging.md)
 
 ## Row Width
 

@@ -1,4 +1,3 @@
-import telebot.types
 import telekit
 
 class UserData:
@@ -72,7 +71,7 @@ class EntryHandler(telekit.Handler):
 
         self.chain.edit()
 
-    def handle_name(self, message: telebot.types.Message, name: str) -> None:
+    def handle_name(self, name: str) -> None:
         self.chain.sender.set_title(f"👋 Bonjour, {name}!")
         self.chain.sender.set_message(f"Is that your name?")
 
@@ -97,7 +96,7 @@ class EntryHandler(telekit.Handler):
 
         self.chain.set_entry_text(
             self.handle_age, 
-            filter_message=lambda message, text: text.isdigit() and 0 < int(text) < 130,
+            filter_message=lambda text: text.isdigit() and 0 < int(text) < 130,
             delete_user_response=True
         )
 
@@ -108,7 +107,7 @@ class EntryHandler(telekit.Handler):
 
         self.chain.edit()
 
-    def handle_age(self, message: telebot.types.Message, text: str) -> None:
+    def handle_age(self, text: str) -> None:
         self._user_data.set_age(int(text))
 
         self.chain.sender.set_title(f"😏 {text} years old?")

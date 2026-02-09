@@ -1003,7 +1003,7 @@ Telekit automatically injects several objects into the Jinja context:
 
 ### Custom Context
 
-You can override existing variables or add new ones using the `set_jinja_context` method.
+`jinja_context` is an instance attribute. You can override existing variables or add new ones using the `set_jinja_context` method.
 
 - Example 1 (keyword arguments):
 ```py
@@ -1039,11 +1039,10 @@ The Jinja environment is **class-attribute**, meaning it is shared between all h
 
 #### Accessing the Environment
 
-The Jinja environment is available both on the handler class and on handler instances:
+Use the `get_jinja_env` method to access the Environment:
 
 ```py
-cls.jinja_env
-self.jinja_env
+cls.get_jinja_env() # returns: jinja2.Environment
 ```
 
 #### Customizing the Environment
@@ -1073,20 +1072,15 @@ This method can be used to:
 
 #### Built-in Sanitize Filters
 
-Telekit automatically registers additional filters in the Jinja environment to safely escape dynamic content depending on the parse mode:
-
-```py
-cls.jinja_env.filters["e_md"] = JinjaFilters.escape_md
-cls.jinja_env.filters["e_html"] = JinjaFilters.escape_html
-```
+Telekit automatically registers additional filters in your Jinja environment to safely escape dynamic content depending on the parse mode:
 
 - `e_md` — escapes text for **Markdown** messages
 - `e_html` — escapes text for **HTML** messages
 
 These filters are available in all Jinja templates and are especially useful when rendering user-generated content:
 
-```jinja
-Hello, {{ handler.user.first_name | e_md }}
+```py
+text = "Hello, {{ handler.user.first_name | e_md }}"
 ```
 
 Using these filters helps prevent formatting issues and accidental markup injection.

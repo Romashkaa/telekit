@@ -27,7 +27,7 @@ class StartHandler(telekit.Handler):
                 "📄 File Info":     "TextDocumentHandler",
             }, row_width=[2, 1, 3]
         )
-        def handle_response(message, handler: str):
+        def handle_response(handler: str):
             self.handoff(handler).handle()
         
         self.chain.disable_timeout_warnings()

@@ -29,9 +29,6 @@ class PagesHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the command handler.
-        """
         cls.on.command("pages").invoke(cls.handle)
 
     # ------------------------------------------
@@ -50,7 +47,7 @@ class PagesHandler(telekit.Handler):
         self.chain.sender.set_message("Here are some common questions and answers to help you get started:")
 
         @self.chain.inline_keyboard(pages)
-        def _(message: telebot.types.Message, page: tuple[str, str]) -> None:
+        def _(page: tuple[str, str]) -> None:
             self.display_page(page)
 
         self.chain.disable_timeout_warnings()

@@ -13,15 +13,15 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 
 | Name  | Comment | Used methods |
 |-----------|--------------|-------------------------|
-| [Dialogue](dialogue.md)   | Simple text-based dialogue flow | `on.text`, `entry_text` |
-| [Risk Game](risk_game.md) | Interactive game | `inline_keyboard`, `set_remove_inline_keyboard`, `set_remove_timeout`, `set_default_timeout`, `on.command` |
+| [Dialogue](dialogue.md)   | Simple text-based dialogue flow | `on.regexp`, `set_entry_text` |
+| [Risk Game](risk_game.md) | Interactive game | `set_inline_keyboard`, `set_remove_inline_keyboard`, `set_remove_timeout`, `set_default_timeout`, `on.command` |
 | [Counter](counter.md) | Counter with buttons "+" and "-" | `set_photo`, `set_effect`, `inline_keyboard`, `set_remove_inline_keyboard` |
-| [On Text](on_text.md) | Example of handling specific templated messages | `on.text`, `styles`, `user`, `username`, `Code` |
-| [Append](append_method.md) | Appending messages with timeout control | `append`, `styles`, `set_timeout`, `set_use_italics`, `Sanitize` |
+| [On Text](on_text.md) | Example of handling specific templated messages | `on.text`, `on.command`, `user`, `first_name`, `Code`, `Italic`, `set_entry_suggestions`,  |
+| [Append](append_method.md) | Appending messages with timeout control | `append`, `set_timeout`, `Sanitize`, `Quote` |
 | [Ads](ads.md) | Sending messages to several chats | `on.command`, `whitelist=`, `create_sender`, `send_or_handle_error`, `set_effect` |
 | [Redirect](redirect.md) | Message with buttons linking to other handlers | `handoff`, `on.command`,  `inline_keyboard`, `user`, `first_name` |
 | [Deep Linking: Command Parameters & Invite Code](command_parameters.md) | Example of handling `/start <age> <name>` commands with type-checked parameters | `parameters`, `params=`, `set_parse_mode`, `set_text`, `Sanitize`, `set_reply_to`, `message` |
-| [Logging](logging.md) | Example of logging user actions | `user.logger.info`, `user`, `logger`, `info`, `enable_logging`, `set_inline_keyboard`, `inline_keyboard`, `chapters` |
+| [Logging](logging.md) | Example of logging user actions | `user.logger.info`, `user`, `logger`, `info`, `enable_logging`, `set_inline_keyboard`, `set_inline_choice`, `chapters` |
 
 ## Telekit DSL
 
@@ -43,6 +43,6 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 
 | Name | Comment | Used methods |
 |-----------|--------------|-------------------------|
-| [Registration](registration.md) | Simple registration example | `Vault`, `entry_text`, `set_entry_suggestions`, `set_inline_keyboard` |
+| [Registration](registration.md) | Simple registration example | `Vault`, `set_entry_text`, `set_entry_suggestions`, `set_inline_keyboard` |
 
 If you're unsure how the examples work, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) for a full walkthrough.

@@ -100,7 +100,7 @@ class NameHandler(telekit.Handler):
         self.chain.sender.set_message("Please, type your new name below:")
 
         @self.chain.entry_text(delete_user_response=True)
-        def name_handler(message, name: str):
+        def name_handler(name: str):
             self.display_name(name)
 
         self.chain.edit()
@@ -179,17 +179,40 @@ If your focus is on logic and functionality, Telekit is the ideal library:
 
 **Inline keyboard** with callback support:
 
+> Inline keyboard `label-callback`:
 ```python
-# Inline keyboard `label-callback`:
-self.chain.set_inline_keyboard(
-    {
-        "« Change": prompt,  # Executes `prompt()` when clicked
-        "Yes »": lambda: print("User: Okay!"),  # Runs this lambda when clicked
-        "Youtube": "https://youtube.com"  # Opens a link
-    }, row_width=2
-)
+from telekit.types import LinkButton, CopyTextButton
 
-# Inline keyboard `label-value`:
+self.chain.set_inline_keyboard(
+    {   
+        # When the user clicks this button, `change_name()` will be executed
+        "Change": change_name,
+        # When the user clicks this button, this lambda function will run
+        "Okay": lambda: print("User: Okay!"),
+        # When the user clicks this button, this method will be executed
+        "Reload": self.reload,
+        # Can even be a link (`str` or `LinkButton` object)
+        "PyPi": "https://pypi.org/project/telekit/",
+        "GitHub": LinkButton("https://github.com/Romashkaa/telekit"),
+        # Or copy button
+        "Copy Text": CopyTextButton("Text to copy")
+    }, row_width=(3, 2, 1)
+)
+```
+
+> Result:
+```
+╭────────────┬──────────┬──────────╮
+│   Change   │   Okay   │  Reload  │
+├────────────┴────┬─────┴──────────┤
+│       PyPi      │     GitHub     │
+├─────────────────┴────────────────┤
+│            Copy Text             │
+╰──────────────────────────────────╯
+```
+
+> Inline keyboard `label-value`:
+```py
 @self.chain.inline_keyboard({
     "Red": (255, 0, 0),
     "Green": (0, 255, 0),
@@ -199,6 +222,14 @@ def _(message, value: tuple[int, int, int]) -> None:
     r, g, b = value
     self.chain.set_message(f"You selected RGB color: ({r}, {g}, {b})")
     self.chain.edit()
+```
+
+> Inline choice keyboard:
+```py
+self.chain.set_inline_choice(
+    lambda value: print(f"User picked {value}"),
+    choices=["Choice 1", "Choice 2"]
+)
 ```
 
 **Receiving messages** with callback support:
@@ -214,7 +245,7 @@ def handler(message):
 
 # Receive text message:
 @self.chain.entry_text()
-def name_handler(message, text: str):
+def name_handler(text: str):
     print(text)
 
 # Inline keyboard with suggested options:
@@ -222,12 +253,12 @@ chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
 
 # Receive a .zip document:
 @self.chain.entry_document(allowed_extensions=(".zip",))
-def doc_handler(message: telebot.types.Message, document: telebot.types.Document):
+def doc_handler(document: telebot.types.Document):
     print(document.file_name, document)
 
 # Receive a text document (Telekit auto-detects encoding):
 @self.chain.entry_text_document(allowed_extensions=(".txt", ".js", ".py"))
-def text_document_handler(message, text_document: telekit.types.TextDocument):
+def text_document_handler(text_document: telekit.types.TextDocument):
     print(
         text_document.text,      # "Example\n ..."
         text_document.file_name, # "example.txt"
@@ -278,53 +309,42 @@ Send `/start 21 "Name Surname"` to your bot to see it in action.
 
 ## Quick Start
 
-Telekit is published in [PyPI](https://pypi.org/project/telekit/), so it can be installed with one command:
+Telekit makes building Telegram bots fast and clean.  
+Even if you’ve never written one before, this guide will take you from zero to a working bot in minutes.
+
+### Installation
+
+Telekit is published in [PyPI](https://pypi.org/project/telekit/), so it can be installed with command:
 
 ```
 pip install telekit
 ```
 
-You can write the entire bot in a single file, but it’s recommended to organize your project using a simple structure like this one:
+### Getting a Bot Token
 
-```
-handlers/
-    __init__.py
-    start.py    # `/start` handler
-    help.py     # `/help` handler
-    ...
-server.py       # entry point
-```
+First, get your bot token from [BotFather](https://t.me/BotFather). 
 
-Here is a `server.py` example (entry point) for a project on TeleKit
+After that, you can run the example bot to explore Telekit’s basic features:
 
-```python
-import telekit
-import handlers # Package with all your handlers
+```py
+import telekit # import library
 
-telekit.Server("BOT_TOKEN").polling()
+telekit.example(BOT_TOKEN) # run the example bot
 ```
 
-Here you can see an example of the `handlers/__init__.py` file:
+### Basic Setup
 
-```python
-from . import (
-    start, help #, ...
-)
-```
-
-Here is an example of defining a handler using TeleKit (`handlers/start.py` file):
+To create your own bot server, replace `example` with the `Server` class and call `polling()` to start listening for updates:
 
 ```python
 import telekit
 
-class StartHandler(telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        ...
+telekit.Server(BOT_TOKEN).polling() # here
 ```
 
-**One-file bot example (Echo Bot):**
+That’s it — your bot is connected.
+
+### Eсho Bot Example
 
 ```python
 import telekit
@@ -342,7 +362,9 @@ class EchoHandler(telekit.Handler):
 telekit.Server("TOKEN").polling()
 ```
 
-For a full walkthrough, [check out Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md) or [see more Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
+To understand how the example above works, I recommend continuing with:
+
+[Creating Basic Handler »](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/2_basic_handler.md)
 
 ---
 

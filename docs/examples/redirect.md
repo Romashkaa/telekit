@@ -4,7 +4,7 @@
 import telekit
 
 class StartHandler(telekit.Handler):
-
+    
     @classmethod
     def init_handler(cls) -> None:
         cls.on.command("start").invoke(cls.handle)
@@ -19,17 +19,18 @@ class StartHandler(telekit.Handler):
         @self.chain.inline_keyboard(
             {
                 # mapping of button labels to their corresponding handlers for redirection
-                "🧮 Counter": "CounterHandler",
-                "⌨️ Entry":     "EntryHandler",
-                "📚 FAQ":         "FAQHandler",
-                "📄 Pages":     "PagesHandler",
-                "🦻 On Text":  "OnTextHandler",
-            }, row_width=2
+                "🧮 Counter":            "CounterHandler",
+                "⌨️ Entry":                "EntryHandler",
+                "📖 Pages":                "PagesHandler",
+                "🦻 On Text":             "OnTextHandler",
+                "📄 File Info":     "TextDocumentHandler",
+            }, row_width=[2, 1, 3]
         )
-        def handle_response(message, handler: str):
+        def handle_response(handler: str):
             self.handoff(handler).handle()
         
-        self.chain.send()
+        self.chain.disable_timeout_warnings()
+        self.chain.edit()
 
 telekit.Server(TOKEN).polling()
 ```
