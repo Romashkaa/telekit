@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 from ._handler import Handler
-from ._chain import Chain, TextDocument
+from ._chain import Chain
 from ._callback_query_handler import CallbackQueryHandler
 from .server import Server, example
 from ._snapvault import Vault
@@ -31,15 +31,18 @@ from ._logger import enable_file_logging
 from . import senders
 from . import types
 from . import styles
+from . import parameters
 
 Styles = styles.Styles
 
 from ._version import __version__
     
 __all__ = [
+    "parameters",
+    "senders", 
     "types",
-
     "styles",
+
     "Styles", 
 
     "enable_file_logging",
@@ -55,5 +58,4 @@ __all__ = [
     "Handler", 
 
     "CallbackQueryHandler", 
-    "senders", 
 ]

@@ -30,11 +30,11 @@ class ChainBase:
         """
         cls.bot = bot
 
-    def __init__(self, chat_id: int):
+    def __init__(self, chat_id: int, *, sender_type: type[senders.BaseSender] = senders.AlertSender, previous_message: Message | None = None):
         self.chat_id = chat_id
-        self.sender = senders.AlertSender(chat_id)
+        self.sender = sender_type(chat_id)
         self._handler = _input_handler.InputHandler(chat_id)
-        self._previous_message: Message | None = None
+        self._previous_message = previous_message
         self._timeout_handler = _timeout.TimeoutHandler()
 
         self.do_remove_timeout = True

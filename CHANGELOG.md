@@ -8,7 +8,7 @@
 
 - Introduced a new `InlineButton` base class.
   Its subclasses - `LinkButton`, `WebAppButton`, `SuggestButton`, and `CopyTextButton` provide support for special inline buttons such as:
-  - external links  
+  - external links
   - web apps  
   - suggestions  
   - text copying  
