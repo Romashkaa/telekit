@@ -28,20 +28,23 @@ from ._chapters import chapters
 from ._user import User
 from ._telekit_dsl.telekit_dsl import TelekitDSL
 from ._logger import enable_file_logging
+
 from . import senders
 from . import types
 from . import styles
 from . import parameters
+from . import inline_buttons
 
 Styles = styles.Styles
 
 from ._version import __version__
     
 __all__ = [
-    "parameters",
     "senders", 
     "types",
     "styles",
+    "parameters",
+    "inline_buttons",
 
     "Styles", 
 
@@ -57,5 +60,5 @@ __all__ = [
     "Chain", 
     "Handler", 
 
-    "CallbackQueryHandler", 
+    "CallbackQueryHandler"
 ]

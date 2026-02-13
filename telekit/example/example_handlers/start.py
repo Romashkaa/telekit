@@ -20,12 +20,13 @@ class StartHandler(telekit.Handler):
         @self.chain.inline_keyboard(
             {
                 "🧮 Counter":            "CounterHandler",
+                "🧙‍♀️ Spells":              "SpellsHandler",
                 "⌨️ Entry":                "EntryHandler",
                 "📚 Telekit DSL Examples":   "DSLHandler",
                 "📖 Pages":                "PagesHandler",
                 "🦻 On Text":             "OnTextHandler",
                 "📄 File Info":     "TextDocumentHandler",
-            }, row_width=[2, 1, 3]
+            }, row_width=[3, 1, 3]
         )
         def handle_response(handler: str):
             self.handoff(handler).handle()

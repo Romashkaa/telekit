@@ -580,6 +580,12 @@ class BaseSender:
         if getattr(reply_to, "message_id", None) is not None:
             self.reply_to_message_id = reply_to.message_id
 
+    def append(self, *args, **kwargs):
+        """
+        Placeholder method in `BaseSender` that does **not perform any action**.
+        """
+        library.warning("BaseSender().append() called; method does nothing")
+
     # --------------------------------------------------------
     # Methods for preparing send and edit message configurations
     # --------------------------------------------------------

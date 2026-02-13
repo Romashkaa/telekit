@@ -4,17 +4,18 @@
 # Standard library
 import random
 import typing
-from typing import Callable, Any, overload, Literal
+from typing import Callable, Any
 from collections.abc import Iterable
 
 # Third-party packages
 from telebot.types import (
-    Message, 
+    CallbackQuery,
     InlineKeyboardButton,
-    InlineKeyboardMarkup,
+    InlineKeyboardMarkup
 )
 
-from ._inline_buttons import InlineButton
+from ._callback_query_handler import CallbackQueryHandler
+from ._inline_buttons import InlineButton, CallbackButton
 from ._chain_base import ChainBase
 
 if typing.TYPE_CHECKING:
@@ -68,21 +69,27 @@ class ChainInlineKeyboardLogic(ChainBase):
             row_width (`int` | `Iterable[int]`): Number of buttons per row (default = 1); can be a single value 
                 or an iterable defining the buttons count for each row.
         """
-        callback_functions: dict[str, Callable[[Message], Any]] = {}
+        button_callbacks: dict[str, Callable[[CallbackQuery], None]] = {}
         buttons: list[InlineKeyboardButton] = []
 
         for i, (caption, callback) in enumerate(keyboard.items()):
             if isinstance(callback, str):
                 buttons.append(InlineKeyboardButton(caption, url=callback))
-            elif isinstance(callback, InlineButton):
+            elif isinstance(callback, InlineButton) and not isinstance(callback, CallbackButton):
                 buttons.append(callback._compile(caption))
             else:
-                callback_data = f"button_{i}_{random.randint(1000, 9999)}"
-                callback_functions[callback_data] = self._get_callback(callback)
+                if isinstance(callback, CallbackButton):
+                    invoker = callback.build_invoker(self._cancel_timeout_and_handlers)
+                else:
+                    invoker = CallbackButton.create_invoker(callback, self._cancel_timeout_and_handlers)
+
+                callback_data = CallbackQueryHandler.inline_button(f"{i}:{random.randint(1000, 9999)}")
+                button_callbacks[callback_data] = invoker
                 buttons.append(
                     InlineKeyboardButton(
                         text=caption,
-                        callback_data=callback_data
+                        callback_data=callback_data,
+                        **invoker._kwargs
                     )
                 )
 
@@ -90,7 +97,7 @@ class ChainInlineKeyboardLogic(ChainBase):
         markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
-        self._handler.set_callback_functions(callback_functions)
+        self._handler.set_button_callbacks(button_callbacks)
 
     def inline_keyboard[Caption: str, Value](
             self, 
@@ -124,14 +131,14 @@ class ChainInlineKeyboardLogic(ChainBase):
             enable_special_buttons (`bool`): If True, `InlineButton` instances (e.g., LinkButton) are compiled into functional buttons. If False, they are treated as plain values and passed to wrapped function.
         """
         def wrapper(func: Callable[[Value], None]) -> None:
-            callback_functions: dict[str, Callable[[Message], Any]] = {}
+            callback_functions: dict[str, Callable[[CallbackQuery], None]] = {}
             buttons: list[InlineKeyboardButton] = []
 
             for index, (caption, value) in enumerate(keyboard.items()):
                 if enable_special_buttons and isinstance(value, InlineButton):
                     buttons.append(value._compile(caption))
                 else:
-                    callback_data = f"button_{index}_{random.randint(1000, 9999)}"
+                    callback_data = CallbackQueryHandler.inline_button(f"{index}:{random.randint(1000, 9999)}")
                     callback_functions[callback_data] = self._get_callback_with_argument(func, value)
                     buttons.append(
                         InlineKeyboardButton(
@@ -144,7 +151,7 @@ class ChainInlineKeyboardLogic(ChainBase):
             markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
             self.sender.set_reply_markup(markup)
-            self._handler.set_callback_functions(callback_functions)
+            self._handler.set_button_callbacks(callback_functions)
 
         return wrapper
     
@@ -215,7 +222,7 @@ class ChainInlineKeyboardLogic(ChainBase):
             row_width (`int` | `Iterable[int]`): Layout configuration for buttons.
             enable_special_buttons (`bool`): If True, `InlineButton` instances (e.g., LinkButton) are compiled into functional buttons. If False, they are treated as plain values and passed to `func`.
         """
-        callback_functions: dict[str, Callable[[Message], Any]] = {}
+        callback_functions: dict[str, Callable[[CallbackQuery], None]] = {}
         buttons: list[InlineKeyboardButton] = []
 
         if not isinstance(choices, dict):
@@ -225,7 +232,7 @@ class ChainInlineKeyboardLogic(ChainBase):
             if enable_special_buttons and isinstance(value, InlineButton):
                 buttons.append(value._compile(caption))
             else:
-                callback_data = f"button_{index}_{random.randint(1000, 9999)}"
+                callback_data = CallbackQueryHandler.inline_button(f"{index}:{random.randint(1000, 9999)}")
                 callback_functions[callback_data] = self._get_callback_with_argument(func, value)
                 buttons.append(
                     InlineKeyboardButton(
@@ -238,7 +245,7 @@ class ChainInlineKeyboardLogic(ChainBase):
         markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
-        self._handler.set_callback_functions(callback_functions)
+        self._handler.set_button_callbacks(callback_functions)
     
     def set_entry_suggestions(
             self, 
@@ -280,49 +287,42 @@ class ChainInlineKeyboardLogic(ChainBase):
         buttons: list[InlineKeyboardButton] = []
 
         if isinstance(keyboard, list):
-            keyboard = {c: c for c in keyboard}
-
-        for caption, value in keyboard.items():
-            if not self._is_valid_telegram_callback(value):
-                raise ValueError(
-                    f"Callback data for button '{caption}' is too long! "
-                    f"Telegram limit is 64 bytes, but yours is {len(value.encode('utf-8'))} bytes. "
-                    f"Value: '{value}'"
-                )
-
-            buttons.append(
-                InlineKeyboardButton(
-                    text=caption,
-                    callback_data=value
-                )
-            )
+            for suggestion in keyboard:
+                buttons.append(InlineButton.Suggest(suggestion)._compile(suggestion))
+        else:
+            for caption, suggestion in keyboard.items():
+                buttons.append(InlineButton.Suggest(suggestion)._compile(caption))
 
         markup = InlineKeyboardMarkup()
         markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
 
-    def _get_callback_with_argument(self, func: Callable, argument: Any, include_message: bool=False) -> Callable[[Message], None]:
-        def callback(message: Message) -> None:
+    def _get_callback_with_argument(self, func: Callable, argument: Any, query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
+        def callback(call: CallbackQuery) -> None:
             self._cancel_timeout_and_handlers()
-
-            if include_message:
-                func(message, argument)
-            else:
-                func(argument)
+            func(argument)
+            self._answer_callback_query(call, query_answer)
 
         return callback
     
-    def _get_callback(self, func: Callable[..., None], include_message: bool=False):
-        def callback(message: Message):
+    def _get_callback(self, func: Callable[..., None], query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
+        def callback(call: CallbackQuery):
             self._cancel_timeout_and_handlers()
-
-            if include_message:
-                func(message)
-            else:
-                func()
+            func()
+            self._answer_callback_query(call, query_answer)
 
         return callback
+    
+    def _answer_callback_query(self, call: CallbackQuery, query_answer: tuple[str, bool] | None = None):
+        if query_answer is None:
+            self.bot.answer_callback_query(call.id)
+        else:
+            self.bot.answer_callback_query(
+                call.id, 
+                text=query_answer[0], 
+                show_alert=query_answer[1]
+            )
 
     def _build_keyboard_rows(
         self,

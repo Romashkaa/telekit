@@ -15,7 +15,6 @@ class Handler:
     
     # Base Class Attributes
     bot: telebot.TeleBot
-    _default_sender_type: type[senders.BaseSender] = senders.BaseSender
 
     # Subclas Attributes
     on:  On
@@ -74,27 +73,6 @@ class Handler:
         """
         pass
 
-    @classmethod
-    def use_sender(cls, sender_type: type[senders.BaseSender]):
-        """
-        Overrides the default sender type for this handler subclass.
-
-        This method allows configuring which `Sender` implementation will be
-        used when creating new `Chain` instances associated with the handler.
-
-        The override is **scoped to the subclass** and cannot be applied to the
-        base `telekit.Handler` class itself. Attempting to call this method on the base
-        class raises a `TypeError` to prevent unintended global side effects.
-
-        :param sender_type: The `Sender` class to use as the default for this handler subclass.
-        :type sender_type: `type[senders.BaseSender]`
-        
-        :raises TypeError: If called on the base `telekit.Handler` class.
-        """
-        if cls is Handler:
-            raise TypeError("Cannot override sender type globally on the base Handler class")
-        cls._default_sender_type = sender_type
-
     # -----------------------------------------------------
     # Initialization of handlers Instances
     # -----------------------------------------------------
@@ -135,7 +113,7 @@ class Handler:
         Example:
             >>> self.simulate_user_message("/start")
         """
-        CallbackQueryHandler().simulate(self.message, message_text)
+        CallbackQueryHandler.simulate(self.message, message_text)
 
     def delete_user_initial_message(self):
         """
@@ -161,10 +139,7 @@ class Handler:
         if hasattr(self, "chain"):
             del self.chain
 
-        self.chain = Chain(
-            chat_id     = self.message.chat.id,
-            sender_type = self._default_sender_type
-        )
+        self.chain = Chain(self.message.chat.id)
 
     def get_local_chain(self) -> Chain:
         """
@@ -176,10 +151,7 @@ class Handler:
         
         Unlike `new_chain()`, this method does not replace `self.chain`.
         """
-        return Chain(
-            chat_id     = self.message.chat.id,
-            sender_type = self._default_sender_type
-        )
+        return Chain(self.message.chat.id)
     
     @overload
     def handoff(self, handler: str) -> "Handler": ...

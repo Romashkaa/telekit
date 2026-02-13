@@ -1,13 +1,20 @@
 from typing import Callable, Any
+
 from telebot.types import Message
 import telebot
 
 from ._logger import logger
 library = logger.library
+from ._callback_query_handler import CallbackQueryHandler
 
 class InputHandler:
 
+    # class attributes
     bot: telebot.TeleBot
+
+    # instance attributes
+    break_only_on_match: bool
+    break_on_commands: bool
     
     @classmethod
     def _init(cls, bot: telebot.TeleBot):
@@ -21,11 +28,20 @@ class InputHandler:
         
     def __init__(self, chat_id: int):
         self.chat_id = chat_id
-        self.callback_functions: dict[str, Callable[..., Any]] = {}
+        self.button_callbacks: dict[str, Callable[[telebot.types.CallbackQuery], None]] | None = None
         self.entry_callback: Callable[[Message], bool] | None = None
         self.cancel_timeout_callback: Callable | None = None
+        self.break_only_on_match: bool = True
+        self.break_on_commands: bool = True
+
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Configuration API
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+    # Timeout
 
     def reset(self):
+        CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
         self.bot.clear_step_handler_by_chat_id(self.chat_id)
 
     def cancel_timeout(self):
@@ -36,40 +52,80 @@ class InputHandler:
     def set_cancel_timeout_callback(self, callback: Callable[[], None] | None):
         self.cancel_timeout_callback = callback
 
-    def set_callback_functions(self, callback_functions: dict[str, Callable[[Message], Any]]) -> None:
+    # Inline Keyboard
+
+    def set_button_callbacks(self, button_callbacks: dict[str, Callable[[telebot.types.CallbackQuery], None]] | None) -> None:
         """
         Sets the callback functions for the inline keyboard buttons.
 
         Args:
-            callback_functions (dict[str, Callable[[], Any]]): A dictionary mapping callback data to functions.
+            button_callbacks (`dict[str, Callable[[], Any]]`): A dictionary mapping callback data to functions.
         """
-        self.callback_functions = callback_functions
+        self.button_callbacks = button_callbacks
+
+        if not button_callbacks:
+            CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
+
+    # Message Handling
 
     def set_entry_callback(self, entry_callback: Callable[[Message], bool] | None) -> None:
         """
         Sets the callback functions for the input.
 
         Args:
-            set_entry_callback (dict[str, Callable[[], Any]]): A function.
+            entry_callback (`dict[str, Callable[[Message], bool]]`): A function.
         """
         self.entry_callback = entry_callback
 
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Handling API
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+    # Start Handling
+
     def handle_next_message(self) -> bool:
-        def handler(message: Message) -> None:
-            if self.callback_functions:
-                self.handle_callback(message)
-            elif self.entry_callback:
-                self.handle_entry(message)
-            else:
-                return
+        """
+        Registers a handler for the next user message (input).
+        """
             
         self.bot.clear_step_handler_by_chat_id(self.chat_id)
+
+        has_handlers: bool = bool(self.entry_callback) or bool(self.button_callbacks)
+
+        if has_handlers:
+            self.bot.register_next_step_handler_by_chat_id(self.chat_id, self._handle_entry)
         
-        if self.callback_functions or self.entry_callback:
-            self.bot.register_next_step_handler_by_chat_id(self.chat_id, handler)
-            return True
+        self._update_query_handler_callbacks()
         
-        return False
+        return has_handlers
+
+    def _update_query_handler_callbacks(self):
+        if self.button_callbacks:
+            CallbackQueryHandler.set_user_button_callbacks(self.chat_id, self.button_callbacks)
+        else:
+            CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
+    
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Entry Handling
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+    def _handle_entry(self, message: Message):
+        """
+        Handles the next message by calling the appropriate callback based on the message data.
+        """
+        CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
+        
+        if self.break_on_commands and message.text and message.text.startswith("/"):
+            self.cancel_timeout()
+            self.bot.process_new_messages([message])
+        elif self.entry_callback:
+            if not self.entry_callback(message):
+                self.handle_next_message()
+        elif not self.break_only_on_match or self._has_message_handler(message):
+            self.cancel_timeout()
+            self.bot.process_new_messages([message])
+        else:
+            self.handle_next_message()
     
     def _has_message_handler(self, message) -> bool:
         """
@@ -80,39 +136,4 @@ class InputHandler:
                 return True
 
         return False
-
-    def handle_callback(self, message: Message) -> None:
-        """
-        Handles the next message by calling the appropriate callback based on the message data.
-        """
-        if message.text in self.callback_functions:
-            self.cancel_timeout()
-            callback = self.callback_functions[message.text]
-            callback(message)
-        elif message.text and message.text.startswith("/"):
-            self.cancel_timeout()
-            self.bot.process_new_messages([message])
-        elif self.entry_callback:
-            self.handle_entry(message)
-        elif self._has_message_handler(message): # BETA
-            self.cancel_timeout()
-            self.bot.process_new_messages([message])
-        else:
-            self.handle_next_message()
-
-    def handle_entry(self, message: Message):
-        """
-        Handles the next message by calling the appropriate callback based on the message data.
-        """
-        if message.text and message.text.startswith("/"):
-            self.cancel_timeout()
-            self.bot.process_new_messages([message])
-        elif self.entry_callback:
-            if not self.entry_callback(message):
-                self.handle_next_message()
-        elif self._has_message_handler(message): # BETA
-            self.cancel_timeout()
-            self.bot.process_new_messages([message])
-        else:
-            self.handle_next_message()
 

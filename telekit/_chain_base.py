@@ -30,9 +30,9 @@ class ChainBase:
         """
         cls.bot = bot
 
-    def __init__(self, chat_id: int, *, sender_type: type[senders.BaseSender] = senders.AlertSender, previous_message: Message | None = None):
+    def __init__(self, chat_id: int, *, previous_message: Message | None = None):
         self.chat_id = chat_id
-        self.sender = sender_type(chat_id)
+        self.sender = senders.AlertSender(chat_id)
         self._handler = _input_handler.InputHandler(chat_id)
         self._previous_message = previous_message
         self._timeout_handler = _timeout.TimeoutHandler()
@@ -47,20 +47,8 @@ class ChainBase:
 
     def _cancel_timeout_and_handlers(self):
         self._cancel_timeout()
+        self._handler.reset()
         self._remove_all_handlers()
-
-    def _accepts_parameter(self, func: Callable) -> bool:
-        """
-        Checks if the function accepts at least one parameter,
-        ignoring 'self' for class methods.
-        """
-        sig = inspect.signature(func)
-        params = list(sig.parameters.values())
-
-        if params and params[0].name == "self":
-            params = params[1:]
-
-        return len(params) > 0
     
     # API
         
@@ -94,7 +82,7 @@ class ChainBase:
         You can also remove all handlers at once using `remove_all_handlers()`.
         """
         self.sender.set_reply_markup(None)
-        self._handler.set_callback_functions({})
+        self._handler.set_button_callbacks(None)
 
     def remove_all_handlers(self):
         """
@@ -151,6 +139,30 @@ class ChainBase:
         Set to False if you want to reuse the same keyboard in subsequent messages.
         """
         self.do_remove_inline_keyboard = remove_inline_keyboard
+
+    def set_break_only_on_match(self, break_only_on_match: bool = True):
+        """
+        Sets whether the current chain should only be interrupted if the incoming 
+        message matches another existing handler.
+
+        :param break_only_on_match: If True, random messages that don't trigger any 
+            handler will be ignored, keeping the chain active. If False, any message 
+            will terminate the chain (if no active entry handler: `chain.set_entry...()`).
+        :type break_only_on_match: `bool`
+        """
+        self._handler.break_only_on_match = break_only_on_match
+
+    def set_break_on_commands(self, break_on_commands: bool = True):
+        """
+        Sets whether commands (messages starting with '/') should take priority over 
+        the current entry handler.
+
+        :param break_on_commands: If True, commands will always terminate the chain 
+            and trigger the corresponding command handler. If False, commands will 
+            be passed to the entry handler like regular text.
+        :type break_on_commands: `bool`
+        """
+        self._handler.break_on_commands = break_on_commands
     
     # -------------------------------------------
     # Timeout Logic

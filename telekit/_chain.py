@@ -93,7 +93,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
             - All active input handlers are removed once the timeout is triggered.
         """
         def timeout_handler():
-            self.sender.add_message(message)
+            self.sender.append(message)
             self.remove_all_handlers()
             self.edit()
         

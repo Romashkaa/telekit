@@ -30,7 +30,7 @@ class TextDocumentHandler(telekit.Handler):
         self.chain.disable_timeout_warnings()
         self.chain.edit()
 
-    def handle_text_document(self, message: Message, document: TextDocument):
+    def handle_text_document(self, document: TextDocument):
         self.chain.sender.set_title(Sanitize(f"🔎 File ", repr(document.file_name), " info"))
         self.chain.sender.set_message(
             Quote(
