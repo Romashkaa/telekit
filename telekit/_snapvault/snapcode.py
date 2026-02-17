@@ -1,9 +1,5 @@
-# type: ignore
-
 # MIT License  
 # © 2025 Romashka (Ving Studio)   
-#
-# Documentation: https://t.me/snapcode_io
 #
 # This file contains the official implementation of the **Snapcode** data serialization format,  
 # authored and originally developed by Romashka.  

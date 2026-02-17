@@ -1,7 +1,20 @@
-# -*- encoding:utf-8 -*-
-#
-# Copyright (c) 2025 Ving Studio, Romashka
-# Licensed under the MIT License. See LICENSE file for full terms.
+# 
+# Copyright (C) 2026 Romashka
+# 
+# This file is part of Telekit.
+# 
+# Telekit is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version.
+# 
+# Telekit is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See 
+# the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License 
+# along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 #
 
 import telebot
@@ -9,12 +22,10 @@ import telekit
 
 from . import example_handlers
 
-# telekit.GuideKit("telekit/guidekit/example_guide.txt", ["faq"]).register()
-
 def run_example(token: str):
     print(
 """
-Hey! Welcome to the Telekit family.
+Welcome to the Telekit family!
 
 # Example commands:
 /start - simple counter

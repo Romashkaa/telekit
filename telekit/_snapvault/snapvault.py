@@ -1,6 +1,4 @@
-# type: ignore
-
-# # MIT License  
+# MIT License  
 # © 2025 Romashka (Ving Studio)   
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy  
@@ -16,8 +14,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,  
 # INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-#
-# Documentation: https://t.me/snapvault_io
+# 
 
 import os, time
 
