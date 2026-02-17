@@ -18,6 +18,7 @@
 # 
 
 from typing import Any, Callable
+from enum import Enum
 
 # Third-party packages
 import telebot.types
@@ -32,15 +33,23 @@ __all__ = [
     "WebAppButton", 
     "SuggestButton",
     "CopyTextButton",
+    "CallbackButton",
 
-    "CallbackButton"
+    "ButtonStyle"
 ]
+
+class ButtonStyle(Enum):
+    DANGER  = "danger"
+    SUCCESS = "success"
+    PRIMARY = "primary"
+
+_BUTTON_STYLES_LIST = [e.value for e in ButtonStyle]
 
 class InlineButton:
 
     """
     Base class for: 
-    - `LinkButton` 
+    - `LinkButton`
     - `WebAppButton`
     - `SuggestButton`
     - `CopyTextButton`
@@ -61,6 +70,8 @@ class InlineButton:
     Suggest: type["SuggestButton"]
     CopyText: type["CopyTextButton"]
     Callback: type["CallbackButton"]
+    
+    Styles: type[ButtonStyle] = ButtonStyle
 
     def __init__(self):
         raise NotImplementedError()
@@ -81,6 +92,19 @@ class InlineButton:
         
         return True
     
+    def _normalize_style(self, style: str | ButtonStyle | None) -> str | None:
+        if style is None:
+            return None
+        if isinstance(style, ButtonStyle):
+            return style.value
+        if isinstance(style, str):
+            normalized = style.lower()
+            if normalized in _BUTTON_STYLES_LIST:
+                return normalized
+            raise ValueError(f"Unknown style: {style!r}. Must be one of {_BUTTON_STYLES_LIST}")
+        raise TypeError(f"Style must be str, ButtonStyle, or None, got {type(style)}")
+
+    
 class LinkButton(InlineButton):
     """
     This object represents an inline keyboard button that opens a link.
@@ -88,17 +112,25 @@ class LinkButton(InlineButton):
     :param url: HTTP or tg:// URL to be opened when the button is pressed. Links tg://user?id= can be used to mention a user by their ID without using a username, if this is allowed by their privacy settings.
     :type url: `str`
 
+    :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
+              You can also pass these as string values: "danger", "success", "primary". 
+              If omitted, an app-specific default style is used.
+    :type style: `str`
+
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
     :type kwargs: `Any`
     """
-    def __init__(self, url: str, **kwargs):
+    def __init__(self, url: str, *, style: str | None | ButtonStyle = None, **kwargs):
         self._url = url
+        self._style = self._normalize_style(style)
         self._kwargs = kwargs
 
     def _compile(self, caption: str) -> InlineKeyboardButton:
         return InlineKeyboardButton(
             text=caption,
             url=self._url,
+            style=self._style,
             **self._kwargs
         )
     
@@ -109,17 +141,25 @@ class WebAppButton(InlineButton):
     :param url: An HTTPS URL of a Web App to be opened
     :type url: `str`
 
+    :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
+              You can also pass these as string values: "danger", "success", "primary". 
+              If omitted, an app-specific default style is used.
+    :type style: `str`
+
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
     :type kwargs: `Any`
     """
-    def __init__(self, url: str, **kwargs):
+    def __init__(self, url: str, *, style: str | None | ButtonStyle = None, **kwargs):
         self._url = url
+        self._style = self._normalize_style(style)
         self._kwargs = kwargs
         
     def _compile(self, caption: str) -> InlineKeyboardButton:
         return InlineKeyboardButton(
             text=caption,
             web_app=telebot.types.WebAppInfo(self._url),
+            style=self._style,
             **self._kwargs
         )
     
@@ -130,6 +170,12 @@ class CopyTextButton(InlineButton):
     :param text: The text to be copied to the clipboard; 1-256 characters
     :type text: `str`
 
+    :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
+              You can also pass these as string values: "danger", "success", "primary". 
+              If omitted, an app-specific default style is used.
+    :type style: `str`
+
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
     :type kwargs: `Any`
     """
@@ -137,8 +183,9 @@ class CopyTextButton(InlineButton):
     MAX_SIZE: int | None = 256
     MIN_SIZE: int | None = 1
 
-    def __init__(self, text: str, strict: bool=True, **kwargs):
+    def __init__(self, text: str, *, style: str | None | ButtonStyle = None, strict: bool=True, **kwargs):
         self._text = text
+        self._style = self._normalize_style(style)
         self._kwargs = kwargs
 
         if strict and not self._is_valid_telegram_callback(self._text, encoding=None):
@@ -151,7 +198,9 @@ class CopyTextButton(InlineButton):
     def _compile(self, caption: str) -> InlineKeyboardButton:
         return InlineKeyboardButton(
             text=caption,
-            copy_text=telebot.types.CopyTextButton(self._text)
+            copy_text=telebot.types.CopyTextButton(self._text),
+            style=self._style,
+            **self._kwargs
         )
     
 class SuggestButton(InlineButton):
@@ -161,6 +210,12 @@ class SuggestButton(InlineButton):
     :param suggestion: The suggestion text; 1-64 bytes
     :type suggestion: `str`
 
+    :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
+              You can also pass these as string values: "danger", "success", "primary". 
+              If omitted, an app-specific default style is used.
+    :type style: `str`
+
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
     :type kwargs: `Any`
     """
@@ -168,8 +223,9 @@ class SuggestButton(InlineButton):
     MAX_SIZE: int | None = 64
     MIN_SIZE: int | None = 1
 
-    def __init__(self, suggestion: str, strict: bool=True, **kwargs):
+    def __init__(self, suggestion: str, *, style: str | None | ButtonStyle = None, strict: bool=True, **kwargs):
         self._suggestion = CallbackQueryHandler.suggest(suggestion)
+        self._style = self._normalize_style(style)
         self._kwargs = kwargs
         
         if strict and not self._is_valid_telegram_callback(self._suggestion):
@@ -183,7 +239,9 @@ class SuggestButton(InlineButton):
     def _compile(self, caption: str) -> InlineKeyboardButton:
         return InlineKeyboardButton(
             text=caption,
-            callback_data=self._suggestion
+            callback_data=self._suggestion,
+            style=self._style,
+            **self._kwargs,
         )
     
 class CallbackButton(InlineButton):
@@ -205,11 +263,17 @@ class CallbackButton(InlineButton):
     :param answer_as_alert: If `True`, the answer text will be shown as an alert. If `False`, it will be shown as a notification at the top of the chat.
     :type answer_as_alert: `bool`
 
+    :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
+              You can also pass these as string values: "danger", "success", "primary". 
+              If omitted, an app-specific default style is used.
+    :type style: `str`
+
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
     :type kwargs: `Any`
     """
 
-    class CallbackInvoker:
+    class _CallbackInvoker:
         def __init__(
                 self, 
                 chain_callback: Callable[[], None],
@@ -221,6 +285,8 @@ class CallbackButton(InlineButton):
                 answer_text: str | None = None,
                 answer_as_alert: bool = True,
 
+                style: str | None | ButtonStyle = None,
+
                 kwargs: dict[str, Any] = {}
             ):
             self._callback = callback
@@ -231,7 +297,9 @@ class CallbackButton(InlineButton):
             self._answer_text = answer_text
             self._answer_as_alert = answer_as_alert
 
-            self._kwargs = kwargs
+            self._style = style
+
+            self._kwargs = {"style": style} | kwargs
             
             self._chain_callback: Callable[[], None] = chain_callback
 
@@ -266,6 +334,8 @@ class CallbackButton(InlineButton):
             answer_text: str | None = None,
             answer_as_alert: bool = True,
 
+            style: str | None | ButtonStyle = None,
+
             **kwargs
         ):
         self._callback = callback
@@ -276,22 +346,25 @@ class CallbackButton(InlineButton):
         self._answer_text = answer_text
         self._answer_as_alert = answer_as_alert
 
+        self._style = self._normalize_style(style)
+
         self._kwargs = kwargs
         
-    def build_invoker(self, chain_callback: Callable[[], None]) -> CallbackInvoker:
-        return self.CallbackInvoker(
+    def build_invoker(self, chain_callback: Callable[[], None]) -> _CallbackInvoker:
+        return self._CallbackInvoker(
             chain_callback=chain_callback,
             callback=self._callback,
             pass_args=self._pass_args,
             pass_kwargs=self._pass_kwargs,
             answer_text=self._answer_text,
             answer_as_alert=self._answer_as_alert,
+            style=self._style,
             kwargs=self._kwargs
         )
     
     @classmethod
-    def create_invoker(cls, callback: Callable[[], None], chain_callback: Callable[[], None]) -> CallbackInvoker:
-        return cls.CallbackInvoker(
+    def create_invoker(cls, callback: Callable[[], None], chain_callback: Callable[[], None]) -> _CallbackInvoker:
+        return cls._CallbackInvoker(
             chain_callback=chain_callback,
             callback=callback,
         )

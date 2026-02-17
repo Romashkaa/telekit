@@ -1,4 +1,5 @@
 import telekit
+from telekit.types import ButtonStyle, CallbackButton
 
 class UserData:
     names: telekit.Vault = telekit.Vault(
@@ -79,8 +80,8 @@ class EntryHandler(telekit.Handler):
 
         self.chain.set_inline_keyboard(
             {
-                "« Change": self.entry_name,
-                "Yes »": self.entry_age,
+                "« Change": CallbackButton(self.entry_name, style=ButtonStyle.DANGER),
+                "Yes »": CallbackButton(self.entry_age, style=ButtonStyle.SUCCESS)
             }, row_width=2
         )
 
@@ -115,8 +116,8 @@ class EntryHandler(telekit.Handler):
 
         self.chain.set_inline_keyboard(
             {
-                "« Change": self.entry_age,
-                "Ok »": self.show_result,
+                "« Change": CallbackButton(self.entry_age, style=ButtonStyle.DANGER),
+                "Ok »": CallbackButton(self.show_result, style=ButtonStyle.SUCCESS),
             }, row_width=2
         )
         self.chain.edit()
@@ -133,7 +134,7 @@ class EntryHandler(telekit.Handler):
         self.chain.sender.set_message(f"So your name is {name} and you're {age}? Fancy!")
 
         self.chain.set_inline_keyboard({
-            "« No, change": self.entry_name,
+            "« No, change": CallbackButton(self.entry_name, style=ButtonStyle.DANGER),
         }, row_width=2)
 
         self.chain.edit()

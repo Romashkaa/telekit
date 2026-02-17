@@ -1,4 +1,5 @@
 import telekit
+from telekit.types import ButtonStyle, CallbackButton
 
 class CounterHandler(telekit.Handler):
 
@@ -25,12 +26,18 @@ class CounterHandler(telekit.Handler):
 
         self.click_count = 0
 
-        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
-        def _(value: int) -> None:
-            self.click_count += value
-            self.chain.sender.set_message(f"You clicked {self.click_count} times")
-            self.chain.edit()
+        self.chain.set_inline_keyboard(
+            {
+                "⊖": CallbackButton(self.update_count, [-1], style=ButtonStyle.DANGER),
+                "⊕": CallbackButton(self.update_count, [1], style=ButtonStyle.SUCCESS),
+            }, row_width=2
+        )
             
         self.chain.set_remove_inline_keyboard(False)
         self.chain.disable_timeout_warnings()
+        self.chain.edit()
+
+    def update_count(self, value: int):
+        self.click_count += value
+        self.chain.sender.set_message(f"You clicked {self.click_count} times")
         self.chain.edit()

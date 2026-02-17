@@ -22,7 +22,11 @@ from enum import Enum
 from ._chain import TextDocument
 from ._user import User
 from ._inline_buttons import (
-    InlineButton, LinkButton, WebAppButton, CopyTextButton, SuggestButton
+    InlineButton, 
+    LinkButton, WebAppButton, 
+    CopyTextButton, SuggestButton, 
+    CallbackButton, 
+    ButtonStyle
 )
 
 from .styles import Styles
@@ -46,6 +50,9 @@ __all__ = [
     "WebAppButton", 
     "CopyTextButton",
     "SuggestButton",
+    "CallbackButton",
+
+    "ButtonStyle",
 
     # Namespaces
     "Styles",
