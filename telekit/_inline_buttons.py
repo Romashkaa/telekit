@@ -237,7 +237,6 @@ class CallbackButton(InlineButton):
 
         def _invoke_chain_callback(self):
             self.__dict__["_chain_callback"]()
-            print("_chain_callback called")
 
         def _invoke_callback(self):
             args = self._pass_args or ()
