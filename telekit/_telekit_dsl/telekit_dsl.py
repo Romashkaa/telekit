@@ -17,14 +17,16 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
+from typing import Iterable
+
 from . import mixin
 
 class TelekitDSL:
     """
-    Telekit DSL class for integrating Telekit DSL scripts (like FAQ pages) into your bot.
-    
-    This class provides convenient methods to load scripts either from a file or from a string,
-    and automatically binds them to bot commands.
+    Telekit DSL integration class for bot commands.
+
+    Provides methods to load DSL scripts from files or strings and bind them automatically
+    to bot commands.
 
     [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
     """
@@ -33,20 +35,20 @@ class TelekitDSL:
     MAGIC_SCENES = mixin.MAGIC_SCENES
 
     @classmethod
-    def from_file(cls, path: str, on_commands: list[str]=["help"]):
+    def from_file(cls, path: str, on_commands: Iterable[str]=("start",)):
         """
         Creates a handler class that loads a Telekit DSL script from a file.
 
         Args:
             path (str): Path to the DSL script file.
-            on_commands (list[str]): List of bot commands that will trigger this DSL.
+            on_commands (Iterable[str]): Commands that will trigger this DSL.
 
         [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
         """
         @classmethod
         def init_handler(cls) -> None:
             cls.analyze_file(path)
-            cls.on.message(on_commands).invoke(cls.start_script)
+            cls.on.command(*on_commands).invoke(cls.start_script)
 
         class_name = f"_DLSFromPath_{id(path)}"
         class_dict = {
@@ -57,20 +59,20 @@ class TelekitDSL:
 
 
     @classmethod
-    def from_string(cls, script: str, on_commands: list[str]=["help"]):
+    def from_string(cls, script: str, on_commands: Iterable[str]=("start",)):
         """
         Creates a default handler class that loads a Telekit DSL script from a source string.
 
         Args:
-            source (str): The DSL script as a string.
-            on_commands (list[str]): List of bot commands that will trigger this DSL.
+            script (str): The DSL script as a string.
+            on_commands (Iterable[str]): Commands that will trigger this DSL.
 
         [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
         """
         @classmethod
         def init_handler(cls) -> None:
             cls.analyze_string(script)
-            cls.on.message(on_commands).invoke(cls.start_script)
+            cls.on.command(*on_commands).invoke(cls.start_script)
 
         class_name = f"_DSLFromString_{id(script)}"
         class_dict = {
@@ -78,5 +80,3 @@ class TelekitDSL:
         }
 
         return type(class_name, (mixin.TelekitDSLMixin,), class_dict)
-
-

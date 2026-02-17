@@ -19,6 +19,7 @@
 
 from typing import Any
 from enum import Enum
+import textwrap
 import io
 
 from telebot import TeleBot
@@ -993,6 +994,34 @@ class BaseSender:
                 return False
 
         return AutoSendContext(self)
+    
+    # License
+    
+    def set_license_text(self, year: str, author: str, project: str):
+        """
+        Sets the license text for the message using the GNU GPLv3 template.
+
+        Args:
+            year (`str`): Copyright year.
+            author (`str`): Author name.
+            project (`str`): Project name.
+        """
+        self.set_text(textwrap.dedent(f"""
+            {project} — Copyright (C) {year} {author}
+
+            {project} is free software: you can redistribute it and/or modify
+            it under the terms of the GNU General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.
+
+            {project} is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+            GNU General Public License for more details.
+
+            You should have received a copy of the GNU General Public License
+            along with {project}. If not, see <https://www.gnu.org/licenses/>.
+        """))
         
 # ---------------------------------------------------------------------------------
 # Alert Sender
@@ -1274,3 +1303,30 @@ class AlertSender(BaseSender):
         """
         self._compile_text()
         return super().send()
+    
+    # License
+    
+    def set_license_text(self, year: str, author: str, project: str):
+        """
+        Sets the license text for the message using the GNU GPLv3 template.
+
+        Args:
+            year (`str`): Copyright year.
+            author (`str`): Author name.
+            project (`str`): Project name.
+        """
+        self.set_title(f"{project} — Copyright (C) {year} {author}")
+        self.set_message(textwrap.dedent(f"""
+            {project} is free software: you can redistribute it and/or modify
+            it under the terms of the GNU General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.
+
+            {project} is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+            GNU General Public License for more details.
+
+            You should have received a copy of the GNU General Public License
+            along with {project}. If not, see <https://www.gnu.org/licenses/>.
+        """))
