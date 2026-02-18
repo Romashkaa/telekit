@@ -18,18 +18,16 @@
 # 
 
 from html import escape
+import telebot.formatting
 
 def sanitize_text(text: str, mode: str | None="html"):
     if not mode:
         return text
 
     if mode.lower() == "html":
-        return escape(text)
+        return telebot.formatting.escape_html(text)
     elif mode.lower() == "markdown":
-        escape_chars = r"_*[]()~`>#+-=|{}.!"
-        for c in escape_chars:
-            text = text.replace(c, f"\\{c}")
-        return text
+        return telebot.formatting.escape_markdown(text)
     else:
         raise ValueError("Unknown mode, should be 'html' or 'markdown'")
 

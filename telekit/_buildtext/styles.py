@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License 
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
-
+import telebot.formatting
 from urllib.parse import quote
 
 from .formatter import StyleFormatter, Composite, sanitize_text
@@ -58,12 +58,33 @@ class Spoiler(StyleFormatter):
 
 
 class Quote(StyleFormatter):
-    markdown_symbol = ('', '\n')
-    html_tag = ('<blockquote>', '</blockquote>\n')
+    markdown_symbol = ''
+    html_tag = ''
+
+    def __init__(self, *content, expandable: bool=False, parse_mode: str | None = "html"):
+        self.content = list(content)
+        self.expandable = expandable
+        self.set_parse_mode(parse_mode)
+
+    def render_markdown(self):
+        content = ''.join(
+            c.render_markdown() if isinstance(c, StyleFormatter) else sanitize_text(str(c), "markdown")
+            for c in self.content
+        )
+        return telebot.formatting.mcite(content, expandable=self.expandable)
+
+    def render_html(self):
+        content = ''.join(
+            c.render_html() if isinstance(c, StyleFormatter) else sanitize_text(str(c), "html")
+            for c in self.content
+        )
+        return telebot.formatting.hcite(content, expandable=self.expandable)
+
 
 class Sanitize(StyleFormatter):
     markdown_symbol = ('', '')
     html_tag = ('', '')
+
 
 class NoSanitize(StyleFormatter):
     markdown_symbol = ('', '')
@@ -81,6 +102,7 @@ class NoSanitize(StyleFormatter):
             for c in self.content
         )
     
+
 class Link(StyleFormatter):
     markdown_symbol = ''
     html_tag = ''
@@ -111,6 +133,7 @@ class Link(StyleFormatter):
         )
         return f"{label} ({self.url})"
     
+
 class UserLink(Link):
     def __init__(self, *content, username: str, text: str | None=None, parse_mode: str | None = "html"):
         self.content = list(content)
@@ -124,6 +147,7 @@ class UserLink(Link):
             encoded_text = quote(text, safe="")
             self.url = f"https://t.me/{username}?text={encoded_text}"
 
+
 class BotLink(Link):
     def __init__(self, *content, username: str, start: str | None=None, parse_mode: str | None = "html"):
         self.content = list(content)
@@ -136,6 +160,7 @@ class BotLink(Link):
         else:
             encoded_start = quote(start, safe="")
             self.url = f"https://t.me/{username}?start={encoded_start}"
+
 
 class Styles:
 
