@@ -23,7 +23,7 @@ from typing import NoReturn, Callable, Any
 import jinja2
 
 import telekit
-from telekit.styles import Sanitize
+from telekit.styles import Escape
 from . import parser
 
 from .._logger import logger
@@ -192,9 +192,9 @@ class ScriptData:
 # Mixin
 # -----------------------------------------------------------------
 
-class TelekitDSLMixin(telekit.Handler):
+class DSLHandler(telekit.Handler):
     """
-    TelekitDSLMixin — Mixin for creating interactive pages, such as FAQs. 
+    DSLHandler — Mixin for creating interactive pages, such as FAQs. 
     
     It allows you to describe the message layout, add images, and buttons for navigation between pages in a convenient, structured format that your bot can easily process.
 
@@ -204,10 +204,10 @@ class TelekitDSLMixin(telekit.Handler):
     ```
         import telekit
 
-        class MyFAQHandler(telekit.TelekitDSL.Mixin):
+        class MyFAQHandler(telekit.DSLHandler):
             @classmethod
             def init_handler(cls) -> None:
-                cls.analyze_file("script.scr")
+                cls.analyze_file("faq.scr")
                 cls.on.command("faq").invoke(cls.start_script)
     ```
     """
@@ -257,21 +257,6 @@ class TelekitDSLMixin(telekit.Handler):
         """
         cls.executable_model = parser.analyze(script)
         cls._prepare_script(cls.executable_model)
-
-    @classmethod # DEPRECATED
-    def analyze_source(cls, script: str) -> None | NoReturn:
-        """
-        .. deprecated:: 0.9.0
-        Use :meth:`analyze_string` instead.
-        
-        Analyze an script from string and store parsed data in the class.
-
-        Raises an error if there are syntax errors or analyzer warnings.
-        
-        :param script: Telekit DSL script
-        :type script: str
-        """
-        cls.analyze_string(script)
 
     @classmethod
     def display_script_data(cls, path: str | None=None):
@@ -754,7 +739,7 @@ class TelekitDSLMixin(telekit.Handler):
             value = self._get_variable(var_name)
 
             if value:
-                return str(Sanitize(value, parse_mode=parse_mode))
+                return str(Escape(value, parse_mode=parse_mode))
             elif default:
                 return str(default)
             else:
@@ -811,13 +796,13 @@ class JinjaFilters:
     def escape_md(value):
         if value is None:
             return ""
-        return str(Sanitize(str(value), parse_mode="markdown"))
+        return str(Escape(str(value), parse_mode="markdown"))
 
     @staticmethod
     def escape_html(value):
         if value is None:
             return ""
-        return str(Sanitize(str(value), parse_mode="html"))
+        return str(Escape(str(value), parse_mode="html"))
 
 # ----------------------------------------------------
 # Script Data Structure (JSON)

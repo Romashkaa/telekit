@@ -17,7 +17,7 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from typing import Any
+from typing import Any, Literal, Union
 from enum import Enum
 import textwrap
 import io
@@ -27,14 +27,14 @@ from telebot.types import (
     Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
 
-from telekit.styles import NoSanitize, StyleFormatter, Composite, Styles
+from telekit.styles import StyleFormatter, Raw, Group, Bold, Italic, debug_style
+from telekit.types import ParseMode, Effect, ChatAction
 from ._logger import logger
 library = logger.library
 
 __all__ = [
     "TemporaryMsgStore",
-    "BaseSender", "AlertSender",
-    "ParseMode"
+    "BaseSender", "Sender"
 ]
 
 # ---------------------------------------------------------------------------------
@@ -100,6 +100,8 @@ class BaseSender:
         """
         cls.bot = bot
 
+    parse_mode: Literal["html", "markdown"] | None
+
     def __init__(
             self,
             chat_id: int,
@@ -110,7 +112,7 @@ class BaseSender:
             is_temporary: bool = False,
             delele_temporaries: bool = True,
             
-            parse_mode: str | None = None,
+            parse_mode: Literal["html", "markdown"] | ParseMode | None = "html",
             reply_to_message_id: int | None = None,
 
             edit_message_id: int | None = None,
@@ -147,7 +149,7 @@ class BaseSender:
         self.is_temporary = is_temporary
         self.delele_temporaries = delele_temporaries
 
-        self.parse_mode = parse_mode
+        self.set_parse_mode(parse_mode)
         self.reply_to_message_id = reply_to_message_id
 
         self.edit_message_id = edit_message_id
@@ -164,61 +166,7 @@ class BaseSender:
         self.video_note = video_note
 
         self.venue = []
-
-        self.styles = Styles()
-
         self.media = []
-
-        if self.parse_mode:
-            self.styles.set_parse_mode(self.parse_mode)
-
-    # --------------------------------------------------------
-    # Enums for message effects and chat actions
-    # --------------------------------------------------------
-
-    class Effect(Enum):
-        """
-        Enum representing message effects:
-        
-        - FIRE - 🔥 
-        - PARTY - 🎉 
-        - HEART - ❤️ 
-        - THUMBS_UP - 👍 
-        - THUMBS_DOWN - 👎 
-        - POOP - 💩 
-
-        Use the `set_effect` method to use it
-        """
-        FIRE = "5104841245755180586"        # 🔥
-        PARTY = "5046509860389126442"       # 🎉
-        HEART = "5159385139981059251"       # ❤️
-        THUMBS_UP = "5107584321108051014"   # 👍
-        THUMBS_DOWN = "5104858069142078462" # 👎
-        POOP = "5046589136895476101"        # 💩
-
-        def __str__(self) -> str:
-            return self.value
-    
-    class ChatAction(Enum):
-        """
-        Represents chat actions (status indicators) that a bot can send,
-        e.g., 'typing', 'upload_document', 'record_voice', etc.
-        """
-        TYPING = "typing"
-        UPLOAD_PHOTO = "upload_photo"
-        UPLOAD_DOCUMENT = "upload_document"
-        UPLOAD_AUDIO = "upload_audio"
-        UPLOAD_VIDEO = "upload_video"
-        RECORD_VIDEO = "record_video"
-        RECORD_VOICE = "record_voice"
-        UPLOAD_VOICE = "upload_voice"
-        CHOOSE_STICKER = "choose_sticker"
-        FIND_LOCATION = "find_location"
-        RECORD_VIDEO_NOTE = "record_video_note"
-        UPLOAD_VIDEO_NOTE = "upload_video_note"
-
-        def __str__(self) -> str:
-            return self.value
 
     # --------------------------------------------------------
     # Setter methods for configuring media attachments
@@ -548,20 +496,24 @@ class BaseSender:
         """
         self.delele_temporaries = del_temps
 
-    def set_parse_mode(self, parse_mode: str | None):
+    def set_parse_mode(self, parse_mode: Literal["html", "markdown"] | ParseMode | None):
         """
         Sets the parse mode to the message
         
         :param parse_mode: `html`, `markdown` or `None`.  
         :type parse_mode: str | None
         """
-        if not parse_mode:
-            self.parse_mode = None
-            return
-        
-        if parse_mode.lower() in ("html", "markdown"):
-            self.parse_mode = parse_mode.lower()
-            self.styles.set_parse_mode(self.parse_mode)
+        match parse_mode:
+            case ParseMode():
+                self.parse_mode = parse_mode.value
+            case "html":
+                self.parse_mode = "html"
+            case "markdown":
+                self.parse_mode = "markdown"
+            case None:
+                self.parse_mode = None
+            case _:
+                raise ValueError("Invalid Parse Mode")
 
     def set_reply_to_message_id(self, reply_to_message_id: int | None):
         """
@@ -1022,26 +974,27 @@ class BaseSender:
             You should have received a copy of the GNU General Public License
             along with {project}. If not, see <https://www.gnu.org/licenses/>.
         """))
+
+    def debug_text(self, desc: str | None="BaseSender"):
+        code: str = self.text
+        parse_mode: str | None = self.parse_mode
+
+        debug_style(
+            Raw(code), 
+            parse_mode=parse_mode, 
+            desc=desc
+        )
         
 # ---------------------------------------------------------------------------------
-# Alert Sender
+# Sender
 # ---------------------------------------------------------------------------------
-    
-from enum import Enum, unique
 
-@unique
-class ParseMode(Enum):
-    HTML = "html"
-    MARKDOWN = "markdown"
-    NONE = None
+class Sender(BaseSender):
 
-class AlertSender(BaseSender):
-
-    _title: str | StyleFormatter
-    _message: str | StyleFormatter | tuple[str | StyleFormatter, ...]
-    _text: str | StyleFormatter
-    _parse_mode: ParseMode | None
-    _additional: tuple[StyleFormatter | str, ...]
+    _text: Group | None
+    _title: Bold | None
+    _message: Group | None
+    _additional: Group | None
 
     _use_italics: bool
     _use_newline: bool
@@ -1051,14 +1004,14 @@ class AlertSender(BaseSender):
     # --------------------------------------------------------
 
     def _compile_text(self) -> None:
+        if not hasattr(self, "_text"):
+            self._text = None
+
         if not hasattr(self, "_title"):
-            self._title = ""
+            self._title = None
 
         if not hasattr(self, "_message"):
-            self._message = ""
-
-        if not hasattr(self, "_parse_mode"):
-            self._parse_mode = None
+            self._message = None
 
         if not hasattr(self, "_use_newline"):
             self._use_newline = True
@@ -1066,57 +1019,42 @@ class AlertSender(BaseSender):
         if not hasattr(self, "_use_italics"):
             self._use_italics = False
 
-        if not hasattr(self, "_text"):
-            self._text = ""
-
         if not hasattr(self, "_additional"):
-            self._additional = tuple()
+            self._additional = None
 
         if self._text:
             self._compile_plain()
         elif self._title or self._message:
             self._compile_alert()
+        elif self._additional:
+            self._compile_additional()
 
     def _compile_plain(self):
-        if self._parse_mode:
-            super().set_parse_mode(self._parse_mode.value)
-
-        if isinstance(self._text, StyleFormatter):
-            self._text.set_parse_mode(self.parse_mode)
-
+        if self._text is None:
+            raise ValueError("Sender._text is None")
+        
+        text: Group = self._text
+        
         if self._additional:
-            self._text = NoSanitize(self._text, *self._additional)
+            text = text + self._additional
 
-        super().set_text(str(self._text))
+        super().set_text(text.render(self.parse_mode))
 
     def _compile_alert(self):
-        if self._parse_mode:
-            super().set_parse_mode(self._parse_mode.value)
-        else:
-            super().set_parse_mode("html")
+        title: Bold | None = self._title
 
-        title = self.styles.bold(NoSanitize(self._title)) if self._title else None
-
-        if self._message:
-            if isinstance(self._message, (str, StyleFormatter)):
-                parts = (self._message, )
+        if self._additional:
+            # message: Group
+            if self._message:
+                message: StyleFormatter | None = self._message + self._additional
             else:
-                parts = self._message
-
-            message = NoSanitize(*parts)
-
-            if self._additional:
-                message = NoSanitize(message, *self._additional)
-
-            if self._use_italics:
-                message = self.styles.italic(message)
-        elif self._additional:
-            if self._use_italics:
-                message = self.styles.italic(NoSanitize(*self._additional))
-            else:
-                message = NoSanitize(*self._additional)
+                message: StyleFormatter | None = self._additional
         else:
-            message = None
+            # message: Group | None
+            message: StyleFormatter | None = self._message
+
+        if self._use_italics and message:
+            message = Italic(message)
 
         text_parts = []
 
@@ -1129,49 +1067,46 @@ class AlertSender(BaseSender):
         if message:
             text_parts.append(message)
 
-        text = Composite(*text_parts)
-        text.set_parse_mode(self.parse_mode)
+        text = Group(*text_parts)
 
-        super().set_text(str(text))
+        super().set_text(text.render(self.parse_mode))
 
-    def _interleave(self, message: tuple, sep):
-        if not sep:
-            return message
-        if not message:
-            return tuple()
-        if len(message) == 1:
-            return message
-        
-        result = [item for pair in zip(message, [sep]*(len(message)-1)) for item in pair] + [message[-1]]
-        return tuple(result)
+    def _compile_additional(self):
+        if self._additional is None:
+            raise ValueError("Sender._additional is None")
+
+        super().set_text(self._additional.render(self.parse_mode))
 
     # --------------------------------------------------------
     # Setter methods for configuring alert-styled message properties
     # --------------------------------------------------------
 
-    def set_text(self, *text: str | StyleFormatter, sep: str | StyleFormatter=""): # pyright: ignore[reportIncompatibleMethodOverride]
+    def _reset_plain(self):
+        self._text = None
+        self._additional = None
+
+    def _reset_alert(self):
+        self._title = None
+        self._message = None
+        self._additional = None
+
+    def set_text(self, *text: str | StyleFormatter, escape: bool = True, sep: str | StyleFormatter = ""): # pyright: ignore[reportIncompatibleMethodOverride]
         """
         Set a plain text message, replacing any previously set title or message.
 
         Args:
-            *text: One or more text parts or StyleFormatter objects to set. Not sanitized. HTML and Markdown tags are allowed
-            sep (str | StyleFormatter, optional): Separator used between text parts. Defaults to "".
+            *text: One or more text parts or StyleFormatter objects to set.
+            sep (str): Optional. Separator used between text parts. Defaults to "".
 
-        Returns:
-            None
-
-        Example:
-        ```
-        s.set_text("Hello", Bold("World"), sep=" ")
-        # Result: "Hello <b>World</b>"
-        ```
+        >>> s.set_text("Hello", Bold("World"), sep=" ")
+        "Hello <b>World</b>"
         """
-        self._text = NoSanitize(*self._interleave(text, sep))
-        self._title = ""
-        self._message = ""
-        self._additional = tuple()
+        self._reset_alert()
 
-    def set_title(self, title: str | StyleFormatter):
+        if text:
+            self._text = Group(*text, escape=escape, sep=sep)
+
+    def set_title(self, *title: str | StyleFormatter, escape: bool = True, sep: str | StyleFormatter = ""):
         """
         Set the title of the alert message. Clears plain text content.
 
@@ -1181,11 +1116,12 @@ class AlertSender(BaseSender):
         Returns:
             None
         """
-        self._text = ""
-        self._title = title
-        self._additional = tuple()
+        self._reset_plain()
 
-    def set_message(self, *message: str | StyleFormatter, sep: str | StyleFormatter=""):
+        if title:
+            self._title = Bold(*title, escape=escape, sep=sep)
+
+    def set_message(self, *message: str | StyleFormatter, escape: bool = True, sep: str | StyleFormatter = ""):
         """
         Set the main message body for the alert.
 
@@ -1196,11 +1132,12 @@ class AlertSender(BaseSender):
         Returns:
             None
         """
-        self._text = ""
-        self._message = self._interleave(message, sep)
-        self._additional = tuple()
+        self._reset_plain()
 
-    def add_message(self, *message: str | StyleFormatter, sep: str | StyleFormatter=""):
+        if message:
+            self._message = Group(*message, escape=escape, sep=sep)
+
+    def append(self, *text: str | StyleFormatter, sep: str | StyleFormatter =""):
         """
         Appends text to the end of the current message.
 
@@ -1215,44 +1152,21 @@ class AlertSender(BaseSender):
         Example:
         ```
             s.set_text("Hel")
-            s.append("lo") # add_message == append
+            s.append("lo")
 
             # Result:
             # "Hello"
         ```
         """
+        add = Group(*text, sep=sep)
+
         if hasattr(self, "_additional"):
-            previous = self._additional
-        else:
-            previous = None
-        
-        if not isinstance(previous, tuple):
-            previous = tuple()
-
-        self._additional = previous + self._interleave(message, sep)
-
-    append = add_message
-
-    def set_parse_mode(self, parse_mode: str | None=None):
-        """
-        Set the parse mode for message rendering.
-
-        Args:
-            parse_mode (str | None): Parse mode as 'html', 'markdown', or None.
-
-        Raises:
-            ValueError: If parse_mode is not recognized.
-
-        Returns:
-            None
-        """
-        try:
-            if parse_mode:
-                self._parse_mode = ParseMode(parse_mode.lower())
+            if self._additional is None:
+                self._additional = add
             else:
-                self._parse_mode = ParseMode(None)
-        except ValueError:
-            raise ValueError(f"Unknown parse_mode: {parse_mode}")
+                self._additional += add
+        else:
+            self._additional = add
 
     def set_use_italics(self, use_italics: bool=True):
         """
@@ -1330,3 +1244,7 @@ class AlertSender(BaseSender):
             You should have received a copy of the GNU General Public License
             along with {project}. If not, see <https://www.gnu.org/licenses/>.
         """))
+
+    def debug_text(self, desc: str | None="Sender"):
+        self._compile_text()
+        super().debug_text(desc)

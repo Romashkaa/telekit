@@ -17,111 +17,135 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from html import escape
+from typing import Any, Literal, Union
+
 import telebot.formatting
 
-def sanitize_text(text: str, mode: str | None="html"):
-    if not mode:
-        return text
+# def escape_text(text: Any, parse_mode: Literal["html", "markdown"] | None = "html"):
+#     text = str(text)
 
-    if mode.lower() == "html":
-        return telebot.formatting.escape_html(text)
-    elif mode.lower() == "markdown":
-        return telebot.formatting.escape_markdown(text)
-    else:
-        raise ValueError("Unknown mode, should be 'html' or 'markdown'")
+#     match parse_mode:
+#         case "html":
+#             return telebot.formatting.escape_html(text)
+#         case "markdown":
+#             return telebot.formatting.escape_markdown(text)
+#         case _:
+#             return text
 
 class StyleFormatter:
-    markdown_symbol: str | tuple[str, str] = ''
-    html_tag: str | tuple[str, str] = ''
 
-    def __init__(self, *content, parse_mode: str | None = "html"):
-        self.content = list(content)
-        self.set_parse_mode(parse_mode)
+    def __init__(self, *content, escape: bool = True, sep: Union["StyleFormatter", str]=""):
+        self._content = content
+        self._escape_strings = escape
+        self._separator = sep
 
     def __add__(self, other):
         if isinstance(other, (str, StyleFormatter)):
-            return Composite(self, other)
+            return Group(self, other)
         raise TypeError(f"Cannot add {type(other)} to Style")
 
-    def render_markdown(self):
-        start, end = (
-            self.markdown_symbol
-            if isinstance(self.markdown_symbol, tuple)
-            else (self.markdown_symbol, self.markdown_symbol)
-        )
-
-        body = ''.join(
-            c.render_markdown() if isinstance(c, StyleFormatter) else sanitize_text(str(c), "markdown")
-            for c in self.content
-        )
-        return f"{start}{body}{end}"
-
-    def render_html(self):
-        start, end = (
-            self.html_tag
-            if isinstance(self.html_tag, tuple)
-            else (f"<{self.html_tag}>", f"</{self.html_tag}>")
-        )
-
-        body = ''.join(
-            c.render_html() if isinstance(c, StyleFormatter) else sanitize_text(str(c), "html")
-            for c in self.content
-        )
-        return f"{start}{body}{end}"
-    
-    def render_none(self):
-        body = ''.join(
-            c.render_none() if isinstance(c, StyleFormatter) else str(c)
-            for c in self.content
-        )
-        return body
-    
-    def __str__(self) -> str:
-        if self.parse_mode is None:
-            return self.render_none()
-        if self.parse_mode.lower() == "html":
-            return self.render_html()
+    @property
+    def markdown(self) -> str:
         return self.render_markdown()
 
     @property
-    def markdown(self):
-        return self.render_markdown()
-
-    @property
-    def html(self):
+    def html(self) -> str:
         return self.render_html()
     
     @property
-    def none(self):
+    def none(self) -> str:
         return self.render_none()
     
-    def set_parse_mode(self, parse_mode: str | None="html"):
-        if parse_mode is None:
-            self.parse_mode = None
-        else:
-            self.parse_mode = parse_mode.lower()
+    def render_markdown(self) -> str:
+        return self._render_content("markdown")
 
+    def render_html(self) -> str:
+        return self._render_content("html")
+    
+    def render_none(self) -> str:
+        return self._render_content(None)
+    
+    def render(self, parse_mode: Literal["html", "markdown"] | None) -> str:
+        match parse_mode:
+            case "html":
+                return self.render_html()
+            case "markdown":
+                return self.render_markdown()
+            case _:
+                return self.render_none()
+    
+    def _render_content(self, parse_mode: Literal["html", "markdown"] | None) -> str:
+        sep: str = self._render_item(self._separator, parse_mode)
 
-class Composite(StyleFormatter):
-    def __init__(self, *parts):
-        super().__init__(parts)
-        self.parts = parts
-
-    def render_markdown(self):
-        return ''.join(
-            p.render_markdown() if isinstance(p, StyleFormatter) else sanitize_text(str(p), "markdown")
-            for p in self.parts
-        )
-
-    def render_html(self):
-        return ''.join(
-            p.render_html() if isinstance(p, StyleFormatter) else sanitize_text(str(p), "html")
-            for p in self.parts
+        return sep.join(
+            self._render_item(item, parse_mode) for item in self._content
         )
     
-    def render_none(self):
-        return ''.join(
-            p.render_none() if isinstance(p, StyleFormatter) else str(p)
-            for p in self.parts
-        )
+    def _render_item(self, item: Union[str, "StyleFormatter"], parse_mode: Literal["html", "markdown"] | None) -> str:
+        if isinstance(item, StyleFormatter):
+            return item.render(parse_mode)
+        else:
+            return self._maybe_escape(item, parse_mode)
+    
+    def _maybe_escape(self, item: Any, parse_mode: Literal["html", "markdown"] | None) -> str:
+        if self._escape_strings:
+            return self._escape(item, parse_mode)
+        else:
+            return str(item)
+        
+    def _escape(self, text: Any, parse_mode: Literal["html", "markdown"] | None) -> str:
+        text = str(text)
+
+        match parse_mode:
+            case "html":
+                return telebot.formatting.escape_html(text)
+            case "markdown":
+                return telebot.formatting.escape_markdown(text)
+            case _:
+                return text
+            
+class StyleFormatter2(StyleFormatter):
+    def render_markdown(self) -> str:
+        content: str = self._render_content("markdown")
+        return self._render_markdown(content)
+
+    def render_html(self) -> str:
+        content: str = self._render_content("html")
+        return self._render_html(content)
+    
+    def render_none(self) -> str:
+        content: str = self._render_content(None)
+        return self._render_none(content)
+    
+    # redefine
+
+    def _render_markdown(self, content: str) -> str:
+        return content
+
+    def _render_html(self, content: str) -> str:
+        return content
+    
+    def _render_none(self, content: str) -> str:
+        return content
+    
+class StyleFormatter3(StyleFormatter):
+    def render_markdown(self) -> str:
+        content: str = self._render_content("markdown")
+        return self._render_any(content)
+
+    def render_html(self) -> str:
+        content: str = self._render_content("html")
+        return self._render_any(content)
+    
+    def render_none(self) -> str:
+        content: str = self._render_content(None)
+        return self._render_any(content)
+    
+    # redefine
+
+    def _render_any(self, content: str) -> str:
+        return content
+
+class Group(StyleFormatter):
+    def __init__(self, *content, escape: bool = True, sep: Union["StyleFormatter", str] = ""):
+        super().__init__(*content, escape=escape, sep=sep)

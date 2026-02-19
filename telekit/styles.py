@@ -19,14 +19,12 @@
 
 from ._buildtext.styles import *
 
-Group = Composite
-
 __all__ = [
-    "Composite", "Group",
+    "Group",
     "Styles",
 
-    "Sanitize",
-    "NoSanitize",
+    "Escape",
+    "Raw",
 
     "Bold",
     "Italic",
@@ -42,12 +40,15 @@ __all__ = [
     "Quote",
     "Python",
 
-    "label_cheatsheet"
+    "EncodeHTML",
+
+    "label_cheatsheet",
+    "debug_style"
 ]
 
 def label_cheatsheet():
     """
-    Hi! You can use any of these emojis in button labels:
+    You can use any of these emojis in button labels:
 
     ### Navigation:
         `« Back`

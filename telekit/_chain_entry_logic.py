@@ -25,21 +25,14 @@ from pathlib import Path
 
 # Third-party packages
 import charset_normalizer
+import telebot.types
 from telebot.types import Message
 from ._chain_base import ChainBase
 
 if typing.TYPE_CHECKING:
     from ._chain import Chain # only for type hints
 
-from dataclasses import dataclass
-
-@dataclass
-class TextDocument:
-    message: telebot.types.Message
-    document: telebot.types.Document
-    file_name: str
-    encoding: str
-    text: str
+from . types import TextDocument
 
 class ChainEntryLogic(ChainBase):
 

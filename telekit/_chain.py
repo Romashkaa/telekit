@@ -207,7 +207,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
         """
         return self.bot
     
-    def create_sender(self, chat_id: int | None=None) -> senders.AlertSender:
+    def create_sender(self, chat_id: int | None=None) -> senders.Sender:
         if not chat_id:
             chat_id = self.chat_id
-        return senders.AlertSender(chat_id)
+        return senders.Sender(chat_id)

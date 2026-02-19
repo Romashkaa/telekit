@@ -79,6 +79,9 @@ class InlineButton:
     def _compile(self, caption: str) -> InlineKeyboardButton:
         raise NotImplementedError()
     
+    def _get_default_caption(self) -> str:
+        return f"{type(self).__name__}"
+    
     def _is_valid_telegram_callback(self, data: str, encoding: str | None = "utf-8") -> bool:
         if encoding:
             size = len(data.encode(encoding))

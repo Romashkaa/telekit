@@ -25,6 +25,7 @@ from ._snapvault import Vault
 from ._chapters import chapters
 from ._user import User
 from ._telekit_dsl.telekit_dsl import TelekitDSL
+from ._telekit_dsl.mixin import DSLHandler
 from ._logger import enable_file_logging
 
 from . import senders
@@ -44,19 +45,19 @@ __all__ = [
     "parameters",
     "inline_buttons",
 
-    "Styles", 
-
-    "enable_file_logging",
-    "User", 
-    "TelekitDSL",
-    "Vault", 
-    "chapters",
-
-    "example",
+    "Styles",
+    "User",
 
     "Server", 
     "Chain", 
     "Handler", 
+    "CallbackQueryHandler",
 
-    "CallbackQueryHandler"
+    "TelekitDSL",
+    "DSLHandler",
+
+    "Vault", 
+    "enable_file_logging",
+    "chapters",
+    "example",
 ]

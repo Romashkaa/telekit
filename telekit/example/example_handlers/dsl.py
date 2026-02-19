@@ -1,6 +1,6 @@
 import telekit
 
-class DSLHandler(telekit.TelekitDSL.Mixin):
+class DSLExampleHandler(telekit.DSLHandler):
     @classmethod
     def init_handler(cls) -> None:
         cls.analyze_string("""

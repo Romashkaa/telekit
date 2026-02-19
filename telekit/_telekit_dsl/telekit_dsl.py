@@ -31,7 +31,7 @@ class TelekitDSL:
     [Learn more on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md)
     """
 
-    Mixin = mixin.TelekitDSLMixin
+    Mixin = mixin.DSLHandler
     MAGIC_SCENES = mixin.MAGIC_SCENES
 
     @classmethod
@@ -55,7 +55,7 @@ class TelekitDSL:
             "init_handler": init_handler
         }
 
-        return type(class_name, (mixin.TelekitDSLMixin,), class_dict)
+        return type(class_name, (mixin.DSLHandler,), class_dict)
 
 
     @classmethod
@@ -79,4 +79,4 @@ class TelekitDSL:
             "init_handler": init_handler
         }
 
-        return type(class_name, (mixin.TelekitDSLMixin,), class_dict)
+        return type(class_name, (mixin.DSLHandler,), class_dict)

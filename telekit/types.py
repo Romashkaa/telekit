@@ -18,8 +18,10 @@
 # 
 
 from enum import Enum
+from dataclasses import dataclass
 
-from ._chain import TextDocument
+import telebot.types
+
 from ._user import User
 from ._inline_buttons import (
     InlineButton, 
@@ -30,14 +32,62 @@ from ._inline_buttons import (
 )
 
 from .styles import Styles
-from .senders import BaseSender
-
-ChatAction = BaseSender.ChatAction
-Effect = BaseSender.Effect
 
 class ParseMode(str, Enum):
     HTML = "html"
     MARKDOWN = "markdown"
+
+class Effect(Enum):
+    """
+    Enum representing message effects:
+    
+    - FIRE - 🔥 
+    - PARTY - 🎉 
+    - HEART - ❤️ 
+    - THUMBS_UP - 👍 
+    - THUMBS_DOWN - 👎 
+    - POOP - 💩 
+
+    Use the `set_effect` method to use it
+    """
+    FIRE = "5104841245755180586"        # 🔥
+    PARTY = "5046509860389126442"       # 🎉
+    HEART = "5159385139981059251"       # ❤️
+    THUMBS_UP = "5107584321108051014"   # 👍
+    THUMBS_DOWN = "5104858069142078462" # 👎
+    POOP = "5046589136895476101"        # 💩
+
+    def __str__(self) -> str:
+        return self.value
+    
+class ChatAction(Enum):
+    """
+    Represents chat actions (status indicators) that a bot can send,
+    e.g., 'typing', 'upload_document', 'record_voice', etc.
+    """
+    TYPING = "typing"
+    UPLOAD_PHOTO = "upload_photo"
+    UPLOAD_DOCUMENT = "upload_document"
+    UPLOAD_AUDIO = "upload_audio"
+    UPLOAD_VIDEO = "upload_video"
+    RECORD_VIDEO = "record_video"
+    RECORD_VOICE = "record_voice"
+    UPLOAD_VOICE = "upload_voice"
+    CHOOSE_STICKER = "choose_sticker"
+    FIND_LOCATION = "find_location"
+    RECORD_VIDEO_NOTE = "record_video_note"
+    UPLOAD_VIDEO_NOTE = "upload_video_note"
+
+    def __str__(self) -> str:
+        return self.value
+    
+@dataclass
+class TextDocument:
+    message: telebot.types.Message
+    document: telebot.types.Document
+    file_name: str
+    encoding: str
+    text: str
 
 __all__ = [
     # Types / Dataclasses

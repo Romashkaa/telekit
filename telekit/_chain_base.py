@@ -48,7 +48,7 @@ class ChainBase:
 
     def __init__(self, chat_id: int, *, previous_message: Message | None = None):
         self.chat_id = chat_id
-        self.sender = senders.AlertSender(chat_id)
+        self.sender = senders.Sender(chat_id)
         self._handler = _input_handler.InputHandler(chat_id)
         self._previous_message = previous_message
         self._timeout_handler = _timeout.TimeoutHandler()

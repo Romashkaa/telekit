@@ -2,7 +2,7 @@ from telebot.types import Message
 from telekit.types import (
     TextDocument, CopyTextButton, ParseMode
 )
-from telekit.styles import Quote, Sanitize
+from telekit.styles import Quote, Escape
 import telekit
     
 class TextDocumentHandler(telekit.Handler):
@@ -31,7 +31,7 @@ class TextDocumentHandler(telekit.Handler):
         self.chain.edit()
 
     def handle_text_document(self, document: TextDocument):
-        self.chain.sender.set_title(Sanitize(f"🔎 File ", repr(document.file_name), " info"))
+        self.chain.sender.set_title(Escape(f"🔎 File ", repr(document.file_name), " info"))
         self.chain.sender.set_message(
             Quote(
                 document.text[:64].strip(), 
