@@ -27,8 +27,8 @@ from telebot.types import (
     Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
 
-from telekit.styles import StyleFormatter, Raw, Group, Bold, Italic, debug_style
-from telekit.types import ParseMode, Effect, ChatAction
+from telekit.styles import TextEntity, Raw, Group, Bold, Italic, debug_style
+from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
 from ._logger import logger
 library = logger.library
 
@@ -89,6 +89,9 @@ class TemporaryMsgStore:
 class BaseSender:
 
     bot: TeleBot
+
+    Effect: type[_Effect] = _Effect
+    ChatAction: type[_ChatAction] = _ChatAction
 
     @classmethod
     def _init(cls, bot: TeleBot):
@@ -451,7 +454,7 @@ class BaseSender:
         """
         self.message_effect_id = effect
 
-    def set_effect(self, effect: Effect | str | int):
+    def set_effect(self, effect: _Effect | str | int):
         """
         Sets a message effect using enum, string, or integer.
         
@@ -812,7 +815,7 @@ class BaseSender:
             library.warning(f"Failed to send `pyerror` message: {exception}")
             return None
 
-    def error(self, title: str | StyleFormatter, message: str | StyleFormatter) -> Message | None: # type: ignore
+    def error(self, title: str | TextEntity, message: str | TextEntity) -> Message | None: # type: ignore
         """
         Sends a custom error message with a title and detailed message.
 
@@ -882,7 +885,7 @@ class BaseSender:
     # Methods for sending chat actions and retrieving message IDs
     # --------------------------------------------------------
     
-    def send_chat_action(self, action: str | ChatAction, timeout: int | None = None):
+    def send_chat_action(self, action: str | _ChatAction, timeout: int | None = None):
         """
         Send a chat action to a chat.
 
@@ -1046,12 +1049,12 @@ class Sender(BaseSender):
         if self._additional:
             # message: Group
             if self._message:
-                message: StyleFormatter | None = self._message + self._additional
+                message: TextEntity | None = self._message + self._additional
             else:
-                message: StyleFormatter | None = self._additional
+                message: TextEntity | None = self._additional
         else:
             # message: Group | None
-            message: StyleFormatter | None = self._message
+            message: TextEntity | None = self._message
 
         if self._use_italics and message:
             message = Italic(message)
@@ -1090,7 +1093,7 @@ class Sender(BaseSender):
         self._message = None
         self._additional = None
 
-    def set_text(self, *text: str | StyleFormatter, escape: bool = True, sep: str | StyleFormatter = ""): # pyright: ignore[reportIncompatibleMethodOverride]
+    def set_text(self, *text: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""): # pyright: ignore[reportIncompatibleMethodOverride]
         """
         Set a plain text message, replacing any previously set title or message.
 
@@ -1106,7 +1109,7 @@ class Sender(BaseSender):
         if text:
             self._text = Group(*text, escape=escape, sep=sep)
 
-    def set_title(self, *title: str | StyleFormatter, escape: bool = True, sep: str | StyleFormatter = ""):
+    def set_title(self, *title: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""):
         """
         Set the title of the alert message. Clears plain text content.
 
@@ -1121,7 +1124,7 @@ class Sender(BaseSender):
         if title:
             self._title = Bold(*title, escape=escape, sep=sep)
 
-    def set_message(self, *message: str | StyleFormatter, escape: bool = True, sep: str | StyleFormatter = ""):
+    def set_message(self, *message: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""):
         """
         Set the main message body for the alert.
 
@@ -1137,7 +1140,7 @@ class Sender(BaseSender):
         if message:
             self._message = Group(*message, escape=escape, sep=sep)
 
-    def append(self, *text: str | StyleFormatter, sep: str | StyleFormatter =""):
+    def append(self, *text: str | TextEntity, sep: str | TextEntity =""):
         """
         Appends text to the end of the current message.
 

@@ -33,12 +33,14 @@ from . import types
 from . import styles
 from . import parameters
 from . import inline_buttons
+from . import utils
 
 Styles = styles.Styles
 
 from ._version import __version__
     
 __all__ = [
+    "utils",
     "senders", 
     "types",
     "styles",

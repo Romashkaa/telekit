@@ -22,7 +22,7 @@ class StartHandler(telekit.Handler):
                 "🧮 Counter":            "CounterHandler",
                 "🧙‍♀️ Spells":              "SpellsHandler",
                 "⌨️ Entry":                "EntryHandler",
-                "📚 Telekit DSL Examples":   "DSLHandler",
+                "📚 Telekit DSL Examples":   "DSLExampleHandler",
                 "📖 Pages":                "PagesHandler",
                 "🦻 On Text":             "OnTextHandler",
                 "📄 File Info":     "TextDocumentHandler",

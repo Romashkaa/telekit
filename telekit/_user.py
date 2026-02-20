@@ -24,6 +24,7 @@ from ._logger import logger
 
 __all__ = ["User"]
 
+
 class User:
 
     bot: telebot.TeleBot
@@ -42,13 +43,6 @@ class User:
         self.chat_id = chat_id
         self.from_user = from_user
 
-        self._username: str | None = None
-        self._first_name: str | None = None
-        self._last_name: str | None = None
-        self._full_name: str | None = None
-        self._user_id: int | None = None
-        self._user_obj: telebot.types.User | None = None
-
         self.logger = logger.users(self.chat_id)
 
     def enable_logging(self, *user_ids: int | str):
@@ -61,70 +55,84 @@ class User:
             logger.enable_user_logging(*user_ids)
         else:
             logger.enable_user_logging(self.chat_id)
-    
-    @property
-    def user_obj(self) -> telebot.types.User | None:
-        """Returns the raw telebot.types.User object for the user (all Telegram info)."""
-        if self._user_obj:
-            return self._user_obj
+
+    # Chat Full Info
+
+    def get_chat_full_info(self) -> telebot.types.ChatFullInfo | None:
         try:
-            if self.from_user:
-                self._user_obj = self.from_user
-            else:
-                self._user_obj = self.bot.get_chat(self.chat_id)  # type: ignore
+            return self.bot.get_chat(self.chat_id)
         except:
             return None
-        return self._user_obj
+        
+    @property
+    def chat_full_info(self) -> telebot.types.ChatFullInfo | None:
+        # Equivalent to `get_chat_full_info()` but the result is cached so only one API call is needed.
+        if not hasattr(self, "_chat_full_info"):
+            self._chat_full_info = self.get_chat_full_info()
+        
+        return self._chat_full_info
 
+    # Username
+
+    def get_username(self) -> str | None:
+        if chat := self.get_chat_full_info():
+            return chat.username
+    
     @property
     def username(self) -> str | None:
-        """Returns the Telegram username (e.g., @username) or first name if username is missing."""
-        if self._username:
-            return self._username
-        user = self.user_obj
-        if user:
-            if getattr(user, "username", None):
-                self._username = f"@{user.username}"
-            else:
-                self._username = user.first_name
+        if not hasattr(self, "_username"):
+            self._username = self.get_username()
+        
         return self._username
+    
+    # First Name
 
+    def get_first_name(self) -> str | None:
+        if chat := self.get_chat_full_info():
+            return chat.first_name
+    
     @property
     def first_name(self) -> str | None:
-        """Returns the first name of the user as registered in Telegram."""
-        if self._first_name:
-            return self._first_name
-        user = self.user_obj
-        if user and getattr(user, "first_name", None):
-            self._first_name = user.first_name
+        if not hasattr(self, "_first_name"):
+            self._first_name = self.get_first_name()
+        
         return self._first_name
+    
+    # Last Name
 
+    def get_last_name(self) -> str | None:
+        if chat := self.get_chat_full_info():
+            return chat.last_name
+    
     @property
     def last_name(self) -> str | None:
-        """Returns the last name of the user as registered in Telegram (may be None)."""
-        if self._last_name:
-            return self._last_name
-        user = self.user_obj
-        if user and getattr(user, "last_name", None):
-            self._last_name = user.last_name
+        if not hasattr(self, "_last_name"):
+            self._last_name = self.get_last_name()
+        
         return self._last_name
+    
+    # Full Name
 
+    def get_full_name(self) -> str | None:
+        if chat := self.from_user: # TODO
+            return chat.full_name
+    
     @property
     def full_name(self) -> str | None:
-        """Returns the full name of the user (first name + last name if available)."""
-        if self._full_name:
-            return self._full_name
-        first = self.first_name or ""
-        last = self.last_name or ""
-        self._full_name = f"{first} {last}".strip() or None
+        if not hasattr(self, "_full_name"):
+            self._full_name = self.get_full_name()
+        
         return self._full_name
+    
+    # User ID
 
+    def get_id(self) -> int | None:
+        if chat := self.from_user: # TODO
+            return chat.id # TODO
+    
     @property
     def id(self) -> int | None:
-        """Returns the Telegram user ID of the user."""
-        if self._user_id:
-            return self._user_id
-        user = self.user_obj
-        if user and getattr(user, "id", None):
-            self._user_id = user.id
-        return self._user_id
+        if not hasattr(self, "_id"):
+            self._id = self.get_id()
+        
+        return self._id

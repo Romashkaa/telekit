@@ -20,8 +20,14 @@
 from ._buildtext.styles import *
 
 __all__ = [
-    "Group",
+    "TextEntity",
+    "StaticTextEntity",
+    "EasyTextEntity",
+
     "Styles",
+
+    "Group",
+    "Stack",
 
     "Escape",
     "Raw",
@@ -38,6 +44,7 @@ __all__ = [
     "BotLink",
 
     "Quote",
+    "Language",
     "Python",
 
     "EncodeHTML",

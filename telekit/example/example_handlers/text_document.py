@@ -20,11 +20,11 @@ class TextDocumentHandler(telekit.Handler):
 
     def entry_text_document(self) -> None:
         self.chain.sender.set_title("📄 Send text document...")
-        self.chain.sender.set_message("Please, send a .txt, .md or .py document")
+        self.chain.sender.set_message("Please, send a .txt, .md, .html or .py document")
 
         self.chain.set_entry_text_document(
             self.handle_text_document,
-            allowed_extensions=(".txt", ".py", ".md")
+            allowed_extensions=(".txt", ".py", ".md", ".html")
         )
 
         self.chain.disable_timeout_warnings()
@@ -36,14 +36,15 @@ class TextDocumentHandler(telekit.Handler):
             Quote(
                 document.text[:64].strip(), 
                 "..." if len(document.text) > 64 else ""
-            ), "\n",
-            f"• Encoding {document.encoding!r}\n",
-            f"• Length {len(document.text)}\n",
-            f"• Size {document.document.file_size}\n",
+            ),
+            f"• Encoding {document.encoding!r}",
+            f"• Length {len(document.text)}",
+            f"• Size {document.format_size}",
+            sep="\n"
         )
         self.chain.set_inline_keyboard(
             {
-                "Copy Name": CopyTextButton(document.file_name),
+                "File Name": CopyTextButton(document.file_name),
                 "Resend ↺": self.entry_text_document
             }, row_width=2
         )

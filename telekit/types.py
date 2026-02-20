@@ -22,6 +22,8 @@ from dataclasses import dataclass
 
 import telebot.types
 
+from .utils import format_file_size
+
 from ._user import User
 from ._inline_buttons import (
     InlineButton, 
@@ -31,7 +33,7 @@ from ._inline_buttons import (
     ButtonStyle
 )
 
-from .styles import Styles
+from .styles import Styles, TextEntity, StaticTextEntity, EasyTextEntity
 
 class ParseMode(str, Enum):
     HTML = "html"
@@ -83,11 +85,76 @@ class ChatAction(Enum):
     
 @dataclass
 class TextDocument:
+    """
+    Represents a Telegram text document with decoded content
+    and metadata.
+
+    This object wraps a Telegram ``Document`` and provides
+    convenient access to its size and formatted size.
+
+    :param message: Original Telegram message containing the document.
+    :type message: `telebot.types.Message`
+
+    :param document: Telegram document object.
+    :type document: `telebot.types.Document`
+
+    :param file_name: Name of the uploaded file.
+    :type file_name: `str`
+
+    :param encoding: Text encoding used to decode the file.
+    :type encoding: `str`
+
+    :param text: Decoded text content of the document.
+    :type text: `str`
+    """
     message: telebot.types.Message
     document: telebot.types.Document
     file_name: str
     encoding: str
     text: str
+
+    def format_size(self, precision: int = 1) -> str | None: 
+        """
+        Return the document size formatted as a human-readable string.
+
+        Uses binary units (1 KB = 1024 bytes) via ``telekit.utils.format_file_size()``.
+
+        :param precision: Number of decimal places for fractional values.
+            Ignored if the value is an integer after conversion.
+            Default is 1.
+        :type precision: `int`
+
+        :return: Formatted file size (e.g., ``"1.5 MB"``),
+            or ``None`` if the document size is unavailable.
+        :rtype: `str | None`
+
+        Examples:
+
+            >>> doc.format_size()
+            '2.3 MB'
+
+            >>> doc.format_size(precision=2)
+            '2.35 MB'
+        """
+        return format_file_size(self.size, precision=precision) if self.size else None
+
+    @property
+    def formatted_size(self) -> str | None: 
+        """
+        Return the document size formatted as a human-readable string.
+
+        Uses binary units (1 KB = 1024 bytes) via ``self.format_size(precision=1)``.
+
+        Examples:
+
+            >>> doc.formatted_size
+            '2 MB'
+        """
+        return self.format_size()
+    
+    @property
+    def size(self) -> int | None:
+        return self.document.file_size
 
 __all__ = [
     # Types / Dataclasses
@@ -104,8 +171,11 @@ __all__ = [
 
     "ButtonStyle",
 
-    # Namespaces
+    # Styles
     "Styles",
+    "TextEntity",
+    "StaticTextEntity",
+    "EasyTextEntity",
     
     # Enums
     "ChatAction",

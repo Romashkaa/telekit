@@ -17,14 +17,15 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 from typing import Union, Literal
+from enum import Enum
 from urllib.parse import quote
 
 import telebot.formatting
 
-from .formatter import StyleFormatter, StyleFormatter2, StyleFormatter3, Group
+from .formatter import TextEntity, EasyTextEntity, StaticTextEntity, EasyTextEntityWithPostRender, Group
 
 
-class Bold(StyleFormatter2):
+class Bold(EasyTextEntity):
 
     def _render_markdown(self, content: str) -> str:
         return f"*{content}*"
@@ -33,16 +34,16 @@ class Bold(StyleFormatter2):
         return f"<b>{content}</b>"
 
 
-class Italic(StyleFormatter2):
+class Italic(EasyTextEntity):
 
     def _render_markdown(self, content: str) -> str:
-        return f"_{content}_"
+        return f"_{content}_" # TODO add "\r"
 
     def _render_html(self, content: str) -> str:
         return f"<i>{content}</i>"
 
 
-class Underline(StyleFormatter2):
+class Underline(EasyTextEntity):
 
     def _render_markdown(self, content: str) -> str:
         return f"__{content}__"
@@ -51,7 +52,7 @@ class Underline(StyleFormatter2):
         return f"<u>{content}</u>"
 
 
-class Strikethrough(StyleFormatter2):
+class Strikethrough(EasyTextEntity):
 
     def _render_markdown(self, content: str) -> str:
         return f"~~{content}~~"
@@ -60,25 +61,35 @@ class Strikethrough(StyleFormatter2):
         return f"<s>{content}</s>"
 
 
-class Code(StyleFormatter2):
+class Code(EasyTextEntity):
 
     def _render_markdown(self, content: str) -> str:
         return f"`{content}`"
 
     def _render_html(self, content: str) -> str:
         return f"<code>{content}</code>"
+    
 
+class Language(EasyTextEntity):
 
-class Python(StyleFormatter2):
+    def __init__(self, *content, lang: str, escape: bool = True, sep: Union["TextEntity", str] = ""):
+        self._language: str = lang
+        super().__init__(*content, escape=escape, sep=sep)
 
     def _render_markdown(self, content: str) -> str:
-        return f"```{content}```"
+        return f"```{self._language}\n{content}```"
 
     def _render_html(self, content: str) -> str:
-        return f'<pre language="python">{content}\n</pre>\n'
+        return f'<pre language="{self._language}">{content}\n</pre>\n'
 
 
-class Spoiler(StyleFormatter2):
+class Python(Language):
+
+    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str] = ""):
+        super().__init__(*content, lang="python", escape=escape, sep=sep)
+
+
+class Spoiler(EasyTextEntity):
 
     def _render_markdown(self, content: str) -> str:
         return f"||{content}||"
@@ -88,34 +99,38 @@ class Spoiler(StyleFormatter2):
         return f'<tg-spoiler>{content}</tg-spoiler>'
 
 
-class Quote(StyleFormatter2):
+class Quote(EasyTextEntityWithPostRender):
 
-    def __init__(self, *content, expandable: bool = False, escape: bool = True, sep: Union["StyleFormatter", str] = ""):
-        self.expandable: bool = expandable
+    def __init__(self, *content, expandable: bool = False, end: str = "\n", escape: bool = True, sep: Union["TextEntity", str] = ""):
+        self._expandable: bool = expandable
+        self._end: str = end
         super().__init__(*content, escape=escape, sep=sep)
 
     def _render_markdown(self, content: str) -> str:
-        return telebot.formatting.mcite(content, expandable=self.expandable)
+        return telebot.formatting.mcite(content, escape=False, expandable=self._expandable)
 
     def _render_html(self, content: str) -> str:
-        return telebot.formatting.hcite(content, expandable=self.expandable)
+        return telebot.formatting.hcite(content, escape=False, expandable=self._expandable)
+    
+    def _post_render(self, rendered: str) -> str:
+        return rendered + self._end if self._end else rendered
 
 
-class Escape(StyleFormatter):
+class Escape(TextEntity):
 
-    def __init__(self, *content, sep: Union["StyleFormatter", str] = ""):
+    def __init__(self, *content, sep: Union["TextEntity", str] = ""):
         super().__init__(*content, escape=True, sep=sep)
 
 
-class Raw(StyleFormatter):
+class Raw(TextEntity):
     
-    def __init__(self, *content, sep: Union["StyleFormatter", str] = ""):
+    def __init__(self, *content, sep: Union["TextEntity", str] = ""):
         super().__init__(*content, escape=False, sep=sep)
     
 
-class Link(StyleFormatter2):
+class Link(EasyTextEntity):
 
-    def __init__(self, *content, url: str, escape: bool = True, sep: Union["StyleFormatter", str] = ""):
+    def __init__(self, *content, url: str, escape: bool = True, sep: Union["TextEntity", str] = ""):
         self._url: str = url
         super().__init__(*content, escape=escape, sep=sep)
 
@@ -130,35 +145,81 @@ class Link(StyleFormatter2):
     
 
 class UserLink(Link):
-    def __init__(self, *content, username: str, text: str | None=None, escape: bool = True, sep: Union["StyleFormatter", str] = ""):
+    def __init__(self, *content, username: str, text: str | None = None, escape: bool = True, sep: Union["TextEntity", str] = ""):
+        url: str = self.gen_link(username, text)
+
+        super().__init__(*content, url=url, escape=escape, sep=sep)
+
+    @staticmethod
+    def gen_link(username: str, text: str | None = None) -> str:
         username = username.lstrip("@")
 
         if text is None:
-            url: str = f"https://t.me/{username}"
+            return f"https://t.me/{username}"
         else:
             encoded_text: str = quote(text, safe="")
-            url: str = f"https://t.me/{username}?text={encoded_text}"
-
-        super().__init__(*content, url=url, escape=escape, sep=sep)
+            return f"https://t.me/{username}?text={encoded_text}"
 
 
 class BotLink(Link):
-    def __init__(self, *content, username: str, start: str | None=None, escape: bool = True, sep: Union["StyleFormatter", str] = ""):
-        username = username.lstrip("@")
-
-        if start is None:
-            url: str = f"https://t.me/{username}"
-        else:
-            encoded_start = quote(start, safe="")
-            url: str = f"https://t.me/{username}?start={encoded_start}"
+    def __init__(self, *content, username: str, start: str | None = None, escape: bool = True, sep: Union["TextEntity", str] = ""):
+        url: str = self.gen_link(username, start)
 
         super().__init__(*content, url=url, escape=escape, sep=sep)
 
-class EncodeHTML(StyleFormatter3):
+    @staticmethod
+    def gen_link(username: str, start: str | None = None) -> str:
+        username = username.lstrip("@")
+
+        if start is None:
+            return f"https://t.me/{username}"
+        else:
+            encoded_start = quote(start, safe="")
+            return f"https://t.me/{username}?start={encoded_start}"
+
+class EncodeHTML(StaticTextEntity):
 
     def _render_any(self, content: str) -> str:
         return quote(content, safe="")
+    
+class Stack(TextEntity):
 
+    class Markers:
+        LINE = "- "
+        DOT = "• "
+        TRIANGLE = "‣ "
+        TRIANGLE_BIG = "▸ "
+        TRIANGLE_OUTLINE = "› "
+        ARROW = "→ "
+        ARROW_R = ARROW
+        ARROW_L = "← "
+        ARROW_D = "↓ "
+        ARROW_U = "↑ "
+        FINGER = "☞ "
+        STAR = "★ "
+        STAR_OUTLINE = "☆ "
+        CHECK = "✓ "
+        CROSS = "✕ "
+
+    def __init__(self, *content, start: str = "{{index}}. ", sep: Union["TextEntity", str] = "\n", end: Union["TextEntity", str] = "", escape: bool = True):
+        self._start = start
+        self._end = end
+
+        super().__init__(*content, escape=escape, sep=sep)
+
+    def _render_content(self, parse_mode: None | Literal['html'] | Literal['markdown']) -> str:
+        stack: list[str] = []
+
+        for index, item in enumerate(self._content, start=1):
+            stack.append(
+                self._start.replace("{{index}}", str(index)) + \
+                self._render_item(item, parse_mode)
+            )
+
+        sep: str = self._render_item(self._separator, parse_mode)
+        end: str = self._render_item(self._end, parse_mode)
+
+        return "\n" + sep.join(stack) + end + "\n"
 
 class Styles:
 
@@ -176,28 +237,29 @@ class Styles:
     [Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md) · on GitHub
     """
 
-    Bold: type[StyleFormatter] = Bold
-    Italic: type[StyleFormatter] = Italic
-    Underline: type[StyleFormatter] = Underline
-    Strikethrough: type[StyleFormatter] = Strikethrough
-    Code: type[StyleFormatter] = Code
-    Python: type[StyleFormatter] = Python
-    Spoiler: type[StyleFormatter] = Spoiler
-    Quote: type[StyleFormatter] = Quote
-    Sanitize: type[StyleFormatter] = Escape
-    NoSanitize: type[StyleFormatter] = Raw
-    Link: type[StyleFormatter] = Link
-    UserLink: type[StyleFormatter] = UserLink
-    BotLink: type[StyleFormatter] = BotLink
-    Group: type[StyleFormatter] = Group
+    Bold: type[TextEntity] = Bold
+    Italic: type[TextEntity] = Italic
+    Underline: type[TextEntity] = Underline
+    Strikethrough: type[TextEntity] = Strikethrough
+    Code: type[TextEntity] = Code
+    Python: type[TextEntity] = Python
+    Spoiler: type[TextEntity] = Spoiler
+    Quote: type[TextEntity] = Quote
+    Sanitize: type[TextEntity] = Escape
+    NoSanitize: type[TextEntity] = Raw
+    Link: type[TextEntity] = Link
+    UserLink: type[TextEntity] = UserLink
+    BotLink: type[TextEntity] = BotLink
+    Group: type[TextEntity] = Group
 
 class RichPrinter():
+
     @classmethod
     def print_using_rich(cls, text: str, parse_mode: Literal["html", "markdown"] | None):
         cls._try_install_rich()
-
+        
         if parse_mode is not None and cls._rich_is_installed():
-            syntax = cls._rich_syntax(text, parse_mode, theme="monokai")
+            syntax = cls._rich_syntax(text, parse_mode, theme="material")
             cls._rich_console.print(syntax)
         else:
             print(text)

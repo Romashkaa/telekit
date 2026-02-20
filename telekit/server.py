@@ -105,6 +105,7 @@ class Server:
 
         :return:
         """
+        print("Telekit server has started polling...")
         self._bot.infinity_polling(
             timeout = timeout,
             skip_pending = skip_pending,

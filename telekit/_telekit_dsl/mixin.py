@@ -19,11 +19,11 @@
 
 import re
 import json
-from typing import NoReturn, Callable, Any
+from typing import NoReturn, Callable, Any, Literal
 import jinja2
 
 import telekit
-from telekit.styles import Escape
+from telekit.styles import Escape, Raw, Bold
 from . import parser
 
 from .._logger import logger
@@ -380,8 +380,8 @@ class DSLHandler(telekit.Handler):
 
         # metadata & parse mode setup
         template_engine: str = self.script_data.get_template_engine()
-        real_parse_mode: str | None = scene.get("parse_mode")
-        parse_mode = real_parse_mode or "html"
+        real_parse_mode: Literal["html", "markdown"] | None = scene.get("parse_mode")
+        parse_mode: Literal["html", "markdown"] = real_parse_mode or "html"
 
         # main logic
         self._execute_on_enter_hooks(scene, scene_name, template_engine)
@@ -404,16 +404,16 @@ class DSLHandler(telekit.Handler):
                 self._execute_hook(scene["on_enter_once"], template_engine)
                 self.script_data.executed_once_hooks.add(hook_key)
 
-    def _render_context(self, scene: dict, parse_mode: str):
+    def _render_context(self, scene: dict, parse_mode: Literal["html", "markdown"]):
         self.chain.sender.set_parse_mode(parse_mode)
         self.chain.sender.set_use_italics(scene.get("use_italics", False))
         self.chain.sender.set_photo(scene.get("image"))
     
-    def _render_text_content(self, scene: dict, real_parse_mode: str | None, template_engine: str):
+    def _render_text_content(self, scene: dict, real_parse_mode: Literal["html", "markdown"] | None, template_engine: str):
         # get title/message or text
-        title = scene.get("title")
-        message = scene.get("message")
-        text = scene.get("text")
+        title: str | None = scene.get("title")
+        message: str | None = scene.get("message")
+        text: str | None   = scene.get("text")
 
         # process templates
         if title and "{" in title:
@@ -422,26 +422,24 @@ class DSLHandler(telekit.Handler):
             message = self._parse_template(message, real_parse_mode, template_engine)
         if text and "{" in text:
             text = self._parse_template(text, real_parse_mode, template_engine)
-
-        styles = self.chain.sender.styles
         
-        # apply sanitization
+        # maybe escape
         if real_parse_mode:
-            # no sanitize
+            # do not escape
             if title:
-                self.chain.sender.set_title(styles.no_sanitize(title))
+                self.chain.sender.set_title(Raw(title))
             if message:
-                self.chain.sender.set_message(styles.no_sanitize(message))
+                self.chain.sender.set_message(Raw(message))
             if text:
-                self.chain.sender.set_text(styles.no_sanitize(text))
+                self.chain.sender.set_text(Raw(text))
         else:
-            # sanitize
+            # escape
             if title:
-                self.chain.sender.set_title(styles.sanitize(title))
+                self.chain.sender.set_title(title)
             if message:
-                self.chain.sender.set_message(styles.sanitize(message))
+                self.chain.sender.set_message(message)
             if text:
-                self.chain.sender.set_text(styles.sanitize(text))
+                self.chain.sender.set_text(text)
 
     def _apply_inline_keyboard(self, scene, template_engine):
         keyboard: dict = {}
@@ -609,11 +607,10 @@ class DSLHandler(telekit.Handler):
 
         # timeout logic
         message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
-        message = self.chain.sender.styles.no_sanitize(message)
         label   = self.script_data.config.get("timeout_label", "Yes, I'm here ✓")
 
         self.chain.set_timeout(None, 7)
-        self.chain.sender.add_message("\n\n", self.chain.sender.styles.bold(message))
+        self.chain.sender.append("\n\n", Bold(message, escape=False))
         self.chain.set_inline_keyboard({label: self._on_continue})
 
         # edit the message
@@ -631,7 +628,7 @@ class DSLHandler(telekit.Handler):
     # Template Logic
     # ----------------------------------------------------------------------------
 
-    def _parse_template(self, template_str: str, parse_mode: str | None=None, template_engine: str="plain"):
+    def _parse_template(self, template_str: str, parse_mode: Literal["html", "markdown"] | None=None, template_engine: str="plain"):
         match template_engine:
             case "vars":
                 return self._parse_variables(template_str, parse_mode)
@@ -715,7 +712,7 @@ class DSLHandler(telekit.Handler):
             case _:
                 return
 
-    def _parse_variables(self, template_str: str, parse_mode: str | None=None):
+    def _parse_variables(self, template_str: str, parse_mode: Literal["html", "markdown"] | None = None):
         """
         Replace {{variables}} in template_str with values from the dict or callables.
         Supports optional default values using the syntax {{variable|default text}}.
@@ -739,9 +736,9 @@ class DSLHandler(telekit.Handler):
             value = self._get_variable(var_name)
 
             if value:
-                return str(Escape(value, parse_mode=parse_mode))
+                return Escape(value).render(parse_mode)
             elif default:
-                return str(default)
+                return Escape(default).render(parse_mode)
             else:
                 return match.group(0)
 
@@ -796,13 +793,13 @@ class JinjaFilters:
     def escape_md(value):
         if value is None:
             return ""
-        return str(Escape(str(value), parse_mode="markdown"))
+        return Escape(str(value)).markdown
 
     @staticmethod
     def escape_html(value):
         if value is None:
             return ""
-        return str(Escape(str(value), parse_mode="html"))
+        return Escape(str(value)).html
 
 # ----------------------------------------------------
 # Script Data Structure (JSON)

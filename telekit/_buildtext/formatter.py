@@ -21,26 +21,15 @@ from typing import Any, Literal, Union
 
 import telebot.formatting
 
-# def escape_text(text: Any, parse_mode: Literal["html", "markdown"] | None = "html"):
-#     text = str(text)
+class TextEntity:
 
-#     match parse_mode:
-#         case "html":
-#             return telebot.formatting.escape_html(text)
-#         case "markdown":
-#             return telebot.formatting.escape_markdown(text)
-#         case _:
-#             return text
-
-class StyleFormatter:
-
-    def __init__(self, *content, escape: bool = True, sep: Union["StyleFormatter", str]=""):
+    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str]=""):
         self._content = content
         self._escape_strings = escape
         self._separator = sep
 
     def __add__(self, other):
-        if isinstance(other, (str, StyleFormatter)):
+        if isinstance(other, (str, TextEntity)):
             return Group(self, other)
         raise TypeError(f"Cannot add {type(other)} to Style")
 
@@ -81,8 +70,8 @@ class StyleFormatter:
             self._render_item(item, parse_mode) for item in self._content
         )
     
-    def _render_item(self, item: Union[str, "StyleFormatter"], parse_mode: Literal["html", "markdown"] | None) -> str:
-        if isinstance(item, StyleFormatter):
+    def _render_item(self, item: Union[str, "TextEntity"], parse_mode: Literal["html", "markdown"] | None) -> str:
+        if isinstance(item, TextEntity):
             return item.render(parse_mode)
         else:
             return self._maybe_escape(item, parse_mode)
@@ -104,18 +93,15 @@ class StyleFormatter:
             case _:
                 return text
             
-class StyleFormatter2(StyleFormatter):
+class EasyTextEntity(TextEntity):
     def render_markdown(self) -> str:
-        content: str = self._render_content("markdown")
-        return self._render_markdown(content)
+        return self._render_markdown(self._render_content("markdown"))
 
     def render_html(self) -> str:
-        content: str = self._render_content("html")
-        return self._render_html(content)
+        return self._render_html(self._render_content("html"))
     
     def render_none(self) -> str:
-        content: str = self._render_content(None)
-        return self._render_none(content)
+        return self._render_none(self._render_content(None))
     
     # redefine
 
@@ -128,7 +114,22 @@ class StyleFormatter2(StyleFormatter):
     def _render_none(self, content: str) -> str:
         return content
     
-class StyleFormatter3(StyleFormatter):
+class EasyTextEntityWithPostRender(EasyTextEntity):
+    def render_markdown(self) -> str:
+        return self._post_render(self._render_markdown(self._render_content("markdown")))
+
+    def render_html(self) -> str:
+        return self._post_render(self._render_html(self._render_content("html")))
+    
+    def render_none(self) -> str:
+        return self._post_render(self._render_none(self._render_content(None)))
+    
+    # redefine
+
+    def _post_render(self, rendered: str) -> str:
+        return rendered
+    
+class StaticTextEntity(TextEntity):
     def render_markdown(self) -> str:
         content: str = self._render_content("markdown")
         return self._render_any(content)
@@ -146,6 +147,6 @@ class StyleFormatter3(StyleFormatter):
     def _render_any(self, content: str) -> str:
         return content
 
-class Group(StyleFormatter):
-    def __init__(self, *content, escape: bool = True, sep: Union["StyleFormatter", str] = ""):
+class Group(TextEntity):
+    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str] = ""):
         super().__init__(*content, escape=escape, sep=sep)
