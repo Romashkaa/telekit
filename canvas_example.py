@@ -1,13 +1,5 @@
 import telekit
 
-def read_token():
-    with open("token.txt") as f:
-        return f.readline().strip()
-    
-def read_canvas_path():
-    with open("canvas_path.txt") as f:
-        return f.readline().strip()
-
 class Test(telekit.DSLHandler):
     @classmethod
     def init_handler(cls) -> None:
