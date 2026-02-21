@@ -46,11 +46,8 @@ There are two primary types of inline keyboards in Telekit:
 
 This type attaches buttons to a message, each linked to its own specific callback function.
 
-Supported callback types include:  
-- `Callable[[], Any]` – a function or method without parameters.  
-- `Callable[[Message], Any]` – a function or method that receives the `Message` object.  
-- `Chain` – triggers `.send()` on a chain.  
-- `str` – opens a URL (not a callback in the traditional sense).
+Supported callback types:  
+- `Callable[[], Any]` – a function or method without parameters.
 
 To add a Label-Callback keyboard, call `chain.set_inline_keyboard()` with a dictionary `{Label: Callback}`, optionally specifying `row_width`:
 

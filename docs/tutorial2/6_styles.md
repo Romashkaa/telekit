@@ -116,7 +116,8 @@ self.chain.sender.set_text(Raw(pre_formatted))
 # Result: "<b>Bold</b> and <i>Italic</i>"
 
 # escape=False on the sender method
-self.chain.sender.set_text(f"{Bold('Bold').html} and {Italic('Italic').html}", escape=False)
+pre_formatted: str = f"{Bold('Bold').html} and {Italic('Italic').html}"
+self.chain.sender.set_text(pre_formatted, escape=False)
 # Result: "<b>Bold</b> and <i>Italic</i>"
 
 # escape=False on the style object — useful for nested HTML/Markdown
@@ -212,4 +213,4 @@ class StartHandler(telekit.Handler):
 telekit.Server(BOT_TOKEN).polling()
 ```
 
-[Next: Entries »](7_inline_keyboards.md)
+[Next: Inline Keyboards »](7_inline_keyboards.md)
