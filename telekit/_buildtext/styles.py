@@ -55,7 +55,7 @@ class Bold(EasyTextEntity):
     """
 
     def _render_markdown(self, content: str) -> str:
-        return f"*{content}*"
+        return telebot.formatting.mbold(content, escape=False)
 
     def _render_html(self, content: str) -> str:
         return f"<b>{content}</b>"
@@ -89,7 +89,7 @@ class Italic(EasyTextEntity):
     """
 
     def _render_markdown(self, content: str) -> str:
-        return f"_{content}_" # TODO add "\r"
+        return telebot.formatting.mitalic(content, escape=False)
 
     def _render_html(self, content: str) -> str:
         return f"<i>{content}</i>"
@@ -122,7 +122,7 @@ class Underline(EasyTextEntity):
     """
 
     def _render_markdown(self, content: str) -> str:
-        return f"__{content}__"
+        return telebot.formatting.munderline(content, escape=False)
 
     def _render_html(self, content: str) -> str:
         return f"<u>{content}</u>"
@@ -155,7 +155,7 @@ class Strikethrough(EasyTextEntity):
     """
 
     def _render_markdown(self, content: str) -> str:
-        return f"~~{content}~~"
+        return telebot.formatting.mstrikethrough(content, escape=False)
 
     def _render_html(self, content: str) -> str:
         return f"<s>{content}</s>"
@@ -232,7 +232,7 @@ class Language(EasyTextEntity):
         super().__init__(*content, escape=escape, sep=sep)
 
     def _render_markdown(self, content: str) -> str:
-        return f"```{self._language}\n{content}```"
+        return telebot.formatting.mcode(content, language=self._language, escape=False)
 
     def _render_html(self, content: str) -> str:
         return f'<pre language="{self._language}">{content}\n</pre>\n'
@@ -297,7 +297,7 @@ class Spoiler(EasyTextEntity):
     """
 
     def _render_markdown(self, content: str) -> str:
-        return f"||{content}||"
+        return telebot.formatting.mspoiler(content, escape=False)
 
     def _render_html(self, content: str) -> str:
         # or '<span class="tg-spoiler">', '</span>'

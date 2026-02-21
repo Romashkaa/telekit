@@ -6,7 +6,7 @@
 
 Telekit Canvas is a **visual mode** for building Telegram bots directly inside **Obsidian** — a free note-taking app that supports node-based canvas diagrams.
 
-Instead of writing code for every dialog step, you design your bot as a **flowchart**: nodes become screens, arrows become buttons.
+Instead of writing code for every dialog step, you design your bot as a **flowchart**: nodes become messages, arrows become buttons.
 
 ## Content
 

@@ -436,7 +436,7 @@ class BaseSender:
     def _prepare_media(self):
         if self.media:
             def f(media: InputMediaPhoto):
-                media.parse_mode = self.parse_mode
+                media.parse_mode = self._get_parse_mode()
                 return media
             self.media[0].caption = self.text
             self.media = list(map(f, self.media))
@@ -565,7 +565,7 @@ class BaseSender:
     def _get_send_configs(self) -> dict[str, Any]:
         return {
             "chat_id": self.chat_id,
-            "parse_mode": self.parse_mode,
+            "parse_mode": self._get_parse_mode(),
             "message_thread_id": self.thread_id,
             "reply_to_message_id": self.reply_to_message_id,
         }
@@ -718,6 +718,15 @@ class BaseSender:
     # Internal methods for sending and editing messages
     # --------------------------------------------------------
 
+    def _get_parse_mode(self):
+        match self.parse_mode:
+            case "html":
+                return "HTML"
+            case "markdown":
+                return "MarkdownV2"
+            case _:
+                return None
+
     def _send_text(self):
         return self.bot.send_message(
             text=self.text,
@@ -734,7 +743,7 @@ class BaseSender:
             media = InputMediaPhoto(
                 media=self.photo, 
                 caption=self.text, 
-                parse_mode=self.parse_mode
+                parse_mode=self._get_parse_mode()
             )
             message = self.bot.edit_message_media(
                 media=media,
@@ -744,7 +753,7 @@ class BaseSender:
         else:
             message = self.bot.edit_message_text(
                 text=self.text,
-                parse_mode=self.parse_mode,
+                parse_mode=self._get_parse_mode(),
                 reply_markup=self.reply_markup,
                 **configs
             )

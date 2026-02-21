@@ -47,13 +47,7 @@ Rules:
 import json
 import re
 
-
-
-
-import json
-import re
-import sys
-
+from ...utils import telegramify_markdown
 
 def parse_node_text(raw: str) -> tuple[str | None, str | None, str]:
     """
@@ -76,14 +70,13 @@ def parse_node_text(raw: str) -> tuple[str | None, str | None, str]:
 
     if "---" in raw:
         parts = raw.split("---", 1)
-        label_and_title = parts[0].strip()
-        message = parts[1].strip()
+        label_and_title = telegramify_markdown(parts[0].strip())
+        message = telegramify_markdown(parts[1].strip())
         return label_and_title, label_and_title, message
     else:
         return None, None, raw
 
-
-def auto_label(text: str, max_len: int = 24) -> str:
+def auto_label(text: str, max_len: int = 10) -> str:
     """Generate button label from first line, trimmed to max_len at word boundary."""
     first_line = text.splitlines()[0].strip() if text else "..."
     if len(first_line) <= max_len:
@@ -113,13 +106,31 @@ def canvas_to_model(canvas: dict) -> dict:
             "body":         body,          # message (if title exists) or text (if not)
         }
 
-    # Build adjacency: fromNode → list of toNode ids
+    # Build adjacency: fromNode -> list of toNode ids
+    #
+    # Edge direction is determined by fromEnd/toEnd fields:
+    #   toEnd="none"    -> no arrowhead at target = ignore this edge entirely
+    #   fromEnd="arrow" -> bidirectional = add both directions
+    #   default         -> single direction: fromNode -> toNode
     adjacency: dict[str, list[str]] = {nid: [] for nid in text_nodes}
     for edge in edges:
         fn = edge.get("fromNode")
         tn = edge.get("toNode")
-        if fn in text_nodes and tn in text_nodes:
-            adjacency[fn].append(tn)
+        if fn not in text_nodes or tn not in text_nodes:
+            continue
+
+        to_end   = edge.get("toEnd")
+        from_end = edge.get("fromEnd")
+
+        if to_end == "none":
+            # no arrowhead — ignore
+            continue
+
+        adjacency[fn].append(tn)
+
+        if from_end == "arrow":
+            # bidirectional — also add reverse
+            adjacency[tn].append(fn)
 
 
     # Topological BFS from roots (nodes with no incoming forward edges)

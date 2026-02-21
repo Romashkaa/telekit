@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent  # telekit/
@@ -114,3 +115,246 @@ def read_canvas_path(path: str = "canvas_path.txt") -> str:
     """
     with open(path) as f:
         return f.readline().strip()
+
+
+# All special chars that must be escaped in MarkdownV2
+_SPECIAL = r'_*[]()~`>#+-=|{}.!' 
+
+def sanitize_markdown(text: str) -> str:
+    result = []
+    i = 0
+
+    while i < len(text):
+        # Already escaped sequence — pass through as-is
+        if text[i] == '\\' and i + 1 < len(text) and text[i+1] in _SPECIAL:
+            result.append(text[i:i+2])
+            i += 2
+            continue
+
+        # Code block ```...```
+        if text[i:i+3] == '```':
+            end = text.find('```', i + 3)
+            if end != -1:
+                result.append(text[i:end+3])
+                i = end + 3
+                continue
+
+        # Inline code `...`
+        if text[i] == '`':
+            end = text.find('`', i + 1)
+            if end != -1:
+                result.append(text[i:end+1])
+                i = end + 1
+                continue
+
+        # Bold+italic ***...***
+        if text[i:i+3] == '***':
+            end = text.find('***', i + 3)
+            if end != -1:
+                result.append(text[i:end+3])
+                i = end + 3
+                continue
+
+        # Bold **...** (standard md — should be gone after adapt_markdown)
+        if text[i:i+2] == '**':
+            end = text.find('**', i + 2)
+            if end != -1:
+                result.append(text[i:end+2])
+                i = end + 2
+                continue
+
+        # Bold *...* (tg)
+        if text[i] == '*':
+            end = i + 1
+            while end < len(text):
+                if text[end] == '\\' and end + 1 < len(text) and text[end+1] in _SPECIAL:
+                    end += 2
+                    continue
+                if text[end] == '*':
+                    break
+                end += 1
+            if end < len(text):
+                result.append(text[i:end+1])
+                i = end + 1
+                continue
+
+        # Underline+italic ___...___
+        if text[i:i+3] == '___':
+            end = text.find('___', i + 3)
+            if end != -1:
+                result.append(text[i:end+3])
+                i = end + 3
+                continue
+
+        # Underline __...__
+        if text[i:i+2] == '__':
+            end = text.find('__', i + 2)
+            if end != -1:
+                result.append(text[i:end+2])
+                i = end + 2
+                continue
+
+        # Italic _..._
+        if text[i] == '_':
+            end = i + 1
+            while end < len(text):
+                if text[end] == '\\' and end + 1 < len(text) and text[end+1] in _SPECIAL:
+                    end += 2
+                    continue
+                if text[end] == '_':
+                    break
+                end += 1
+            if end < len(text):
+                result.append(text[i:end+1])
+                i = end + 1
+                continue
+
+        # Strikethrough ~~...~~
+        if text[i:i+2] == '~~':
+            end = text.find('~~', i + 2)
+            if end != -1:
+                result.append(text[i:end+2])
+                i = end + 2
+                continue
+
+        # Strikethrough ~...~ (tg)
+        if text[i] == '~':
+            end = text.find('~', i + 1)
+            if end != -1:
+                result.append(text[i:end+1])
+                i = end + 1
+                continue
+
+        # Spoiler ||...||
+        if text[i:i+2] == '||':
+            end = text.find('||', i + 2)
+            if end != -1:
+                result.append(text[i:end+2])
+                i = end + 2
+                continue
+
+        # Link [text](url)
+        if text[i] == '[':
+            m = re.match(r'\[(.+?)\]\((.+?)\)', text[i:])
+            if m:
+                result.append(m.group(0))
+                i += m.end()
+                continue
+
+        # Blockquote > (only at start of line)
+        if text[i] == '>' and (i == 0 or text[i-1] == '\n'):
+            end = text.find('\n', i)
+            end = end if end != -1 else len(text)
+            result.append(text[i:end])
+            i = end
+            continue
+
+        # Plain special char — escape it
+        if text[i] in _SPECIAL:
+            result.append('\\' + text[i])
+            i += 1
+            continue
+
+        result.append(text[i])
+        i += 1
+
+    return ''.join(result)
+
+def adapt_markdown(text: str) -> str:
+    """
+    Adapt standard Markdown to Telegram-compatible Markdown.
+
+    Telegram's Markdown mode uses ``*bold*`` and ``_italic_``,
+    while most editors produce ``**bold**`` and ``*italic*``.
+
+    Conversion rules:
+
+    - ``**bold**``          → ``*bold*``
+    - ``*italic*``          → ``_italic_``
+    - ``***bold+italic***`` → ``*_bold+italic_*``
+    - ``\\*escaped\\*``     → unchanged
+    - Unclosed tags         → unchanged
+
+    Supports nested and multiline strings.
+
+    :param text: Markdown string to adapt
+    :type text: ``str``
+    :return: Telegram-compatible Markdown string
+    :rtype: ``str``
+    """
+
+    result = []
+    i = 0
+
+    while i < len(text):
+        # Skip escaped \*
+        if text[i] == '\\' and i + 1 < len(text) and text[i+1] == '*':
+            result.append(text[i:i+2])
+            i += 2
+            continue
+
+        # Count consecutive *
+        if text[i] == '*':
+            stars = 0
+            while i + stars < len(text) and text[i + stars] == '*':
+                stars += 1
+
+            # ***bold+italic***
+            if stars >= 3:
+                end = text.find('***', i + 3)
+                if end != -1:
+                    inner = adapt_markdown(text[i+3:end])
+                    result.append(f'*_{inner}_*')
+                    i = end + 3
+                    continue
+
+            # **bold**
+            if stars >= 2:
+                end = text.find('**', i + 2)
+                if end != -1:
+                    inner = adapt_markdown(text[i+2:end])
+                    result.append(f'*{inner}*')
+                    i = end + 2
+                    continue
+
+            # *italic*
+            if stars >= 1:
+                end = i + 1
+                while end < len(text):
+                    if text[end] == '\\' and end + 1 < len(text) and text[end+1] == '*':
+                        end += 2
+                        continue
+                    if text[end] == '*' and (end + 1 >= len(text) or text[end+1] != '*'):
+                        break
+                    end += 1
+                if end < len(text):
+                    inner = adapt_markdown(text[i+1:end])
+                    result.append(f'_{inner}_')
+                    i = end + 1
+                    continue
+
+        result.append(text[i])
+        i += 1
+
+    return ''.join(result)
+
+def telegramify_markdown(text: str):
+    """
+    Convert standard Markdown to a safe Telegram MarkdownV2 string.
+
+    A convenience pipeline that combines :func:`adapt_markdown` and
+    :func:`sanitize_markdown` in a single call:
+
+    1. :func:`adapt_markdown` — converts ``**bold**`` → ``*bold*``,
+       ``*italic*`` → ``_italic_``, ``***bold+italic***`` → ``*_..._*``
+    2. :func:`sanitize_markdown` — escapes all special MarkdownV2
+       characters outside of valid formatting entities
+
+    :param text: Standard Markdown string
+    :type text: ``str``
+    :return: Safe MarkdownV2 string ready to send via Telegram Bot API
+    :rtype: ``str``
+    """
+    return sanitize_markdown(
+        adapt_markdown(text)
+    )
