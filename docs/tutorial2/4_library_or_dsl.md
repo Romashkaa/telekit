@@ -13,16 +13,16 @@ Alternatively, you can stay on the **classic Telekit path** and continue learnin
 
 If you want to keep working directly with the **Telekit Python API**, this path is for you.
 
-- **API Coverage:** Full
-- **Difficulty:**   Advanced
+- **API Coverage:** `Full`
+- **Difficulty:**   `Advanced`
 
 - [See Examples »](../examples/examples.md#examples)
 - [Continue with classic Telekit (Next: Senders) »](5_senders.md)
 
 ## Switch to Telekit DSL
 
-- **API Coverage:** Partial
-- **Difficulty:**   Intermediate
+- **API Coverage:** `Partial`
+- **Difficulty:**   `Intermediate`
 
 Telekit DSL is a **declarative language** for building dialog flows without writing Python logic for every step.
 
@@ -31,8 +31,8 @@ Telekit DSL is a **declarative language** for building dialog flows without writ
 
 ## Switch to Telekit Canvas
 
-- **API Coverage:** Basic
-- **Difficulty:**   Beginner
+- **API Coverage:** `Basic`
+- **Difficulty:**   `Beginner`
 
 Telekit Canvas lets you build dialog flows **visually** in Obsidian — no code required for every step.
 
