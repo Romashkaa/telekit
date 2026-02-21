@@ -83,10 +83,6 @@ Groups are **ignored** by the parser — they are purely visual. Use them freely
 
 Node colors are also **ignored**. Use them as visual markers for yourself.
 
-## Full Example
+## Example
 
-Here is a simple FAQ bot canvas:
-
-<table> <tr>
-    <td><img src="/docs/images/canvas/example6.png" alt="Canvas Example 6" width="500"></td>
-</tr> </table>
+See a simple [FAQ bot canvas](/docs/examples/canvas_faq.md) example

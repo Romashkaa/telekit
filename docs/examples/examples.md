@@ -39,6 +39,12 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | [Password: Input Handling](password.md) | A simple password-checking program that [handles user input](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handling-text-input), respond to correct or incorrect values, and provide link. | DSL: `link`, `suggest`, `entries`, `buttons`, `{{entry}}` |
 | [Jinja Engine](jinja_engine.md) | Example demonstrating the use of Jinja templates | `set_jinja_context`, `analyze_string`, `start_script` |
 
+## Obsidian Canvas
+
+| Name | Comment | Used methods |
+|-----------|--------------|-------------------------|
+| [FAQ](canvas_faq.md) | FAQ from Obsidian Canvas | `analyze_canvas` |
+
 ## Complex
 
 | Name | Comment | Used methods |
