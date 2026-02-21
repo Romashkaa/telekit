@@ -11,10 +11,10 @@ Alternatively, you can stay on the **classic Telekit path** and continue learnin
 
 ## Continue with classic Telekit
 
-If you want to keep working directly with the **Telekit Python API**, this path is for you.
-
 - **API Coverage:** `Full`
 - **Difficulty:**   `Advanced`
+
+If you want to keep working directly with the **Telekit Python API**, this path is for you.
 
 - [See Examples »](../examples/examples.md#examples)
 - [Continue with classic Telekit (Next: Senders) »](5_senders.md)
