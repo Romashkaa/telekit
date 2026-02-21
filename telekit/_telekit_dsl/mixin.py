@@ -236,9 +236,9 @@ class DSLHandler(telekit.Handler):
         Raises an error if there are syntax errors or analyzer warnings.
 
         :param path: Path to the script. Supports any file extension
-        :type path: str
+        :type path: `str`
         :param encoding: Encoding
-        :type encoding: str
+        :type encoding: `str`
         """
         with open(path, "r", encoding=encoding) as f:
             content = f.read()
@@ -253,9 +253,47 @@ class DSLHandler(telekit.Handler):
         Raises an error if there are syntax errors or analyzer warnings.
         
         :param script: Telekit DSL script
-        :type script: str
+        :type script: `str`
         """
         cls.executable_model = parser.analyze(script)
+        cls._prepare_script(cls.executable_model)
+        
+    @classmethod
+    def analyze_canvas(cls, file_path: str) -> None | NoReturn:
+        """
+        Analyze an Obsidian ``.canvas`` file and store parsed data in the class.
+
+        Parses the Canvas JSON format — nodes become scenes, edges become
+        buttons. The node with the lowest Y coordinate (highest on screen)
+        becomes the ``main`` scene.
+
+        Node text format::
+
+            Button Label & Title
+            ---
+            Scene message text
+
+        Or without a header (plain text only)::
+
+            Scene text
+
+        Raises an error if the file is not found or contains invalid JSON.
+
+        :param file_path: Path to the ``.canvas`` file
+        :type file_path: ``str``
+        """
+        cls.executable_model = parser.canvas_parser.parse(file_path)
+        cls._prepare_script(cls.executable_model)
+
+    @classmethod
+    def analyze_executable_model(cls, executable_model: dict) -> None | NoReturn:
+        """
+        Load an script from dict and store it in the class.
+        
+        :param executable_model: Telekit DSL executable model
+        :type executable_model: `dict`
+        """
+        cls.executable_model = executable_model
         cls._prepare_script(cls.executable_model)
 
     @classmethod

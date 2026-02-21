@@ -1,7 +1,7 @@
 from . import (
     lexer, parser,
     token, nodes,
-    builder
+    builder, canvas_parser
 )
 
 def analyze(src: str):
@@ -20,5 +20,6 @@ __all__ = [
     "builder",
     "token",
     "nodes",
+    "canvas_parser",
     "MAGIC_SCENES"
 ]
