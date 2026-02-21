@@ -29,12 +29,13 @@ Telekit DSL is a **declarative language** for building dialog flows without writ
 - [See Examples »](../examples/examples.md#telekit-dsl)
 - [Learn Telekit DSL »](../tutorial/11_telekit_dsl.md)
 
-## 🏞️ Switch to Telekit Canvas
+## 🏞️ Switch to Telekit Canvas (BETA)
 
 - **API Coverage:** `Basic`
 - **Difficulty:**   `Beginner`
 
 Telekit Canvas lets you build dialog flows **visually** in Obsidian — no code required for every step.
 
+- [See Examples »](../examples/examples.md#obsidian-canvas)
 - [Learn Telekit Canvas](../tutorial2/canvas/contents.md)
 
