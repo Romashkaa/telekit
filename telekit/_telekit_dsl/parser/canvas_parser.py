@@ -1,3 +1,22 @@
+# 
+# Copyright (C) 2026 Romashka
+# 
+# This file is part of Telekit.
+# 
+# Telekit is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version.
+# 
+# Telekit is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See 
+# the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License 
+# along with Telekit. If not, see <https://www.gnu.org/licenses/>.
+# 
+
 """
 Canvas to Telekit DSL executable model parser.
 
@@ -29,6 +48,13 @@ import json
 import re
 
 
+
+
+import json
+import re
+import sys
+
+
 def parse_node_text(raw: str) -> tuple[str | None, str | None, str]:
     """
     Returns (button_label, title, body).
@@ -57,7 +83,7 @@ def parse_node_text(raw: str) -> tuple[str | None, str | None, str]:
         return None, None, raw
 
 
-def auto_label(text: str, max_len: int = 24) -> str:
+def auto_label(text: str, max_len: int = 10) -> str:
     """Generate button label from first line, trimmed to max_len at word boundary."""
     first_line = text.splitlines()[0].strip() if text else "..."
     if len(first_line) <= max_len:
@@ -87,7 +113,7 @@ def canvas_to_model(canvas: dict) -> dict:
             "body":         body,          # message (if title exists) or text (if not)
         }
 
-    # Build adjacency: fromNode -> list of toNode ids
+    # Build adjacency: fromNode → list of toNode ids
     adjacency: dict[str, list[str]] = {nid: [] for nid in text_nodes}
     for edge in edges:
         fn = edge.get("fromNode")
@@ -95,32 +121,12 @@ def canvas_to_model(canvas: dict) -> dict:
         if fn in text_nodes and tn in text_nodes:
             adjacency[fn].append(tn)
 
-    # Detect back edges:
-    # If both A->B and B->A exist — the one going from higher Y to lower Y is "back".
-    back_pairs: set[tuple[str, str]] = set()
-    for fn, targets in adjacency.items():
-        for tn in targets:
-            if fn in adjacency.get(tn, []):
-                fn_y = text_nodes[fn].get("y", 0)
-                tn_y = text_nodes[tn].get("y", 0)
-                if fn_y > tn_y:
-                    back_pairs.add((fn, tn))
-                elif tn_y > fn_y:
-                    back_pairs.add((tn, fn))
-                else:
-                    fn_x = text_nodes[fn].get("x", 0)
-                    tn_x = text_nodes[tn].get("x", 0)
-                    if fn_x > tn_x:
-                        back_pairs.add((fn, tn))
-                    else:
-                        back_pairs.add((tn, fn))
 
     # Topological BFS from roots (nodes with no incoming forward edges)
     incoming: dict[str, int] = {nid: 0 for nid in text_nodes}
     for fn, targets in adjacency.items():
         for tn in targets:
-            if (fn, tn) not in back_pairs:
-                incoming[tn] += 1
+            incoming[tn] += 1
 
     # Among roots, lowest Y = main
     roots = [nid for nid, cnt in incoming.items() if cnt == 0]
@@ -138,7 +144,7 @@ def canvas_to_model(canvas: dict) -> dict:
         seen.add(cur)
         visited.append(cur)
         for nxt in adjacency.get(cur, []):
-            if nxt not in seen and (cur, nxt) not in back_pairs:
+            if nxt not in seen:
                 q.append(nxt)
     for nid in text_nodes:
         if nid not in seen:
@@ -163,7 +169,7 @@ def canvas_to_model(canvas: dict) -> dict:
         used_names.add(slug)
         id_to_name[nid] = slug
 
-    # First scene -> "main"
+    # First scene → "main"
     if visited:
         first_id = visited[0]
         old_name = id_to_name[first_id]
@@ -181,14 +187,11 @@ def canvas_to_model(canvas: dict) -> dict:
         buttons: dict[str, dict] = {}
 
         for tn in adjacency.get(nid, []):
-            if (nid, tn) in back_pairs:
-                buttons["« Back"] = {"type": "scene", "target": "back"}
-            else:
-                target_name = id_to_name[tn]
-                btn_label = parsed[tn]["button_label"]
-                if not btn_label:
-                    btn_label = auto_label(parsed[tn]["body"])
-                buttons[btn_label] = {"type": "scene", "target": target_name}
+            target_name = id_to_name[tn]
+            btn_label = parsed[tn]["button_label"]
+            if not btn_label:
+                btn_label = auto_label(parsed[tn]["body"])
+            buttons[btn_label] = {"type": "scene", "target": target_name}
 
         # title+message vs plain text
         if p["title"] is not None:

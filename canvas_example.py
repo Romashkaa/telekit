@@ -1,6 +1,6 @@
 import telekit
 
-class Test(telekit.DSLHandler):
+class CanvasHandler(telekit.DSLHandler):
     @classmethod
     def init_handler(cls) -> None:
         cls.analyze_canvas(CANVAS_PATH)
