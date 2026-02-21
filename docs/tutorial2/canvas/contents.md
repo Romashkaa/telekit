@@ -16,4 +16,4 @@ Instead of writing code for every dialog step, you design your bot as a **flowch
 
 
 > [!NOTE]
-> Telekit Canvas uses **Telekit DSL** under the hood — your canvas is automatically converted to a DSL executable model at runtime. You don't need to know DSL to use Canvas mode, but it helps if you want to extend your bot with custom logic later.
+> Telekit Canvas uses **Telekit DSL** under the hood — your canvas is automatically converted to a DSL executable model at runtime.

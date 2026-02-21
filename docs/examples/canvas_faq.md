@@ -21,7 +21,8 @@ telekit.Server(TOKEN).polling()
 ```
 
 Before running, make sure you have:
-— [Created a canvas](../tutorial2/canvas/setup_canvas.md)
+
+- [Created a canvas](../tutorial2/canvas/setup_canvas.md)
 - [Filled it with content](../tutorial2/canvas/basics.md)
 - `canvas_path.txt` — containing the path to your `.canvas` file
 - `bot_token.txt` — containing your bot token
