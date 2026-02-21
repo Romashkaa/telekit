@@ -9,12 +9,15 @@ from telekit._version import __version__ as version
 # Remove old builds
 # -----------------------------------------------------------------------------
 
-for folder in ("build", "dist"):
-    if os.path.exists(folder):
-        shutil.rmtree(folder)
+def remove_cache():
+    for folder in ("build", "dist"):
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
-for egg in [d for d in os.listdir('.') if d.endswith(".egg-info")]:
-    shutil.rmtree(egg)
+    for egg in [d for d in os.listdir('.') if d.endswith(".egg-info")]:
+        shutil.rmtree(egg)
+
+remove_cache()
 
 # -----------------------------------------------------------------------------
 # Read files
@@ -46,7 +49,6 @@ setup(
     long_description=long_description(),
     long_description_content_type='text/markdown',
     keywords='telegram bot api declarative tools bot-api',
-    license="GPLv3",
     author='romashka',
     author_email='notromashka@gmail.com',
     url='https://github.com/Romashkaa/telekit',
