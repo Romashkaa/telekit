@@ -151,7 +151,7 @@ self.chain.sender.send_chat_action(ChatAction.TYPING) # Use enum or string
 ```
 
 > [!NOTE]
-> Telekit automatically decides whether to use `bot.send_message`, `bot.send_photo`, or other Telegram API methods.
+> Telekit automatically decides whether to use 'bot.send_message' or 'bot.send_photo' based on the content
 
 More styling options are available in the [documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/5_senders.md).
 

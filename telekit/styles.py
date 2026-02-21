@@ -40,6 +40,7 @@ __all__ = [
     "Spoiler",
 
     "Link",
+    "Mention",
     "UserLink",
     "BotLink",
 
@@ -47,7 +48,7 @@ __all__ = [
     "Language",
     "Python",
 
-    "EncodeHTML",
+    "EncodeURL",
 
     "label_cheatsheet",
     "debug_style"
