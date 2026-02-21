@@ -50,6 +50,8 @@ We offer the following:
 Everything **above** `---` becomes the **title** and the **button label**.
 Everything **below** `---` becomes the **message body**.
 
+### Example 
+
 <table> <tr>
     <td><img src="/docs/images/canvas/example3.png" alt="Canvas Example 3" width="500"></td>
 </tr> </table>
