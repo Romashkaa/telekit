@@ -83,7 +83,7 @@ def parse_node_text(raw: str) -> tuple[str | None, str | None, str]:
         return None, None, raw
 
 
-def auto_label(text: str, max_len: int = 10) -> str:
+def auto_label(text: str, max_len: int = 24) -> str:
     """Generate button label from first line, trimmed to max_len at word boundary."""
     first_line = text.splitlines()[0].strip() if text else "..."
     if len(first_line) <= max_len:
@@ -210,6 +210,7 @@ def canvas_to_model(canvas: dict) -> dict:
             scene["buttons"] = buttons
 
         scenes[scene_name] = scene
+        scene["parse_mode"] = "markdown"
 
     order = [id_to_name[nid] for nid in visited]
 
