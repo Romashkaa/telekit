@@ -75,3 +75,42 @@ def format_file_size(size: int, precision: int = 1) -> str:
         formatted = f"{_size:.{precision}f}".rstrip("0").rstrip(".")
 
     return f"{formatted} {units[index]}"
+
+def read_token(path: str = "token.txt") -> str:
+    """
+    Read the bot token from a file.
+
+    Reads only the first line, so multiple tokens can be stored in the file
+    and swapped quickly by reordering lines — no need to delete or copy.
+
+    Inline comments are supported — everything after the first whitespace
+    is ignored::
+
+        123456789:BotSecretToken  Main production bot
+        987654321:AnotherToken    Backup bot
+
+    :param path: Path to the token file
+    :type path: ``str``
+    :return: Bot token string
+    :rtype: ``str``
+    """
+    with open(path) as f:
+        first_line: str = f.readline().strip()
+        token, *_ = first_line.split()
+        return token
+
+
+def read_canvas_path(path: str = "canvas_path.txt") -> str:
+    """
+    Read the ``.canvas`` file path from a file.
+
+    Reads only the first line, so multiple pathes can be stored in the file
+    and swapped quickly by reordering lines — no need to delete or copy.
+
+    :param path: Path to the file containing the canvas path
+    :type path: ``str``
+    :return: Path to the ``.canvas`` file
+    :rtype: ``str``
+    """
+    with open(path) as f:
+        return f.readline().strip()

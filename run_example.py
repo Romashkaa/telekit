@@ -1,6 +1,5 @@
 import telekit
 
-with open("token.txt") as f:
-    TOKEN: str = f.readline().strip()
+TOKEN: str = telekit.utils.read_token()
 
 telekit.example(TOKEN)
