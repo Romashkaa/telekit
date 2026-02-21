@@ -27,7 +27,7 @@ from telebot.types import (
     Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
 )
 
-from telekit.styles import TextEntity, Raw, Group, Bold, Italic, debug_style
+from telekit.styles import TextEntity, Raw, Group, Bold, Italic
 from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
 from ._logger import logger
 library = logger.library
@@ -987,16 +987,12 @@ class BaseSender:
             along with {project}. If not, see <https://www.gnu.org/licenses/>.
         """))
 
-    def debug_text(self, desc: str | None="BaseSender"):
+    def debug_text(self, label: str | None="BaseSender"):
         code: str = self.text
         parse_mode: str | None = self.parse_mode
 
-        debug_style(
-            Raw(code), 
-            parse_mode=parse_mode, 
-            desc=desc
-        )
-        
+        Raw(code).debug(parse_mode, label)
+
 # ---------------------------------------------------------------------------------
 # Sender
 # ---------------------------------------------------------------------------------
@@ -1009,7 +1005,7 @@ class Sender(BaseSender):
     _additional: Group | None
 
     _use_italics: bool
-    _use_newline: bool
+    _new_lines:   int
 
     # --------------------------------------------------------
     # Internal methods for compiling and formatting message text
@@ -1025,8 +1021,8 @@ class Sender(BaseSender):
         if not hasattr(self, "_message"):
             self._message = None
 
-        if not hasattr(self, "_use_newline"):
-            self._use_newline = True
+        if not hasattr(self, "_new_lines"):
+            self._new_lines = 2
         
         if not hasattr(self, "_use_italics"):
             self._use_italics = False
@@ -1073,8 +1069,8 @@ class Sender(BaseSender):
         if title:
             text_parts.append(title)
         
-        if self._use_newline and title and message:
-            text_parts.append("\n\n")
+        if self._new_lines and title and message:
+            text_parts.append("\n" * self._new_lines)
 
         if message:
             text_parts.append(message)
@@ -1104,14 +1100,19 @@ class Sender(BaseSender):
 
     def set_text(self, *text: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""): # pyright: ignore[reportIncompatibleMethodOverride]
         """
-        Set a plain text message, replacing any previously set title or message.
+        Set the message as plain text, replacing any previously set title or message content.
 
-        Args:
-            *text: One or more text parts or StyleFormatter objects to set.
-            sep (str): Optional. Separator used between text parts. Defaults to "".
+        :param text: One or more text parts or ``TextEntity`` objects.
+        :type text: ``str | TextEntity``
+        :param escape: Whether to escape special characters. Defaults to ``True``.
+        :type escape: ``bool``
+        :param sep: Separator between text parts. Defaults to ``""``.
+        :type sep: ``str | TextEntity``
 
-        >>> s.set_text("Hello", Bold("World"), sep=" ")
-        "Hello <b>World</b>"
+        Example::
+
+            >>> s.set_text("Hello ", Bold("World"))
+            "Hello <b>World</b>"
         """
         self._reset_alert()
 
@@ -1120,13 +1121,14 @@ class Sender(BaseSender):
 
     def set_title(self, *title: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""):
         """
-        Set the title of the alert message. Clears plain text content.
+        Set the title of the message. Clears any previously set plain text content.
 
-        Args:
-            title (str | StyleFormatter): Title of the alert-styled message. Not sanitized. HTML and Markdown tags are allowed
-
-        Returns:
-            None
+        :param title: One or more title parts or ``TextEntity`` objects.
+        :type title: ``str | TextEntity``
+        :param escape: Whether to escape special characters. Defaults to ``True``.
+        :type escape: ``bool``
+        :param sep: Separator between title parts. Defaults to ``""``.
+        :type sep: ``str | TextEntity``
         """
         self._reset_plain()
 
@@ -1135,42 +1137,40 @@ class Sender(BaseSender):
 
     def set_message(self, *message: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""):
         """
-        Set the main message body for the alert.
+        Set the main message body for the alert. Clears any previously set plain text content.
 
-        Args:
-            *message: One or more message parts or StyleFormatter objects. Not sanitized. HTML and Markdown tags are allowed
-            sep (str | StyleFormatter, optional): Separator used between message parts. Defaults to "".
-
-        Returns:
-            None
+        :param message: One or more message parts or ``TextEntity`` objects.
+        :type message: ``str | TextEntity``
+        :param escape: Whether to escape special characters. Defaults to ``True``.
+        :type escape: ``bool``
+        :param sep: Separator between message parts. Defaults to ``""``.
+        :type sep: ``str | TextEntity``
         """
         self._reset_plain()
 
         if message:
             self._message = Group(*message, escape=escape, sep=sep)
 
-    def append(self, *text: str | TextEntity, sep: str | TextEntity =""):
+    def append(self, *text: str | TextEntity, escape: bool = True, sep: str | TextEntity =""):
         """
-        Appends text to the end of the current message.
+        Append text to the end of the current message without replacing existing content.
 
-        This method does not replace the existing content.
-        Instead, it adds the provided text after the current message,
-        preserving everything that was already set.
+        Works with both ``set_text()`` and ``set_message()``.
 
-        Works the same way for both `set_text()` and `set_message()`.
+        :param text: One or more text parts or ``TextEntity`` objects.
+        :type text: ``str | TextEntity``
+        :param escape: Whether to escape special characters. Defaults to ``True``.
+        :type escape: ``bool``
+        :param sep: Separator between appended parts. Defaults to ``""``.
+        :type sep: ``str | TextEntity``
 
-        Not sanitized. HTML and Markdown tags are allowed
+        Example::
 
-        Example:
-        ```
-            s.set_text("Hel")
-            s.append("lo")
-
-            # Result:
-            # "Hello"
-        ```
+            >>> s.set_text("Hel")
+            >>> s.append("lo")
+            "Hello"
         """
-        add = Group(*text, sep=sep)
+        add = Group(*text, escape=escape, sep=sep)
 
         if hasattr(self, "_additional"):
             if self._additional is None:
@@ -1195,17 +1195,21 @@ class Sender(BaseSender):
         """
         self._use_italics = use_italics
 
-    def set_use_newline(self, use_newline: bool=True):
+    def set_use_newline(self, use_newline: bool | int=True):
         """
         Enable or disable automatic newline between title and message body.
 
         Args:
             use_newline (bool): True to insert newline, False to omit.
+            use_newline (int): Number of `"\\n"` between title and message.
 
         Returns:
             None
         """
-        self._use_newline = use_newline
+        if isinstance(use_newline, bool):
+            self._new_lines = int(use_newline) + 1
+        else:
+            self._new_lines = int(use_newline)
 
     # --------------------------------------------------------
     # Method to compile and send the message
@@ -1257,6 +1261,23 @@ class Sender(BaseSender):
             along with {project}. If not, see <https://www.gnu.org/licenses/>.
         """))
 
-    def debug_text(self, desc: str | None="Sender"):
+    def debug_text(self, label: str | None = "Sender") -> None:
+        """
+        Compile and print a formatted debug representation of the sender's current text.
+
+        Compiles the text content before printing, ensuring all pending
+        text parts are resolved. Delegates to the parent ``debug_text()``.
+
+        :param label: Optional label shown in the debug header. Defaults to ``"Sender"``.
+        :type label: ``str | None``
+
+        Example::
+
+            >>> self.chain.sender.set_text("Hello ", Bold("World"))
+            >>> self.chain.sender.debug_text()
+            ––––––– Sender Parse Mode: html –––––––
+
+            Hello <b>World</b>
+        """
         self._compile_text()
-        super().debug_text(desc)
+        super().debug_text(label)

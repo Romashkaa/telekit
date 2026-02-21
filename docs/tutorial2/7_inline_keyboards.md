@@ -66,10 +66,14 @@ self.chain.set_inline_keyboard(
         # When the user clicks this button, this method will be executed
         "Reload": self.reload,
         # Can even be a link (`str` or `LinkButton` object)
-        "PyPi": "https://pypi.org/project/telekit/",
         "GitHub": LinkButton("https://github.com/Romashkaa/telekit"),
         # Or copy button
-        "Copy Text": CopyTextButton("Text to copy")
+        "Copy Btn": CopyTextButton("Text to copy"),
+        "Extended Callback Button": CallbackButton(
+            self.my_callback,               # Handler method to call on press
+            pass_args=["arg to pass"],      # Arguments forwarded to the callback
+            style=ButtonStyle.PRIMARY,      # Visual style of the button
+        )
     }, row_width=(3, 2, 1)
 )
 ```
@@ -78,9 +82,9 @@ self.chain.set_inline_keyboard(
 ╭────────────┬──────────┬──────────╮
 │   Change   │   Okay   │  Reload  │
 ├────────────┴────┬─────┴──────────┤
-│       PyPi      │     GitHub     │
+│      GitHub     │    Copy Btn    │
 ├─────────────────┴────────────────┤
-│            Copy Text             │
+│     Extended Callback Button     │
 ╰──────────────────────────────────╯
 ```
 

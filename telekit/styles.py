@@ -50,8 +50,7 @@ __all__ = [
 
     "EncodeURL",
 
-    "label_cheatsheet",
-    "debug_style"
+    "label_cheatsheet"
 ]
 
 def label_cheatsheet():

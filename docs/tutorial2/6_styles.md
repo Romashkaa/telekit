@@ -1,6 +1,6 @@
 # Text Styling
 
-Telekit provides a convenient styles for creating styled messages in **HTML** or **Markdown**.  
+Telekit provides a convenient styles for creating styled messages in **HTML** or **Markdown** (v2).  
 It allows you to:
 
 - make text **Bold, Italic, Underlined, Strikethrough**, and more;
@@ -24,42 +24,29 @@ def handle(self):
             Bold("Bold"), " and ", Italic("Italic")
         )
     )
-    self.chain.sender.set_parse_mode("html")  # applied to all styles in message
+    self.chain.sender.set_parse_mode("markdown")  # applied to all styles in message; HTML by deafault
     self.chain.send()
 ```
 
-### The main rule
-
-If a style reaches the sender as a plain string, the sender can’t assign the correct parse_mode:
-
-```python
-self.chain.sender.set_text(
-    f"{Bold("Bold")} and {Italic("Italic")}"
-)
-```
-
-Here, the styles are already converted to text, so there may be a mismatch between the sender and the intended style formatting, which is HTML by default.
-
 ## Import & Use Styles
 
-Import `Styles` from `telekit.styles`:
+Import `Styles` namespace from `telekit.styles`:
 
 ```python
 from telekit.styles import Styles
 
-styles = Styles("markdown")
-styles.bold("Bold") + styles.italic("Italic")
+Styles.Bold("Bold") + Styles.Italic("Italic")
 ```
 
 Or use individual styles:
 
 ```python
-from telekit.styles import Bold, Italic
+from telekit.styles import Bold, Italic, Raw
 
-Bold("Bold") + Italic("Italic")
+Bold("Bold") + Italic("Italic") + Raw("<u>Custom<u>")
 ```
 
-You can easily switch between HTML and Markdown without changing the code:
+You can easily switch between HTML and Markdown (v2) without changing the code:
 
 ```python
 text = Bold("Bold") + " and " + Italic("Italic")
@@ -86,74 +73,143 @@ Grouping:
 
 ```python
 Group("Hello ", Bold("Romashka"), "!")
+# Hello <b>Romashka</b>!
 ```
 
-## Sanitizing Text
-
-If `parse_mode=None`, and the text is not sanitized. Any HTML tags are displayed literally in the chat, for example `<b>Romashka</b>`. Tags will not be interpreted, and the raw text appears exactly as written.
+Separator `sep=`:
 
 ```python
-self.chain.sender.set_text("<b>Romashka</b>")       # "<b>Romashka</b>"
-self.chain.sender.set_text("<b>Romashka<i></b>")    # "<b>Romashka<i></b>"
+Bold("Bold", Italic("Bold+Italic"), sep=", ").html
+# <b>Bold, <i>Bold+Italic</i></b>
 ```
 
-With `parse_mode=None`, using styles like `Bold()` will automatically sanitize the text inside them, so any HTML or special characters are safely escaped. The displayed text will be plain, with no interpreted tags.
+## Escaping
+
+By default, **all plain strings are escaped** before sending. This prevents formatting tags from being interpreted — they will be displayed as literal text instead:
 
 ```python
-self.chain.sender.set_text(Bold("Romashka"))     # "Romashka"
-self.chain.sender.set_text(Bold("Romashka<i>"))  # "Romashka<i>"
+self.chain.sender.set_text(
+    "<b>Bold</b> and <i>Italic</i>"
+)
+# Result: "&lt;b&gt;Bold&lt;/b&gt; and &lt;i&gt;Italic&lt;/i&gt;"
 ```
 
-If `parse_mode="html"` and text is not sanitized, so any HTML tags in the string will be interpreted by Telegram. Unclosed or incorrect tags can produce errors.
+If a style is converted to a string before being passed to the sender, it will be escaped and shown literally:
+```python
+self.chain.sender.set_text(
+    f"{Bold('Bold').html} and {Italic('Italic').html}"
+)
+# Result: "&lt;b&gt;Bold&lt;/b&gt; and &lt;i&gt;Italic&lt;/i&gt;"
+```
+
+Instead, pass style objects directly — the sender handles rendering and escaping correctly:
+```python
+self.chain.sender.set_text(Bold("Bold"), " and ", Italic("Italic"))
+# Result: "<b>Bold</b> and <i>Italic</i>"
+```
+
+To disable escaping, wrap the string in `Raw(...)` or pass `escape=False` to the style object or sender method:
+```python
+# Raw(...) — skip escaping for a pre-formatted string
+pre_formatted: str = f"{Bold('Bold').html} and {Italic('Italic').html}"
+self.chain.sender.set_text(Raw(pre_formatted))
+# Result: "<b>Bold</b> and <i>Italic</i>"
+
+# escape=False on the sender method
+self.chain.sender.set_text(f"{Bold('Bold').html} and {Italic('Italic').html}", escape=False)
+# Result: "<b>Bold</b> and <i>Italic</i>"
+
+# escape=False on the style object — useful for nested HTML/Markdown
+self.chain.sender.set_text(Bold("<i>Hello!</i>", escape=False))
+# Result: "<b><i>Hello!</i></b>
+
+# escape=True on the style object
+self.chain.sender.set_text(Bold("<i>Hello!</i>"))
+# Result: "<b>&lt;i&gt;Hello!&lt;/i&gt;</b>
+```
+
+## Debugging
+
+The style debugger renders a ``TextEntity`` tree and prints the result directly to the console — useful for previewing how your formatted text will look before sending it to Telegram.
+
+Use the ``.debug()`` method on any style object and pass the desired parse mode:
 
 ```py
-self.chain.sender.set_parse_mode("html")
-self.chain.sender.set_text("<b>Romashka</b>")    # Bold "Romashka"
-self.chain.sender.set_text("<b>Romashka<i></b>") # Error: unclosed "<i>" tag
+
+from telekit.styles import *
+
+Group(
+    Bold("🎵 Track List"),
+    Stack(
+        "Drugs",
+        Group("R2, C1", "–", Bold("CDs"), sep=" "),
+        "Hola",
+        Group("Ashfal", "–", Italic("Divine"), sep=" "),
+        start="  " + Stack.Markers.DOT,
+        sep=";\n",
+        end=".",
+    ),
+    Bold("Something next..."),
+    sep="\n"
+).debug("html")
 ```
 
-When using `parse_mode="html"` together with styles (like `Bold()`), the text inside the style is automatically sanitized, ensuring that it won’t break the HTML formatting even if it contains special characters or tags
+<table> <tr>
+    <td><img src="/docs/images/style_debugger.png" alt="Result" width="500"></td>
+</tr> </table>
+
+### 
 
 ```py
-self.chain.sender.set_parse_mode("html")
-self.chain.sender.set_text(Bold("Romashka"))            # Bold "Romashka"
-self.chain.sender.set_text(Bold("Romashka<i>"))         # Bold "Romashka<i>"
+from telekit.styles import *
+from telekit.senders import Sender
+
+sender = Sender(472584)
+sender.set_title("🎵 Track List")
+sender.set_message(
+    Stack(
+        "Drugs",
+        Group("R2, C1", "–", Bold("CDs"), sep=" "),
+        "Hola",
+        Group("Ashfal", "–", Italic("Divine"), sep=" "),
+        start="  " + Stack.Markers.DOT,
+        sep=";\n",
+        end=".",
+    ),
+    Bold("Something next..."),
+    sep="\n"
+)
+sender.set_use_newline(False)
+sender.set_parse_mode("markdown")
+sender.debug_text()
 ```
 
-Using `Sanitize()` explicitly will escape all HTML and formatting tags inside the string, so the text is displayed literally in Telegram, regardless of the parse mode.
-
-```py
-self.chain.sender.set_parse_mode("html")
-self.chain.sender.set_text(Sanitize("Romashka<i>"))     # "Romashka<i>"
-self.chain.sender.set_text(Sanitize("<b>Romashka</b>")) # "<b>Romashka</b>"
-```
+<table> <tr>
+    <td><img src="/docs/images/sender_debugger.png" alt="Result" width="600"></td>
+</tr> </table>
 
 ## Example
 
 ```python
 import telekit
+from telekit.styles import Group, Quote
 
-from telekit.types import ParseMode
-from telekit.styles import Group, Sanitize, Quote
-
-class Start(telekit.Handler):
+class StartHandler(telekit.Handler):
     @classmethod
     def init_handler(cls) -> None:
         cls.on.command("start").invoke(cls.start)
 
     def start(self):
-        self.chain.sender.set_title(Group("Hello, ", Sanitize(self.user.first_name), "!"))
+        self.chain.sender.set_title(f"Hello, {self.user.first_name}!")
         self.chain.sender.set_message(
             "Quote of the Day:\n",
-            Quote("The only way out is through."),
+            Quote("The only way out is through.", expandable=True),
             "– Someone"
         )
-        self.chain.sender.set_parse_mode(ParseMode.HTML)
+        self.chain.sender.debug_text()
         self.chain.send()
 
 telekit.Server(BOT_TOKEN).polling()
 ```
 
 [Next: Entries »](7_inline_keyboards.md)
-
-// TODO: Explain all styles

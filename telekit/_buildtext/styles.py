@@ -17,7 +17,6 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 from typing import Union, Literal
-from enum import Enum
 from urllib.parse import quote
 
 import telebot.formatting
@@ -754,44 +753,6 @@ class Styles:
     UserLink: type[TextEntity] = UserLink
     BotLink: type[TextEntity] = BotLink
     Group: type[TextEntity] = Group
-
-class RichPrinter():
-
-    @classmethod
-    def print_using_rich(cls, text: str, parse_mode: Literal["html", "markdown"] | None):
-        cls._try_install_rich()
-        
-        if parse_mode is not None and cls._rich_is_installed():
-            syntax = cls._rich_syntax(text, parse_mode, theme="material")
-            cls._rich_console.print(syntax)
-        else:
-            print(text)
-
-    @classmethod
-    def _rich_is_installed(cls):
-        return hasattr(cls, "_rich_console") and hasattr(cls, "_rich_syntax")
-        
-    @classmethod
-    def _try_install_rich(cls):
-        if cls._rich_is_installed():
-            return
-        
-        try:
-            import rich
-            from rich.syntax import Syntax
-
-            cls._rich_syntax = Syntax
-            cls._rich_console = rich.console.Console()
-        except:
-            print("\n * Install 'rich' to highlight the syntax")
-
-def debug_style(*args, parse_mode: Literal["html", "markdown"] | None, desc: str | None=None, sep: str="\n"):
-    _desc: str = f" {desc}" if desc else ""
-    text: str = Group(*args, sep=sep).render(parse_mode)
-
-    print(f"–––––––{_desc} Parse Mode: {parse_mode} –––––––", end="\n\n")
-    RichPrinter.print_using_rich(text, parse_mode)
-    print()
 
 
     

@@ -48,7 +48,7 @@ By default:
 - A blank line is inserted between them
 
 > [!NOTE]
-> `set_message()` also supports multiple text parts. All parts are automatically joined using the `sep` parameter.
+> `set_message()` and `set_title()` also support multiple text parts. All parts are automatically joined using the `sep` parameter.
 
 You can fine-tune the appearance using sender options:
 
@@ -84,28 +84,6 @@ self.chain.send()
 ```
 
 > Useful for building messages in a for-loop.
-</details>
-
-<details>
-<summary>set_parse_mode</summary>
-
-Set the parse mode for message formatting (e.g., Markdown, HTML):
-
-```py
-self.chain.sender.set_parse_mode("markdown")
-self.chain.sender.set_text("*Bold text* and _italic text_.")
-self.chain.send()
-```
-
-You can also use constants:
-
-```py
-from telekit.types import ParseMode
-self.chain.sender.set_parse_mode(ParseMode.HTML)
-```
-
-> Choose the appropriate parse mode for your formatting needs.
-
 </details>
 
 ## Attach Media to Messages
@@ -266,12 +244,26 @@ self.chain.send()
 <details>
 <summary>set_parse_mode</summary>
 
-Set the parse mode for message formatting (e.g., Markdown, HTML):
+Set the parse mode for message formatting (e.g., Markdown, HTML).
+
+By default, the parse mode is **HTML**, but all strings are **automatically escaped**. This means special characters like `<`, `>`, `&` are safe to pass as plain text.
+
+To use raw formatting tags, disable escaping explicitly:
 
 ```py
 self.chain.sender.set_parse_mode("markdown")
-self.chain.sender.set_text("*Bold text* and _italic text_.")
+self.chain.sender.set_text("*Bold text* and _italic text_.", escape=False) # disable auto-escaping for strings
 self.chain.send()
+```
+
+> [!WARNING]
+> When using `escape=False`, make sure your string is already valid for the current parse mode.
+
+Or wrap the string in `Raw(...)` to skip escaping for a single value:
+
+```py
+from telekit.styles import Raw
+self.chain.sender.set_text(Raw("<b>Bold text</b>"), " plain text")
 ```
 
 You can also use constants:
@@ -442,7 +434,7 @@ self.chain.send()
 
 > [!IMPORTANT] 
 > - `set_temporary()` only marks the current message.  
-> - `set_delete_temporaries()` only triggers deletion of earlier temporary messages.
+> - `set_delete_temporaries()` only triggers deletion of earlier marked messages.
 
 </details>
 
@@ -505,7 +497,7 @@ A request to the Telegram API was unsuccessful. Error code: 400. Description: Ba
 ```
 
 > [!IMPORTANT]
-> `self.chain.sender.send_or_handle_error()` only sends the message itself. It does not handle inline keyboards or other interactions — for those, you should use `self.chain.send()` or `self.chain.edit()`!
+> `self.chain.sender.send_or_handle_error()` only sends the message itself. It does not handle inline keyboards or other interactions — for those, you should use `self.chain.send()` or `self.chain.edit()`
 
 
 </details>

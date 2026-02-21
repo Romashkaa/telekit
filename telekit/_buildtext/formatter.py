@@ -93,6 +93,27 @@ class TextEntity:
             case _:
                 return text
             
+    def debug(self, parse_mode: Literal["html", "markdown"] | None="html", label: str | None = None) -> None:
+        """
+        Print a formatted debug representation of the current style to the console.
+
+        Renders the style using the specified parse mode and displays it
+        with a labeled separator via ``debug_style()``.
+
+        :param parse_mode: Parse mode to use for rendering — ``"html"``, ``"markdown"``, or ``None`` for plain text.
+        :type parse_mode: ``Literal["html", "markdown"] | None``
+        :param label: Optional label shown in the debug header.
+        :type label: ``str | None``
+
+        Example::
+
+            >>> Bold("Hello").debug("html", label="test")
+            ––––––– test Parse Mode: html –––––––
+
+            <b>Hello</b>
+        """
+        debug_style(self, label=label, parse_mode=parse_mode)
+            
 class EasyTextEntity(TextEntity):
     def render_markdown(self) -> str:
         return self._render_markdown(self._render_content("markdown"))
@@ -147,6 +168,48 @@ class StaticTextEntity(TextEntity):
     def _render_any(self, content: str) -> str:
         return content
 
+# Grouping
+
 class Group(TextEntity):
     def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str] = ""):
         super().__init__(*content, escape=escape, sep=sep)
+
+# Debugger
+
+class RichPrinter():
+
+    @classmethod
+    def print_using_rich(cls, text: str, parse_mode: Literal["html", "markdown"] | None):
+        cls._try_install_rich()
+        
+        if parse_mode is not None and cls._rich_is_installed():
+            syntax = cls._rich_syntax(text, parse_mode, theme="material")
+            cls._rich_console.print(syntax)
+        else:
+            print(text)
+
+    @classmethod
+    def _rich_is_installed(cls):
+        return hasattr(cls, "_rich_console") and hasattr(cls, "_rich_syntax")
+        
+    @classmethod
+    def _try_install_rich(cls):
+        if cls._rich_is_installed():
+            return
+        
+        try:
+            import rich
+            from rich.syntax import Syntax
+
+            cls._rich_syntax = Syntax
+            cls._rich_console = rich.console.Console()
+        except:
+            print("\n * Install 'rich' to highlight the syntax")
+
+def debug_style(*args, parse_mode: Literal["html", "markdown"] | None, label: str | None=None, sep: str="\n"):
+    _desc: str = f" {label}" if label else ""
+    text: str = Group(*args, sep=sep).render(parse_mode)
+
+    print(f"–––––––{_desc} Parse Mode: {parse_mode} –––––––", end="\n\n")
+    RichPrinter.print_using_rich(text, parse_mode)
+    print()
