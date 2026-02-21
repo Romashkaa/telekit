@@ -9,7 +9,7 @@ Alternatively, you can stay on the **classic Telekit path** and continue learnin
 > [!TIP]
 > You can always combine both approaches: use **Telekit DSL** for dialogs and **Telekit** for complex logic.
 
-## Continue with classic Telekit
+## 🧑‍💻 Continue with classic Telekit
 
 - **API Coverage:** `Full`
 - **Difficulty:**   `Advanced`
@@ -19,7 +19,7 @@ If you want to keep working directly with the **Telekit Python API**, this path 
 - [See Examples »](../examples/examples.md#examples)
 - [Continue with classic Telekit (Next: Senders) »](5_senders.md)
 
-## Switch to Telekit DSL
+## 🧙‍♀️ Switch to Telekit DSL
 
 - **API Coverage:** `Partial`
 - **Difficulty:**   `Intermediate`
@@ -29,7 +29,7 @@ Telekit DSL is a **declarative language** for building dialog flows without writ
 - [See Examples »](../examples/examples.md#telekit-dsl)
 - [Learn Telekit DSL »](../tutorial/11_telekit_dsl.md)
 
-## Switch to Telekit Canvas
+## 🏞️ Switch to Telekit Canvas
 
 - **API Coverage:** `Basic`
 - **Difficulty:**   `Beginner`
