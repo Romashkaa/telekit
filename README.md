@@ -59,7 +59,7 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
 ## Contents
 
 - 🌟 [Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md)
-- 🌁 [Gallery](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/gallery.md)
+- 🎆 [Gallery](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/gallery.md)
 - 👀 [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
     - [Dialogue](https://github.com/Romashkaa/telekit/blob/main/docs/examples/dialogue.md)
     - [Risk Game](https://github.com/Romashkaa/telekit/blob/main/docs/examples/risk_game.md)
