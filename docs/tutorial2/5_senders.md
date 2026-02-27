@@ -2,9 +2,27 @@
 
 Senders in Telekit provide a high-level interface for sending and managing messages in Telegram bots. They wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, adding photos and effects.
 
+```python
+import telekit
+
+class EchoHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.text().invoke(cls.echo) # accepts all text messages
+
+    def echo(self) -> None:
+        self.chain.sender.set_text(f"{self.message.text}!")
+        self.chain.send()
+
+telekit.Server("TOKEN").polling()
+```
+
+> Use this echo bot example to test any method from this page
+
 ## Send Text Messages
 
-There are two main ways to create a message: a plain text message or a structured message with a title and body:
+There are two main ways to create a message: a **plain text message** or a structured **message with a title and body**:
 
 <details>
 <summary>Plain Text Message</summary>
@@ -197,7 +215,7 @@ self.chain.sender.set_voice("voice.ogg")
 self.chain.send()
 ```
 
-> Voice messages are short audio clips recorded by the user.
+> Voice messages are short audio clips.
 
 </details>
 
@@ -237,6 +255,58 @@ self.chain.send()
 
 > Useful when you want to clear previous attachments.
 
+By default, `sender.remove_attachments()` is called automatically after each `send()` to prevent attached media from carrying over to subsequent messages in the same chain. 
+
+Use `sender.set_remove_attachments(False)` to preserve attachments across multiple sends:
+
+```py
+self.chain.sender.set_photo("photo.jpg")
+self.chain.sender.set_text("^- photo...")
+self.chain.sender.set_remove_attachments(False)
+self.chain.send()
+
+self.chain.sender.set_text("^- the same photo...")
+self.chain.send()
+```
+
+</details>
+
+<summary>Removing Text Content</summary>
+
+Remove text content before sending with `remove_text()`:
+
+```py
+self.chain.sender.remove_text()  # clears title, message and text
+```
+
+By default, `sender.remove_text()` is called automatically after each `send()` to prevent text from carrying over to subsequent messages in the same chain.
+
+Use `sender.set_remove_text(False)` to preserve the same text across multiple sends:
+
+```py
+import telekit
+import time
+
+class MyHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.text().invoke(cls.handle) # accepts all text messages
+
+    def handle(self) -> None:
+        self.chain.sender.set_remove_text(False) # try disabling and enabling
+
+        self.chain.sender.set_text("Pinned title")
+        self.chain.send()
+
+        for _ in range(10):
+            time.sleep(1) # wait 1 second
+            self.chain.sender.append("!") # appends "!" to the message text
+            self.chain.edit() # edit previous message
+
+telekit.Server("TOKEN").polling()
+```
+
 </details>
 
 ## Message Control
@@ -251,7 +321,7 @@ By default, the parse mode is **HTML**, but all strings are **automatically esca
 To use raw formatting tags, disable escaping explicitly:
 
 ```py
-self.chain.sender.set_parse_mode("markdown")
+self.chain.sender.set_parse_mode("markdown") # you can also use markdown (v2)
 self.chain.sender.set_text("*Bold text* and _italic text_.", escape=False) # disable auto-escaping for strings
 self.chain.send()
 ```

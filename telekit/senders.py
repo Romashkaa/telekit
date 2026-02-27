@@ -170,29 +170,12 @@ class BaseSender:
         self.venue = []
         self.media = []
 
+        self._do_remove_text = True
+        self._do_remove_attachments = True
+
     # --------------------------------------------------------
     # Setter methods for configuring media attachments
     # --------------------------------------------------------
-
-    def remove_attachments(self):
-        """
-        Clear all attachments from the sender:
-
-        The following fields are reset to their default empty values:
-        - `photo`, `document`, `animation`, `video`, `video_note`
-        - `audio`, `voice`, `venue`, `media`
-
-        But `text`, `parse_mode`, and other non-attachment properties are preserved.
-        """
-        self.media: list[InputMediaPhoto] = []
-        self.video_note: str | Any = None
-        self.animation: str | Any = None
-        self.document: str | Any = None
-        self.photo: str | Any = None
-        self.video: str | Any = None
-        self.audio: str | Any = None
-        self.voice: str | Any = None
-        self.venue: list[Any] = []
 
     def set_photo(self, photo: str | None | Any):
         """
@@ -548,11 +531,76 @@ class BaseSender:
         if getattr(reply_to, "message_id", None) is not None:
             self.reply_to_message_id = reply_to.message_id
 
-    def append(self, *args, **kwargs):
+    def append(self, *args, **kwargs): # TODO
         """
         Placeholder method in `BaseSender` that does **not perform any action**.
         """
         library.warning("BaseSender().append() called; method does nothing")
+
+    # --------------------------------------------------------
+    # Reset logic
+    # --------------------------------------------------------
+
+    def set_remove_attachments(self, remove_attachments: bool = True):
+        """
+        Controls whether sender attachments are automatically cleared after each send.
+
+        When `True` (default), attachments such as photo, document, audio, and others
+        are removed from the sender after the message is sent, so they don't
+        accidentally appear in the next message.
+
+        Set to `False` to preserve attachments across multiple sends.
+
+        See also: `set_remove_text()`
+        """
+        self._do_remove_attachments = remove_attachments
+
+    def set_remove_text(self, remove_text: bool = True):
+        """
+        Controls whether text content is automatically cleared after each send.
+
+        Set to `False` to preserve text content across multiple sends.
+
+        See also: `set_remove_attachments()`
+        """
+        self._do_remove_text = remove_text
+
+    def reset(self):
+        """
+        Clears sender's text content and attachments.
+        """
+        self.remove_text()
+        self.remove_attachments()
+
+    def _reset_after_send(self):
+        if self._do_remove_text:
+            self.remove_text()
+        if self._do_remove_attachments:
+            self.remove_attachments()
+
+    def remove_text(self):
+        self.text = ""
+
+    def remove_attachments(self):
+        """
+        Clear all attachments from the sender:
+
+        The following fields are reset to their default empty values:
+        - `photo`, `document`, `animation`, `video`, `video_note`
+        - `audio`, `voice`, `venue`, `media`
+
+        But `text`, `parse_mode`, and other non-attachment properties are preserved.
+        """
+        self.media: list[InputMediaPhoto] = []
+        self.video_note: str | Any = None
+        self.animation: str | Any = None
+        self.document: str | Any = None
+        self.photo: str | Any = None
+        self.video: str | Any = None
+        self.audio: str | Any = None
+        self.voice: str | Any = None
+        self.venue: list[Any] = []
+        
 
     # --------------------------------------------------------
     # Methods for preparing send and edit message configurations
@@ -615,25 +663,29 @@ class BaseSender:
 
     def _send(self) -> Message | None:
         if self.photo:
-            return self._send_photo()
+            message = self._send_photo()
         elif self.document:
-            return self._send_document()
+            message = self._send_document()
         elif self.video:
-            return self._send_video()
+            message = self._send_video()
         elif self.animation:
-            return self._send_animation()
+            message = self._send_animation()
         elif self.audio:
-            return self._send_audio()
+            message = self._send_audio()
         elif self.voice:
-            return self._send_voice()
+            message = self._send_voice()
         elif self.video_note:
-            return self._send_video_note()
+            message = self._send_video_note()
         elif self.venue:
-            return self._send_venue()
+            message = self._send_venue()
         elif self.media:
-            return self._send_media()
+            message = self._send_media()
         else:
-            return self._send_text()
+            message = self._send_text()
+        
+        self._reset_after_send()
+
+        return message
         
     def _send_photo(self) -> Message | None:
         return self.bot.send_photo(
@@ -753,6 +805,8 @@ class BaseSender:
                 reply_markup=self.reply_markup,
                 **configs
             )
+
+        self._reset_after_send()
 
         if isinstance(message, Message):
             return message
@@ -1093,6 +1147,17 @@ class Sender(BaseSender):
         self._title = None
         self._message = None
         self._additional = None
+
+    def remove_text(self):
+        """
+        Clears the text content.
+        
+        Resets `title`, `message`, and `text` to their default empty values.
+        Attachments, parse mode, and other properties are preserved.
+        """
+        self._reset_alert()
+        self._reset_plain()
+        super().remove_text()
 
     def set_text(self, *text: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""): # pyright: ignore[reportIncompatibleMethodOverride]
         """

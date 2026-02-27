@@ -56,7 +56,6 @@ class ChainBase:
         self._do_remove_timeout = True
         self._do_remove_entry_handler = True
         self._do_remove_inline_keyboard = True
-        self._do_remove_sender_attachments = True
     
     # -------------------------------------------
     # Cleanup Logic: manages clearing input handlers, inline keyboards, and timeout after each step
@@ -101,34 +100,18 @@ class ChainBase:
         self.sender.set_reply_markup(None)
         self._handler.set_button_callbacks(None)
 
-    def remove_sender_attachments(self):
-        """
-        Clears all attachments from `chain.sender` via `sender.remove_attachments()`.
-
-        The following fields are reset to their default empty values:
-        - `photo`, `document`, `animation`, `video`, `video_note`
-        - `audio`, `voice`, `venue`, `media`
-
-        But `text`, `parse_mode`, and other non-attachment properties are preserved.
-
-        See also: `remove_all_handlers()`
-        """
-        self.sender.remove_attachments()
-
     def remove_all_handlers(self):
         """
-        Removes all handlers associated with the chain and clears all sender attachments.
+        Removes all handlers associated with the chain.
 
         Calls the following in sequence:
         - `remove_timeout()`            — cancels any active timeout
         - `remove_entry_handler()`      — removes the pending entry handler
         - `remove_inline_keyboard()`    — detaches inline keyboard callbacks
-        - `remove_sender_attachments()` — clears all sender attachments
         """
         self.remove_timeout()
         self.remove_entry_handler()
         self.remove_inline_keyboard()
-        self.remove_sender_attachments()
 
     def _remove_all_handlers(self):
         if self._do_remove_timeout:
@@ -137,8 +120,6 @@ class ChainBase:
             self.remove_entry_handler()
         if self._do_remove_inline_keyboard:
             self.remove_inline_keyboard()
-        if self._do_remove_sender_attachments:
-            self.remove_sender_attachments()
 
     # Configuration API
 
@@ -171,18 +152,6 @@ class ChainBase:
         Set to False if you want to reuse the same keyboard in subsequent messages.
         """
         self._do_remove_inline_keyboard = remove_inline_keyboard
-
-    def set_remove_sender_attachments(self, remove_sender_attachments: bool = True):
-        """
-        Controls whether sender attachments are automatically cleared after each send.
-
-        When `True` (default), attachments such as photo, document, audio, and others
-        are removed from the sender after the message is sent, so they don't
-        accidentally appear in the next message.
-
-        Set to `False` to preserve attachments across multiple sends.
-        """
-        self._do_remove_sender_attachments = remove_sender_attachments
 
     def set_break_only_on_match(self, break_only_on_match: bool = True):
         """
