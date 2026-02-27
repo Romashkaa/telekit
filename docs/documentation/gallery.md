@@ -1,5 +1,7 @@
 # Telekit Gallery
 
+## Example Bot
+
 Some screenshots of [the example bot](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/example_bot.md):
 
 
@@ -39,6 +41,18 @@ Some screenshots of [the example bot](https://github.com/Romashkaa/telekit/blob/
     <tr>
       <td><img src="../images/telekit_example_7.jpg" alt="Telekit Example 7" width="300"></td>
       <td><img src="../images/telekit_example_8.jpg" alt="Telekit Example 8" width="300"></td>
+    </tr>
+  </table>
+</details>
+
+# Telekit Canvas
+
+<details>
+  <summary>Canvas</summary>
+  <table>
+    <tr>
+      <td><img src="../images/canvas/example6.png" alt="Telekit Example 1" width="300"></td>
+      <td><img src="../images/canvas/example2.png" alt="Telekit Example 4" width="300"></td>
     </tr>
   </table>
 </details>

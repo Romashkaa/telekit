@@ -1,42 +1,40 @@
 # Telekit DSL Integration
 
-This guide explains how to integrate **Telekit DSL** into your project and start using scripted scenes in your bot.
-
 ## Basic Integration
 
-To enable Telekit DSL, add the DSL mixin to your handler class and analyze the DSL source code during initialization.
+To use the Telekit DSL, inherit from `DSLHandler` and call `analyze_string()` with your script during initialization
 
 ```python
 import telekit
 
-script = """...Telekit DSL source..."""
-
-class HelpHandler(telekit.TelekitDSL.Mixin):
+class MyHandler(telekit.DSLHandler):
     @classmethod
     def init_handler(cls) -> None:
         cls.analyze_string(script)
-        cls.on.command("help").invoke(cls.start_script)
+        cls.on.command("start").invoke(cls.start_script)
+
+script = """...Telekit DSL script..."""
 
 telekit.Server(TOKEN).polling()
 ```
 
 In this example:
 
-- `analyze_string()` parses and analyzes the DSL code stored in the `script` variable.
-- The `/help` command is registered and bound to `start_script`, a method provided by the DSL mixin.
-- When the command is triggered, the "main" scene of the script is executed.
+- `analyze_string()` parses the script and registers all scenes.
+- The `/start` command is bound to `start_script` — a built-in method provided by `DSLHandler`.
+- When triggered, the bot executes the `main` scene defined in the script.
 
-## Available Analysis Methods
+### Available Analysis Methods
 
-You can analyze Telekit DSL code using the following methods:
+You can load a Telekit DSL script using one of the following methods:
 
-- `analyze_string` — Analyze a DSL script provided as a string.
-- `analyze_file` — Analyze a DSL script from a file.
+- `analyze_string` — parse a DSL script from a string.
+- `analyze_file` — parse a DSL script from a file.
+- `analyze_canvas` — parse an Obsidian Canvas as a DSL script.
+- `analyze_executable_model` — load a dict as a pre-built executable model.
 
 > [!NOTE]
-> Both `analyze_string` and `analyze_file` will raise an exception if syntax errors or analyzer warnings are detected.
-
-Additional DSL-related methods are covered in later sections of the documentation.
+> All methods except `analyze_executable_model` raise an exception if syntax errors or validation warnings are detected.
 
 ## Simplified Setup
 
@@ -46,7 +44,7 @@ For quick setups, you can initialize and bind a DSL script in a single call:
 import telekit
 
 telekit.TelekitDSL.from_string(
-    """...Telekit DSL script...""", ["help"]
+    """...Telekit DSL script...""", ["start"]
 )
 
 telekit.Server(TOKEN).polling()
@@ -68,5 +66,5 @@ This approach automatically analyzes the script and binds the specified commands
 
 For a complete overview of the DSL language, supported syntax, and advanced features, continue with the next chapter:
 
-- [More Examples »](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
+- [More Examples »](../../docs/examples/examples.md#telekit-dsl)
 - [Next: Syntax »](13_telekit_dsl_syntax.md)

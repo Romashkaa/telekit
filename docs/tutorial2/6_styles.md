@@ -24,7 +24,7 @@ def handle(self):
             Bold("Bold"), " and ", Italic("Italic")
         )
     )
-    self.chain.sender.set_parse_mode("markdown")  # applied to all styles in message; HTML by deafault
+    self.chain.sender.set_parse_mode("markdown")  # applied to all styles in message; HTML by default
     self.chain.send()
 ```
 
