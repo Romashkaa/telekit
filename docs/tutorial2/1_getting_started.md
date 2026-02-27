@@ -23,6 +23,8 @@ import telekit # import library
 telekit.example(BOT_TOKEN) # run the example bot
 ```
 
+Your bot is now running! Open Telegram and send the `/start` command to try it out.
+
 ## Basic Setup
 
 To create your own bot server, replace `example` with the `Server` class and call `polling()` to start listening for updates:
