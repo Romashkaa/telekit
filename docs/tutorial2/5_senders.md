@@ -337,7 +337,7 @@ from telekit.styles import Raw
 self.chain.sender.set_text(Raw("<b>Bold text</b>"), " plain text")
 ```
 
-You can also use constants:
+You can also use constants to change the parse mode:
 
 ```py
 from telekit.types import ParseMode
