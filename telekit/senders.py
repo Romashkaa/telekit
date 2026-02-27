@@ -1114,20 +1114,18 @@ class Sender(BaseSender):
         if self._use_italics and message:
             message = Italic(message)
 
-        text_parts = []
+        text = ""
 
         if title:
-            text_parts.append(title)
+            text += title.render(self.parse_mode).rstrip("\n")
         
         if self._new_lines and title and message:
-            text_parts.append("\n" * self._new_lines)
+            text += "\n" * self._new_lines
 
         if message:
-            text_parts.append(message)
+            text += message.render(self.parse_mode).lstrip("\n")
 
-        text = Group(*text_parts)
-
-        super().set_text(text.render(self.parse_mode))
+        super().set_text(text)
 
     def _compile_additional(self):
         if self._additional is None:
@@ -1256,16 +1254,32 @@ class Sender(BaseSender):
         """
         self._use_italics = use_italics
 
-    def set_use_newline(self, use_newline: bool | int=True):
+    def set_use_newline(self, use_newline: bool | int = True):
         """
         Enable or disable automatic newline between title and message body.
 
         Args:
-            use_newline (bool): True to insert newline, False to omit.
+            use_newline (bool): True to insert newline (`"\\n\\n"`), False to omit (`"\\n"`).
             use_newline (int): Number of `"\\n"` between title and message.
 
-        Returns:
-            None
+        >>> set_use_newline(0)
+        ```
+        "TitleMessage"
+        ```
+        >>> set_use_newline(1)
+        >>> set_use_newline(False)
+        ```
+        "Title\\nMessage"
+        ```
+        >>> set_use_newline(2)
+        >>> set_use_newline(True)
+        ```
+        "Title\\n\\nMessage"
+        ```
+        >>> set_use_newline(3)
+        ```
+        "Title\\n\\n\\nMessage"
+        ```
         """
         if isinstance(use_newline, bool):
             self._new_lines = int(use_newline) + 1
