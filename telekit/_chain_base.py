@@ -53,9 +53,10 @@ class ChainBase:
         self._previous_message = previous_message
         self._timeout_handler = _timeout.TimeoutHandler()
 
-        self.do_remove_timeout = True
-        self.do_remove_entry_handler = True
-        self.do_remove_inline_keyboard = True
+        self._do_remove_timeout = True
+        self._do_remove_entry_handler = True
+        self._do_remove_inline_keyboard = True
+        self._do_remove_sender_attachments = True
     
     # -------------------------------------------
     # Cleanup Logic: manages clearing input handlers, inline keyboards, and timeout after each step
@@ -100,29 +101,44 @@ class ChainBase:
         self.sender.set_reply_markup(None)
         self._handler.set_button_callbacks(None)
 
+    def remove_sender_attachments(self):
+        """
+        Clears all attachments from `chain.sender` via `sender.remove_attachments()`.
+
+        The following fields are reset to their default empty values:
+        - `photo`, `document`, `animation`, `video`, `video_note`
+        - `audio`, `voice`, `venue`, `media`
+
+        But `text`, `parse_mode`, and other non-attachment properties are preserved.
+
+        See also: `remove_all_handlers()`
+        """
+        self.sender.remove_attachments()
+
     def remove_all_handlers(self):
         """
-        Forces removal of all handlers associated with the chain.
+        Removes all handlers associated with the chain and clears all sender attachments.
 
-        This includes timeouts, entry handlers, and inline keyboards.
-        Use when starting a new chain to avoid conflicts with old state.
-
-        This includes:
-        - timeouts (`remove_timeout()`),
-        - entry handlers (`remove_entry_handler()`), 
-        - and inline keyboards (`remove_inline_keyboard()`).
+        Calls the following in sequence:
+        - `remove_timeout()`            — cancels any active timeout
+        - `remove_entry_handler()`      — removes the pending entry handler
+        - `remove_inline_keyboard()`    — detaches inline keyboard callbacks
+        - `remove_sender_attachments()` — clears all sender attachments
         """
         self.remove_timeout()
         self.remove_entry_handler()
         self.remove_inline_keyboard()
+        self.remove_sender_attachments()
 
     def _remove_all_handlers(self):
-        if self.do_remove_timeout:
+        if self._do_remove_timeout:
             self.remove_timeout()
-        if self.do_remove_entry_handler:
+        if self._do_remove_entry_handler:
             self.remove_entry_handler()
-        if self.do_remove_inline_keyboard:
+        if self._do_remove_inline_keyboard:
             self.remove_inline_keyboard()
+        if self._do_remove_sender_attachments:
+            self.remove_sender_attachments()
 
     # Configuration API
 
@@ -134,7 +150,7 @@ class ChainBase:
         preventing it from triggering for every subsequent message.
         Set to False if you want to keep the same timeout across messages.
         """
-        self.do_remove_timeout = remove_timeout
+        self._do_remove_timeout = remove_timeout
 
     def set_remove_entry_handler(self, remove_entry_handler: bool = True):
         """
@@ -144,7 +160,7 @@ class ChainBase:
         to avoid being reused unintentionally in the next message.
         Set to False if you need to persist them between messages.
         """
-        self.do_remove_entry_handler = remove_entry_handler
+        self._do_remove_entry_handler = remove_entry_handler
 
     def set_remove_inline_keyboard(self, remove_inline_keyboard: bool = True):
         """
@@ -154,7 +170,19 @@ class ChainBase:
         to prevent it from appearing in the next message by mistake.
         Set to False if you want to reuse the same keyboard in subsequent messages.
         """
-        self.do_remove_inline_keyboard = remove_inline_keyboard
+        self._do_remove_inline_keyboard = remove_inline_keyboard
+
+    def set_remove_sender_attachments(self, remove_sender_attachments: bool = True):
+        """
+        Controls whether sender attachments are automatically cleared after each send.
+
+        When `True` (default), attachments such as photo, document, audio, and others
+        are removed from the sender after the message is sent, so they don't
+        accidentally appear in the next message.
+
+        Set to `False` to preserve attachments across multiple sends.
+        """
+        self._do_remove_sender_attachments = remove_sender_attachments
 
     def set_break_only_on_match(self, break_only_on_match: bool = True):
         """

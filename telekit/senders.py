@@ -17,8 +17,7 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from typing import Any, Literal, Union
-from enum import Enum
+from typing import Any, Literal
 import textwrap
 import io
 
@@ -147,7 +146,7 @@ class BaseSender:
         self.chat_id = chat_id
         
         self.text = text
-        self.reply_markup = reply_markup # type: ignore
+        self.reply_markup = reply_markup
         
         self.is_temporary = is_temporary
         self.delele_temporaries = delele_temporaries
@@ -178,15 +177,12 @@ class BaseSender:
     def remove_attachments(self):
         """
         Clear all attachments from the sender:
-        - `photo`
-        - `document`
-        - `animation`
-        - `video_note`
-        - `video`
-        - `audio`
-        - `voice`
-        - `media`
-        - `venue`
+
+        The following fields are reset to their default empty values:
+        - `photo`, `document`, `animation`, `video`, `video_note`
+        - `audio`, `voice`, `venue`, `media`
+
+        But `text`, `parse_mode`, and other non-attachment properties are preserved.
         """
         self.media: list[InputMediaPhoto] = []
         self.video_note: str | Any = None
