@@ -107,7 +107,7 @@ self.chain.send()
 <details>
 <summary>Removing Text Content</summary>
 
-Remove text content before sending with `remove_text()`:
+You can remove text content using `remove_text()`:
 
 ```py
 self.chain.sender.remove_text()  # clears title, message and text
