@@ -104,6 +104,45 @@ self.chain.send()
 > Useful for building messages in a for-loop.
 </details>
 
+<details>
+<summary>Removing Text Content</summary>
+
+Remove text content before sending with `remove_text()`:
+
+```py
+self.chain.sender.remove_text()  # clears title, message and text
+```
+
+By default, `sender.remove_text()` is called automatically after each `send()` to prevent text from carrying over to subsequent messages in the same chain.
+
+Use `sender.set_remove_text(False)` to preserve the same text across multiple sends:
+
+```py
+import telekit
+import time
+
+class MyHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.text().invoke(cls.handle) # accepts all text messages
+
+    def handle(self) -> None:
+        self.chain.sender.set_remove_text(False) # try disabling and enabling
+
+        self.chain.sender.set_text("Pinned title")
+        self.chain.send()
+
+        for _ in range(10):
+            time.sleep(1) # wait 1 second
+            self.chain.sender.append("!") # appends "!" to the message text
+            self.chain.edit() # edit previous message
+
+telekit.Server("TOKEN").polling()
+```
+
+</details>
+
 ## Attach Media to Messages
 
 <details>
@@ -267,44 +306,6 @@ self.chain.send()
 
 self.chain.sender.set_text("^- the same photo...")
 self.chain.send()
-```
-
-</details>
-
-<summary>Removing Text Content</summary>
-
-Remove text content before sending with `remove_text()`:
-
-```py
-self.chain.sender.remove_text()  # clears title, message and text
-```
-
-By default, `sender.remove_text()` is called automatically after each `send()` to prevent text from carrying over to subsequent messages in the same chain.
-
-Use `sender.set_remove_text(False)` to preserve the same text across multiple sends:
-
-```py
-import telekit
-import time
-
-class MyHandler(telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        cls.on.text().invoke(cls.handle) # accepts all text messages
-
-    def handle(self) -> None:
-        self.chain.sender.set_remove_text(False) # try disabling and enabling
-
-        self.chain.sender.set_text("Pinned title")
-        self.chain.send()
-
-        for _ in range(10):
-            time.sleep(1) # wait 1 second
-            self.chain.sender.append("!") # appends "!" to the message text
-            self.chain.edit() # edit previous message
-
-telekit.Server("TOKEN").polling()
 ```
 
 </details>
