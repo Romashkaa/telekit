@@ -53,10 +53,8 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPi](https://pypi.org/project/telekit/)
+[Telegram](https://t.me/NotRomashka)
 [Community](https://t.me/+wu-dFrOBFIwyNzc0)
-[Gallery](https://github.com/Romashkaa/telekit/blob/main/docs/documentation/gallery.md)
-[Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
-[Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md)
 
 ## Contents
 
@@ -68,8 +66,15 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
     - [Counter](https://github.com/Romashkaa/telekit/blob/main/docs/examples/counter.md)
     - [Quiz (Telekit DSL)](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
 
-## Contact
+## Example Bot
 
-- [Telegram](https://t.me/NotRomashka)
-- [Gravatar](https://gravatar.com/notromashka)
-- [Community](https://t.me/+wu-dFrOBFIwyNzc0)
+You can launch an example bot with a wide range of demonstration commands by **running the following code**:
+
+```py
+import telekit
+
+telekit.example(YOUR_BOT_TOKEN)
+```
+
+> [!TIP]
+> If you're interested and want to learn more, check out the [Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md)
