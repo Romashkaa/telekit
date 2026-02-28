@@ -65,6 +65,7 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
     - [Risk Game](https://github.com/Romashkaa/telekit/blob/main/docs/examples/risk_game.md)
     - [Counter](https://github.com/Romashkaa/telekit/blob/main/docs/examples/counter.md)
     - [Quiz (Telekit DSL)](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
+    - [More...](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
 
 ## Example Bot
 

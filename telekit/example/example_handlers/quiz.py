@@ -33,7 +33,7 @@ class QuizHandler(telekit.TelekitDSL.Mixin):
 
 script = """
 $ timeout {
-    time = 20;
+    time = 10;
 }
 
 @ main {

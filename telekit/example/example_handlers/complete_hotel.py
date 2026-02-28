@@ -85,7 +85,6 @@ script = """
         • Room size: 35 m²
         • Rent: 2975 UAH per night
     `
-    parse_mode = "markdown"
     image = "https://ukraine-hotel.s3.amazonaws.com/uploadimage/fb52f495c15d42ac89fe9552fa83640f.jpg"
     
     buttons (3) {
@@ -105,7 +104,6 @@ script = """
         • Room size: 76 m²
         • Rent: 5015 UAH per night
     `
-    parse_mode = "markdown"
     image = "https://ukraine-hotel.s3.amazonaws.com/uploadimage/09fcaf94d3ce4076bd808546cc8c20be.jpg"
     
     buttons (3) {
@@ -126,7 +124,6 @@ script = """
         • Rent: 5015 UAH per night
     `
     image = "https://ukraine-hotel.s3.amazonaws.com/uploadimage/7478f00bc9684595ad6de1b564c714f3.jpg"
-    parse_mode = "markdown"
 
     buttons (3) {
         back("« Previous")

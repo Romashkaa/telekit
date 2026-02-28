@@ -23,7 +23,9 @@ from typing import NoReturn, Callable, Any, Literal
 import jinja2
 
 import telekit
-from telekit.styles import Escape, Raw, Bold
+from telekit.styles import Escape, Raw, Bold, Italic
+from .. import utils
+
 from . import parser
 
 from .._logger import logger
@@ -364,12 +366,16 @@ class DSLHandler(telekit.Handler):
         """
         # quick check
         if not hasattr(self, "_script_data_factory"):
-            message: str = "start_script: Script is not analyzed yet. Call analyze_file() or analyze_string() before starting it."
+            message: str = f"{type(self).__name__}().start_script(): Script is not analyzed yet. Call cls.analyze_file() or cls.analyze_string() before starting it."
             library.error(message)
             self.chain.sender.pyerror(RuntimeError(message))
             return
 
         self.script_data = self._script_data_factory()
+
+        # clearing configuration
+        self.chain.sender.set_remove_attachments(True)
+        self.chain.sender.set_remove_text(False)
 
         # set timeout
         if self.script_data.timeout_time:
@@ -465,10 +471,16 @@ class DSLHandler(telekit.Handler):
         if real_parse_mode:
             # do not escape
             if title:
+                if real_parse_mode == "markdown":
+                    title = utils.sanitize_markdown(title)
                 self.chain.sender.set_title(Raw(title))
             if message:
+                if real_parse_mode == "markdown":
+                    message = utils.sanitize_markdown(message)
                 self.chain.sender.set_message(Raw(message))
             if text:
+                if real_parse_mode == "markdown":
+                    text = utils.sanitize_markdown(text)
                 self.chain.sender.set_text(Raw(text))
         else:
             # escape
@@ -647,7 +659,7 @@ class DSLHandler(telekit.Handler):
         message = self.script_data.config.get("timeout_message", "👋 Are you still there?")
         label   = self.script_data.config.get("timeout_label", "Yes, I'm here ✓")
 
-        self.chain.set_timeout(None, 7)
+        self.chain.set_default_timeout(7, Italic("\n\n…Guess that's a no. See you next time!"))
         self.chain.sender.append("\n\n", Bold(message, escape=False))
         self.chain.set_inline_keyboard({label: self._on_continue})
 

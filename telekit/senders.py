@@ -32,7 +32,7 @@ from ._logger import logger
 library = logger.library
 
 __all__ = [
-    "TemporaryMsgStore",
+    "TempMessageStore",
     "BaseSender", "Sender"
 ]
 
@@ -40,7 +40,7 @@ __all__ = [
 # Temporary Messages Manager
 # ---------------------------------------------------------------------------------
 
-class TemporaryMsgStore:
+class TempMessageStore:
 
     _temporary_messages: dict[int, set[int]] = {}
 
@@ -638,10 +638,10 @@ class BaseSender:
     # --------------------------------------------------------
     
     def _add_temporary(self, message_id: int):
-        TemporaryMsgStore.add_temporary(self.chat_id, message_id)
+        TempMessageStore.add_temporary(self.chat_id, message_id)
 
     def _remove_temporary(self):
-        TemporaryMsgStore.remove_temporary(self.bot, self.chat_id)
+        TempMessageStore.remove_temporary(self.bot, self.chat_id)
 
     def _handle_is_temp(self, message: Message | None):
         if self.is_temporary and message:

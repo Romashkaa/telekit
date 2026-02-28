@@ -19,6 +19,9 @@ class CounterHandler(telekit.Handler):
     # ------------------------------------------
 
     def handle(self) -> None:
+        self.chain.sender.set_remove_attachments(False)
+        self.chain.sender.set_remove_text(False)
+
         self.chain.sender.set_title("Hello")
         self.chain.sender.set_message("Click the button below to start interacting")
         self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")

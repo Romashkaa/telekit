@@ -26,6 +26,7 @@ from telebot.types import Message
 
 # Local modules
 from . import senders
+from .styles import TextEntity
 
 # Logging
 from ._logger import logger
@@ -90,7 +91,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
         self._set_timeout_callback(callback)
         self._set_timeout_time(seconds, minutes, hours)
 
-    def set_default_timeout(self, seconds: int=90, message: str="\n\nLooks like things went quiet... The session has ended."):
+    def set_default_timeout(self, seconds: int=90, message: TextEntity | str = "\n\nLooks like things went quiet... See you next time!"):
         """
         Sets a default timeout for user inactivity.
 
