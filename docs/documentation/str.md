@@ -4,6 +4,7 @@ flowchart TD
 
     Handler --> Chain
     Handler --> On
+    On --> Handler
 
     Chain["**Chain** – bridges logic and UI"]
     On["**On** – trigger registration"]
