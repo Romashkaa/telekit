@@ -28,6 +28,7 @@ from telebot.types import (
 
 from telekit.styles import TextEntity, Raw, Group, Bold, Italic
 from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
+from telekit import dices
 from ._logger import logger
 library = logger.library
 
@@ -938,8 +939,6 @@ class BaseSender:
 
         return message
 
-    # TODO: Add `send_or_edit` method that will return tuple[Message | None, bool]
-
     # --------------------------------------------------------
     # Methods for sending chat actions and retrieving message IDs
     # --------------------------------------------------------
@@ -972,6 +971,159 @@ class BaseSender:
         """
         if message:
             return message.message_id
+        
+    # --------------------------------------------------------
+    # Methods for games
+    # --------------------------------------------------------
+        
+    def send_emoji_game(self, emoji: str) -> Any:
+        """
+        Sends a dice message with the given emoji and returns the game result.
+
+        Prefer using the specific methods (e.g. `send_dice()`, `send_casino()`)
+        for typed return values. Use this method only when the emoji is dynamic.
+
+        :returns: the result of the emoji game.
+        :rtype: dices.GameResult
+        """
+        args: dict[str, Any] = self._get_send_args()
+        args.pop("parse_mode", None)
+
+        message: Message = self.bot.send_dice(
+            emoji=emoji, 
+            **args
+        )
+
+        return dices.GameResult.from_message(message)
+
+    def send_dice(self) -> dices.Dice:
+        """
+        Sends a 🎲 classic dice and returns the result.
+        The returned object provides access to the outcome of the throw.
+
+        Properties:
+        - `value`:   1–6
+        - `is_win`:  value == 6
+        - `is_lose`: not is_win
+        - `score`:   0–100
+
+        Values (1 win / 5 lose):
+        - `1` – lose, score: 17
+        - `2` – lose, score: 33
+        - `3` – lose, score: 50
+        - `4` – lose, score: 67
+        - `5` – lose, score: 83
+        - `6` – win, score: 100
+        """
+        return self.send_emoji_game(dices.Dice.emoji)
+
+    def send_darts(self) -> dices.Darts:
+        """
+        Sends a 🎯 darts throw and returns the result.
+        The returned object provides access to the outcome of the throw.
+
+        Properties:
+        - `value`:       1–6
+        - `is_win`:      value == 6
+        - `is_lose`:     not is_win
+        - `is_bullseye`: value == 6
+        - `score`:       0–100
+
+        Values (1 win / 5 lose):
+        - `1` – lose, score: 17
+        - `2` – lose, score: 33
+        - `3` – lose, score: 50
+        - `4` – lose, score: 67
+        - `5` – lose, score: 83
+        - `6` – win, score: 100
+        """
+        return self.send_emoji_game(dices.Darts.emoji)
+
+    def send_basketball(self) -> dices.Basketball:
+        """
+        Sends a 🏀 basketball throw and returns the result.
+        The returned object provides access to the outcome of the throw.
+
+        Properties:
+        - `value`:      1–5
+        - `is_win`:     value in {4, 5}
+        - `is_lose`:    not is_win
+        - `is_perfect`: value == 5
+        - `score`:      0–100
+
+        Values (2 win / 3 lose):
+        - `1`: ball hits the backboard and misses (lose, score: 20)
+        - `2`: ball rolls around the rim and falls out  (lose, score: 40)
+        - `3`: ball gets stuck on the rim (lose score: 60)
+        - `4`: ball rolls in (win, score: 80)
+        - `5`: clean shot (win, score: 100)
+        """
+        return self.send_emoji_game(dices.Basketball.emoji)
+
+    def send_football(self) -> dices.Football:
+        """
+        Sends a ⚽ football kick and returns the result.
+        The returned object provides access to the outcome of the throw.
+
+        Properties:
+        - `value`:         1–5
+        - `is_win`:        value in {3, 4, 5}
+        - `is_lose`:       not is_win
+        - `is_top_corner`: value == 5
+        - `score`:         0–100
+
+        Values (3 win / 2 lose):
+        - `1`: completely missed (lose, score: 20)
+        - `2`: hits the post and bounces out (lose, score: 40)
+        - `3`: straight into the center of the goal (win, score: 60)
+        - `4`: hits the post and deflects in (win, score: 80)
+        - `5`: top corner (win, score: 100)
+        """
+        return self.send_emoji_game(dices.Football.emoji)
+
+    def send_bowling(self) -> dices.Bowling:
+        """
+        Sends a 🎳 bowling roll and returns the result.
+        The returned object provides access to the outcome of the throw.
+
+        Properties:
+        - `value`:        1–6
+        - `is_win`:       value in {4, 5, 6}
+        - `is_lose`:      not is_win
+        - `is_strike`:    value == 6
+        - `pins_knocked`: pins knocked down (0–6)
+        - `score`:        0–100
+
+        Values (3 win / 3 lose):
+        - `1`: all pins remain (lose, score: 17)
+        - `2`: 1 pin knocked down, 5 remain (lose, score: 33)
+        - `3`: 3 pins knocked down, 3 remain (lose, score: 50)
+        - `4`: 4 pins knocked down, 2 remain (win, score: 67)
+        - `5`: 5 pins knocked down, 1 remains (win, score: 83)
+        - `6`: strike — all 6 pins down (win, score: 100)
+        """
+        return self.send_emoji_game(dices.Bowling.emoji)
+
+    def send_casino(self) -> dices.Casino:
+        """
+        Sends a 🎰 slot machine spin and returns the result.
+        The returned object provides access to the outcome of the throw.
+
+        Properties:
+        - `value`:      1–64
+        - `is_win`:     rank != "nothing"
+        - `is_lose`:    not is_win
+        - `is_jackpot`: rank == "triple_7"  (7️⃣7️⃣7️⃣)
+        - `slots`:      (left, center, right) reel values (1–4 each)
+        - `symbols`:    reel values as emoji   e.g. ("🍒", "🍋", "7️⃣")
+        - `letters`:    compact reel string    e.g. "CL7"
+        - `names`:      full reel names        e.g. "Cherry Lemon Seven"
+        - `display`:    visual emoji string    e.g. "🍒🍋7️⃣"
+        - `rank`:       "nothing" | "pair" | "triple" | "double_7" | "triple_7"
+        - `score`:      0 / 25 / 60 / 75 / 100
+        """
+        return self.send_emoji_game(dices.Casino.emoji)
+
         
     # --------------------------------------------------------
     # Context manager support methods
