@@ -1,5 +1,8 @@
 # Command Parameters and Deep Linking
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 Telekit allows you to define **commands with typed parameters** and handle **deep links** effortlessly. This makes it easy to pass arguments directly in the `/command` call or through a URL link like `https://t.me/YourBot?start=parameter`.
 
 ## Basic Command with Parameters

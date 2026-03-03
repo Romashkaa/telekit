@@ -288,7 +288,7 @@ class CallbackButton(InlineButton):
                 answer_text: str | None = None,
                 answer_as_alert: bool = True,
 
-                style: str | None | ButtonStyle = None,
+                style: str | None = None,
 
                 kwargs: dict[str, Any] = {}
             ):

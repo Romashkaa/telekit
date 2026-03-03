@@ -713,8 +713,11 @@ class Stack(TextEntity):
 
         for index, item in enumerate(self._content, start=1):
             stack.append(
-                self._start.replace("{{index}}", str(index)) + \
-                self._render_item(item, parse_mode)
+                Group(
+                    self._start.replace("{{index}}", str(index)),
+                    item,
+                    escape=self._escape_strings
+                ).render(parse_mode)
             )
 
         sep: str = self._render_item(self._separator, parse_mode)

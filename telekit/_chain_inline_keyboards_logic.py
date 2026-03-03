@@ -105,7 +105,7 @@ class ChainInlineKeyboardLogic(ChainBase):
                     InlineKeyboardButton(
                         text=caption,
                         callback_data=callback_data,
-                        **invoker._kwargs
+                        **invoker._kwargs # pyright: ignore[reportArgumentType]
                     )
                 )
 
@@ -270,7 +270,7 @@ class ChainInlineKeyboardLogic(ChainBase):
             row_width: int | Iterable[int] = 1
         ) -> None:
         """
-        Sets reply suggestions as inline buttons below the message input field.
+        Sets reply suggestions as inline buttons below the message.
         These buttons act as quick replies, and send the corresponding `callback_data` when clicked.
 
         ---

@@ -67,6 +67,194 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
     - [Quiz (Telekit DSL)](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
     - [More...](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md)
 
+## Overview
+
+Telekit is built around a few core ideas that keep your bot code clean and expressive. Here's a quick tour.
+
+### Entries
+
+No state machines! Just point to the next method and Telekit does the rest.
+
+```py
+def handle(self):
+    self.chain.sender.set_text("👋 Hello! What is your name?")
+    self.chain.set_entry_text(self.handle_name)
+    self.chain.send()
+
+def handle_name(self, name: str):
+    self.chain.sender.set_text(f"Nice to meet you, {name}!")
+    self.chain.send()
+```
+
+`handle` sends a greeting and registers `handle_name` as the next step via `set_entry_text`. Telekit will call it automatically once the user replies. The user's message arrives as a plain string argument.
+
+### Inline Keyboards
+
+Bind each button to a value or directly to a method.
+
+**Choice keyboard** — map buttons to values; the one the user picks is passed directly to your handler:
+
+```py
+self.chain.set_inline_choice(
+    self.on_choice,
+    choices={
+        "Option 1": "Value 1",
+        "Option 2": "Value 2",
+        "Option 3": [3, "Yes, it's an array"],
+    }
+)
+
+def on_choice(self, choice: str | list):
+    print(f"{choice!r}") # "Value 1", "Value 2" or [3, "Yes, it's an array"]
+```
+
+**Callback keyboard** — each button calls its own method:
+
+```py
+self.chain.set_inline_keyboard({
+    "« Back": self.display_previous_page,
+    "Next »": self.display_next_page,
+})
+```
+
+### Command Parameters
+
+Declare what your command expects. Telekit parses and validates input automatically:
+
+```py
+from telekit.parameters import *
+
+class GreetHandler(telekit.Handler):
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.command("greet", params=[Int(), Str()]).invoke(cls.handle)
+
+    def handle(self, age: int | None = None, name: str | None = None):
+        if age is None or name is None:
+            self.chain.sender.set_text("Usage: /greet <age> <name>")
+        else:
+            self.chain.sender.set_text(f"Hello, {name}! You are {age} years old. Next year you'll turn {age + 1} 😅")
+        self.chain.send()
+```
+
+> [!TIP]
+> For example, it works with `/greet 64 "Alice Reingold"` or `/greet 128 Dracula`.
+
+### Dialogue
+
+Chain any number of steps. Each one waits for the user before moving forward:
+
+```py
+class DialogueHandler(telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.text("hello", "hi", "hey").invoke(cls.handle_hello)
+
+    def handle_hello(self) -> None:
+        self.chain.sender.set_text("👋 Hello! What is your name?")
+        if self.user.first_name:
+            self.chain.set_entry_suggestions([self.user.first_name])
+        self.chain.set_entry_text(self.handle_name)
+        self.chain.send()
+
+    def handle_name(self, name: str) -> None:
+        self.user_name = name
+        self.chain.sender.set_text("Nice! How are you feeling today?")
+        self.chain.set_entry_text(self.handle_feeling)
+        self.chain.send()
+
+    def handle_feeling(self, feeling: str) -> None:
+        self.chain.sender.set_text(f"Got it, {self.user_name.title()}! You feel: {feeling}")
+        self.chain.set_inline_keyboard({"↺ Restart": self.handle_hello})
+        self.chain.send()
+```
+
+- The handler triggers on any greeting — "Hello", "Hi", or "HEY". 
+- Method `handle_hello` asks for the user's name
+- `set_entry_suggestions` attaches the user's Telegram `first_name` as a inline suggestion button.
+- Once user reply, `handle_name` assigns the name to `self.user_name` and moves on to the next question. 
+- Finally, `handle_feeling` uses the saved name to close the loop and attaches a `"↺ Restart"` inline button that routes control back to `handle_hello`.
+
+
+### Styles
+
+Wrap content in text entities and Telekit composes the HTML or MarkdownV2 for you:
+
+```py
+from telekit.styles import *
+
+def handle(self) -> None:
+    self.chain.sender.set_text(
+        Bold("Text style examples:\n"),
+        Stack(
+            Bold("Bold text"),
+            Italic("Italic text"),
+            Bold(Italic("Bold + italic")),
+            Link("Link", url="https://example.com"),
+            BotLink("Deep link", username="MyBot", start="promo_42"),
+            start="- {{index}}. ",
+            sep=".\n",
+        )
+    )
+    self.chain.send()
+```
+
+Renders as:
+
+```html
+<b>Text style examples:</b>
+
+- 1. <b>Bold text</b>.
+- 2. <i>Italic text</i>.
+- 3. <b><i>Bold + italic</i></b>.
+- 4. <a href="https://example.com">Link</a>.
+- 5. <a href="https://t.me/MyBot?start=promo_42">Deep link</a>
+```
+
+### Telekit DSL
+
+You can skip Python and use the built-in DSL with Jinja support:
+
+```py
+import telekit
+
+class QuizHandler(telekit.TelekitDSL.Mixin):
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.analyze_string(script)
+        cls.on.command("start").invoke(cls.start_script)
+
+script = """
+$ timeout {
+    time = 20; // 20 sec.
+}
+
+@ main {
+    title   = "🎉 Fun Facts Quiz";
+    message = "Test your knowledge with 10 fun questions!";
+
+    buttons {
+        next("Start Quiz");
+    }
+}
+
+@ question_1 {
+    title   = "🐶 Question 1";
+    message = "Which animal is the fastest on land?";
+    buttons {
+        _lose("Elephant");
+        next("Cheetah");       // correct answer
+        _lose("Horse");
+        _lose("Lion");
+    }
+}
+
+/* ... */
+```
+
+> See the [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md) and the [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md).
+
 ## Example Bot
 
 You can launch an example bot with a wide range of demonstration commands by **running the following code**:
