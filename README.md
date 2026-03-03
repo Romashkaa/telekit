@@ -293,7 +293,7 @@ telekit.Server(BOT_TOKEN).polling()
   </table>
 </details>
 
-You can find a [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md) and [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) in the repository.
+You can find a [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md) and [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) in the repository.
 
 ### Example Bot
 
@@ -315,6 +315,7 @@ It includes example commands, dialogs, keyboards, and style usage.
 - **Styles API** for rich text (`Bold`, `Italic`, `Links`) with **automatic escaping**.
 - Deep linking and **typed command parameters**.
 - **Built-in DSL** for menus, FAQs, and simple bots.
+- **Zero-code** [Obsidian Canvas](https://github.com/Romashkaa/telekit/blob/main/docs/examples/canvas_faq.md) mode.
 - Seamless integration with **pyTelegramBotAPI**.
 
 Telekit doesn't try to be everything.  
