@@ -1,9 +1,21 @@
 # Telekit DSL
 
-**Telekit DSL** — this is a custom domain-specific language (DSL) used to create interactive pages, such as FAQs.  
-It allows you to describe the message layout, add images, and buttons for navigation between pages in a convenient, structured format that your bot can easily process.
+**Telekit DSL** — this is a custom domain-specific language used to create interactive pages, such as FAQs.  
 
-The parser and analyzer provide an excellent system of warnings and errors with examples, so anyone can figure it out!
+**It allows you to:**
+
+- Scene-based architecture
+- Anonymous scenes
+- Automatic navigation stack management
+- Images support
+- Link buttons
+- Input handling
+- Template variables
+- Custom variables
+- Hooks (Python API integration)
+- Jinja template engine
+
+> The parser and analyzer provide an excellent system of warnings and errors with examples, so anyone can figure it out!
 
 ```js
 @ main {
@@ -15,6 +27,7 @@ The parser and analyzer provide an excellent system of warnings and errors with 
     }
 }
 ```
+
 
 - [Integration »](12_telekit_dsl_integration.md)
 - [Learn Syntax »](13_telekit_dsl_syntax.md)

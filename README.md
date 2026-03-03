@@ -274,11 +274,12 @@ $ timeout {
 telekit.Server(BOT_TOKEN).polling()
 ```
 
-The DSL lets you describe scenarios as structured blocks:
+**DSL allows you to:**
 
 - Scene-based architecture
 - Anonymous scenes
 - Automatic navigation stack management
+- Images support
 - Link buttons
 - Input handling
 - Template variables
