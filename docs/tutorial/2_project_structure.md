@@ -1,5 +1,8 @@
 # Project structure
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 You can write your bot in a single file or organize it.
 
 ## Multi-file bot Example

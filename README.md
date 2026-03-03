@@ -10,7 +10,7 @@
 ```py
 import telekit
 
-class MyBotHandler(telekit.Handler):
+class MyStartHandler(telekit.Handler):
     @classmethod
     def init_handler(cls):
         cls.on.command('start').invoke(cls.handle_start)

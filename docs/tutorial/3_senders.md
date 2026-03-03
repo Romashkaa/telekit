@@ -1,5 +1,8 @@
 # Senders
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 Senders in Telekit provide a high-level interface for sending and managing messages in Telegram bots. They wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, adding photos and effects.
 
 ## Basic Usage 

@@ -1,5 +1,8 @@
 # Timeouts
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 Timeouts in **Telekit** allow you to control how long a chain waits for user response.
 They are most commonly used together with entries and inline keyboards to limit waiting time
 and handle inactive users gracefully.

@@ -1,5 +1,8 @@
 # Getting started
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 Telekit makes building Telegram bots fast and clean.  
 Even if you’ve never written one before, this guide will take you from zero to a working bot in minutes.
 

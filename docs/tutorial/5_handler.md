@@ -1,5 +1,8 @@
 ## Handler
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 The `Handler` class in Telekit serves as the base for all bot message handlers.  
 It provides a structured way to manage incoming messages, commands, and user interactions.  
 

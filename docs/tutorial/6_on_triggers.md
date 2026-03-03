@@ -1,5 +1,8 @@
 # Message Handling (Triggers) 
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 Telekit provides a simple way to work with incoming messages using decorators.  
 Below are two main types, but there are many more:
 

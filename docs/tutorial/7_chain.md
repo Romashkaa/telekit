@@ -1,5 +1,8 @@
 # Chains
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 A `Chain` is the core element of Telekit, combining a `Sender` (View) and an `InputHandler` (Logic).
 (The latter usually works “under the hood,” so you typically don’t interact with it directly)
 

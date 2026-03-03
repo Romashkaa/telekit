@@ -1,5 +1,8 @@
 # Receiving Messages and Files in Telekit
 
+> [!CAUTION]
+> This documentation covers an outdated version of the library. Some information may no longer be accurate. Please refer to the [latest version of the tutorial](../tutorial2/0_tutorial.md).
+
 Telekit provides flexible decorators to handle various types of user input, from plain text to documents. These tools make it easy to process messages without manually parsing updates or managing states.
 
 ## Receive Any Message Type
