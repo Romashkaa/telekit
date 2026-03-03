@@ -74,11 +74,8 @@ class StartHandler(telekit.Handler):
         if invite_code is None:
             self.chain.sender.set_text("This link is missing an invite code.")
         else:
-            self.chain.sender.set_text(
-                f"You joined via invite code: {invite_code}"
-            )
+            self.chain.sender.set_text(f"You joined via invite code: {invite_code}")
 
-        self.chain.sender.set_parse_mode("html")
         self.chain.send()
 ```
 

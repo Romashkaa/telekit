@@ -1,6 +1,8 @@
 # Logging
 
 ```py
+import telekit
+
 source = """
 # Page Title
 
@@ -19,11 +21,6 @@ pages: dict[str, tuple[str, str]] = {}
 
 for title, text in telekit.chapters.parse(source).items():
     pages[title] = (title, text)
-
-# Alternative:
-
-# for title, text in telekit.chapters.read("pages.txt").items():
-#     pages[title] = (title, text)
 
 class PagesHandler(telekit.Handler):
 
@@ -55,6 +52,7 @@ class PagesHandler(telekit.Handler):
 
         self.chain.set_inline_keyboard({"« Back": self.display_home_page})
         self.chain.edit()
-        
+
+TOKEN: str = telekit.utils.read_token()
 telekit.Server(TOKEN).polling()
 ```

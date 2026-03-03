@@ -37,7 +37,7 @@ class OnTextHandler(telekit.Handler):
         if not age:
             age = "An unknown number of"
 
-        self.chain.sender.set_title(Composite("Hello, ", Italic(name), "!"))
+        self.chain.sender.set_title("Hello, ", Italic(name), "!")
         self.chain.sender.set_message(Italic(age), " years is a wonderful stage of life!")
         self.chain.disable_timeout_warnings()
         self.chain.send()

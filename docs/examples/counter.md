@@ -14,8 +14,13 @@ Counter with "+" and "-" buttons.
 
 ```python
 import telekit
+from telekit.types import ButtonStyle, CallbackButton
 
 class CounterHandler(telekit.Handler):
+
+    # ------------------------------------------
+    # Initialization
+    # ------------------------------------------
 
     @classmethod
     def init_handler(cls) -> None:
@@ -24,23 +29,37 @@ class CounterHandler(telekit.Handler):
         """
         cls.on.command("start").invoke(cls.handle)
 
+    # ------------------------------------------
+    # Handling Logic
+    # ------------------------------------------
+
     def handle(self) -> None:
+        self.chain.sender.set_remove_attachments(False)
+        self.chain.sender.set_remove_text(False)
+
         self.chain.sender.set_title("Hello")
         self.chain.sender.set_message("Click the button below to start interacting")
         self.chain.sender.set_photo("https://static.wikia.nocookie.net/ssb-tourney/images/d/db/Bot_CG_Art.jpg/revision/latest?cb=20151224123450")
         self.chain.sender.set_effect(self.chain.sender.Effect.PARTY)
 
-        self.click_count: int = 0
+        self.click_count = 0
 
-        @self.chain.inline_keyboard({"⊕": 1, "⊖": -1}, row_width=2)
-        def _(value: int) -> None:
-            self.click_count += value
-            self.chain.sender.set_message(f"You clicked {self.click_count} times")
-            self.chain.edit()
+        self.chain.set_inline_keyboard(
+            {
+                "⊖": CallbackButton(self.update_count, [-1], style=ButtonStyle.DANGER),
+                "⊕": CallbackButton(self.update_count, [1], style=ButtonStyle.SUCCESS),
+            }, row_width=2
+        )
             
         self.chain.set_remove_inline_keyboard(False)
         self.chain.disable_timeout_warnings()
         self.chain.edit()
 
+    def update_count(self, value: int):
+        self.click_count += value
+        self.chain.sender.set_message(f"You clicked {self.click_count} times")
+        self.chain.edit()
+
+TOKEN: str = telekit.utils.read_token() # read token from "token.txt" file
 telekit.Server(TOKEN).polling()
 ```

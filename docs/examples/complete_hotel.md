@@ -78,7 +78,6 @@ telekit.Server(TOKEN).polling()
         • Room size: 35 m²
         • Rent: 2975 UAH per night
     `
-    parse_mode = "markdown"
     image = "https://ukraine-hotel.s3.amazonaws.com/uploadimage/fb52f495c15d42ac89fe9552fa83640f.jpg"
     
     buttons (3) {
@@ -98,7 +97,6 @@ telekit.Server(TOKEN).polling()
         • Room size: 76 m²
         • Rent: 5015 UAH per night
     `
-    parse_mode = "markdown"
     image = "https://ukraine-hotel.s3.amazonaws.com/uploadimage/09fcaf94d3ce4076bd808546cc8c20be.jpg"
     
     buttons (3) {
@@ -119,7 +117,6 @@ telekit.Server(TOKEN).polling()
         • Rent: 5015 UAH per night
     `
     image = "https://ukraine-hotel.s3.amazonaws.com/uploadimage/7478f00bc9684595ad6de1b564c714f3.jpg"
-    parse_mode = "markdown"
 
     buttons (3) {
         back("« Previous")
@@ -157,32 +154,32 @@ telekit.Server(TOKEN).polling()
 @ faq {
     title = "📖 FAQ – Hotel Ukraine"
     message = `
-        *Is Wi-Fi available at the hotel?*
-        • _Yes, free Wi-Fi is available throughout the hotel._
+        *Is Wi\\-Fi available at the hotel?*
+        • _Yes, free Wi\\-Fi is available throughout the hotel\\._
 
         *Is breakfast included?*
-        • _Breakfast is available for an additional fee._
+        • _Breakfast is available for an additional fee\\._
 
         *Is parking available on site?*
-        • _Yes, paid parking is available for guests._
+        • _Yes, paid parking is available for guests\\._
 
         *Is the hotel accessible for guests with disabilities?*
-        • _Yes._
+        • _Yes\\._
 
         *Does the hotel have air conditioning?*
-        • _Yes, all rooms are equipped with air conditioning._
+        • _Yes, all rooms are equipped with air conditioning\\._
 
         *Are pets allowed?*
-        • _Yes, pets are allowed._
+        • _Yes, pets are allowed\\._
 
         *Does the hotel have a restaurant and bar?*
-        • _Yes, Hotel Ukraine features a restaurant and a bar._
+        • _Yes, Hotel Ukraine features a restaurant and a bar\\._
 
         *Are there fitness or business facilities?*
-        • _Yes, the hotel offers a fitness center and a business center._
+        • _Yes, the hotel offers a fitness center and a business center\\._
 
         *Is airport transportation available?*
-        • _Yes, airport shuttle service is available upon request._
+        • _Yes, airport shuttle service is available upon request\\._
     `
     parse_mode = "markdown"
     image = "https://cf.bstatic.com/xdata/images/hotel/max1024x768/735063748.jpg?k=30f7a9d5f4d5fc7f168f50aa1d752b87f2e28e83641bc6471b543ab3803d86df&o="

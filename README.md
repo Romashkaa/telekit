@@ -69,7 +69,7 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
 
 ## Overview
 
-**Telekit** is a framework for building Telegram bots where dialogs look like normal method calls. No bulky state machines. No scattered handlers.
+**Telekit** is a library for building Telegram bots where dialogs look like normal method calls. No bulky state machines. No scattered handlers.
 
 The idea is simple: you point to the next step — Telekit calls it when the user replies.
 
@@ -88,12 +88,9 @@ def handle_name(self, name: str):
     self.chain.send()
 ```
 
+The `handle` method sends a message and registers `handle_name` as the next step using `set_entry_text`. When the user replies, Telekit automatically calls `handle_name` and passes the user's message as a plain `str` argument.
 
-The `handle` method sends a message and registers `handle_name` as the next step using `set_entry_text`.
-
-When the user replies, Telekit automatically calls `handle_name` and passes the user's message as a plain `str` argument.
-
-That's it. No enums. No manual state tracking. No boilerplate.
+> That's it. No enums. No manual state tracking. No boilerplate.
 
 ### Inline Keyboards
 
@@ -150,7 +147,7 @@ class GreetHandler(telekit.Handler):
 
 Now `/greet 64 "Alice Reingold"` or `/greet 128 Dracula` are parsed automatically.
 
-> [!TIP]
+> [!INFO]
 > If arguments are invalid or missing, you simply receive `None` and decide how to respond.
 
 ### Dialogue
@@ -279,13 +276,22 @@ telekit.Server(BOT_TOKEN).polling()
 - Scene-based architecture
 - Anonymous scenes
 - Automatic navigation stack management
-- Images support
-- Link buttons
 - Input handling
+- Images support and link buttons
 - Template variables
 - Custom variables
 - Hooks (Python API integration)
 - Jinja template engine
+
+<details>
+  <summary>Click to see what you can do with the DSL</summary>
+  <table>
+    <tr>
+      <td><img src="../images/telekit_example_7.jpg" alt="Telekit Example 7" width="300"></td>
+      <td><img src="../images/telekit_example_8.jpg" alt="Telekit Example 8" width="300"></td>
+    </tr>
+  </table>
+</details>
 
 You can find a [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md) and [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) in the repository.
 

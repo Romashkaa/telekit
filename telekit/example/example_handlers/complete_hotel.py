@@ -161,32 +161,32 @@ script = """
 @ faq {
     title = "📖 FAQ – Hotel Ukraine"
     message = `
-        *Is Wi-Fi available at the hotel?*
-        • _Yes, free Wi-Fi is available throughout the hotel._
+        *Is Wi\\-Fi available at the hotel?*
+        • _Yes, free Wi\\-Fi is available throughout the hotel\\._
 
         *Is breakfast included?*
-        • _Breakfast is available for an additional fee._
+        • _Breakfast is available for an additional fee\\._
 
         *Is parking available on site?*
-        • _Yes, paid parking is available for guests._
+        • _Yes, paid parking is available for guests\\._
 
         *Is the hotel accessible for guests with disabilities?*
-        • _Yes._
+        • _Yes\\._
 
         *Does the hotel have air conditioning?*
-        • _Yes, all rooms are equipped with air conditioning._
+        • _Yes, all rooms are equipped with air conditioning\\._
 
         *Are pets allowed?*
-        • _Yes, pets are allowed._
+        • _Yes, pets are allowed\\._
 
         *Does the hotel have a restaurant and bar?*
-        • _Yes, Hotel Ukraine features a restaurant and a bar._
+        • _Yes, Hotel Ukraine features a restaurant and a bar\\._
 
         *Are there fitness or business facilities?*
-        • _Yes, the hotel offers a fitness center and a business center._
+        • _Yes, the hotel offers a fitness center and a business center\\._
 
         *Is airport transportation available?*
-        • _Yes, airport shuttle service is available upon request._
+        • _Yes, airport shuttle service is available upon request\\._
     `
     parse_mode = "markdown"
     image = "https://cf.bstatic.com/xdata/images/hotel/max1024x768/735063748.jpg?k=30f7a9d5f4d5fc7f168f50aa1d752b87f2e28e83641bc6471b543ab3803d86df&o="
