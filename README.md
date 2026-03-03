@@ -274,7 +274,7 @@ $ timeout {
 telekit.Server(BOT_TOKEN).polling()
 ```
 
-**DSL allows you to:**
+**Key features of the Telekit DSL:**
 
 - Scene-based architecture
 - Anonymous scenes

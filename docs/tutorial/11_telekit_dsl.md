@@ -2,7 +2,7 @@
 
 **Telekit DSL** — this is a custom domain-specific language used to create interactive pages, such as FAQs.  
 
-**It allows you to:**
+**Key features:**
 
 - Scene-based architecture
 - Anonymous scenes
