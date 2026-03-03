@@ -980,8 +980,12 @@ class BaseSender:
         """
         Sends a dice message with the given emoji and returns the game result.
 
-        Prefer using the specific methods (e.g. `send_dice()`, `send_casino()`)
+        Prefer using the specific methods (e.g. `send_dice()`, `send_slot_machine()`)
         for typed return values. Use this method only when the emoji is dynamic.
+
+        :param emoji: Emoji on which the dice throw animation is based. Currently, must be one of “🎲”, “🎯”, “🏀”, “⚽”, “🎳”, or “🎰”.
+            Dice can have values 1-6 for “🎲”, “🎯” and “🎳”, values 1-5 for “🏀” and “⚽”, and values 1-64 for “🎰”
+        :type emoji: :obj:`str`
 
         :returns: the result of the emoji game.
         :rtype: dices.GameResult
@@ -1104,25 +1108,26 @@ class BaseSender:
         """
         return self.send_emoji_game(dices.Bowling.emoji)
 
-    def send_casino(self) -> dices.Casino:
+    def send_slot_machine(self) -> dices.SlotMachine:
         """
         Sends a 🎰 slot machine spin and returns the result.
         The returned object provides access to the outcome of the throw.
 
         Properties:
-        - `value`:      1–64
-        - `is_win`:     rank != "nothing"
-        - `is_lose`:    not is_win
-        - `is_jackpot`: rank == "triple_7"  (7️⃣7️⃣7️⃣)
-        - `slots`:      (left, center, right) reel values (1–4 each)
-        - `symbols`:    reel values as emoji   e.g. ("🍒", "🍋", "7️⃣")
-        - `letters`:    compact reel string    e.g. "CL7"
-        - `names`:      full reel names        e.g. "Cherry Lemon Seven"
-        - `display`:    visual emoji string    e.g. "🍒🍋7️⃣"
-        - `rank`:       "nothing" | "pair" | "triple" | "double_7" | "triple_7"
-        - `score`:      0 / 25 / 60 / 75 / 100
+        - `value`:        1–64
+        - `is_win`:       all three reels match (triple of any kind)
+        - `is_lose`:      not is_win
+        - `is_jackpot`:   rank == "triple_7"  (7️⃣7️⃣7️⃣)
+        - `slots`:        (left, center, right) reel values (1–4 each)
+        - `emojis`:       visual emoji string    e.g. `"🍒🍋7️⃣"`
+        - `split_emojis`: reel emojis as tuple   e.g. `("🍒", "🍋", "7️⃣")`
+        - `letters`:      compact reel string    e.g. `"CLS"`
+        - `names`:        full reel names        e.g. `"Cherry Lemon Seven"`
+        - `split_names`:  reel names as tuple    e.g. `("cherry", "lemon", "seven")`
+        - `rank`:         `"nothing"` | `"pair"` | `"triple"` | `"double_7"` | `"triple_7"`
+        - `score`:        `0` / `25` / `60` / `75` / `100`
         """
-        return self.send_emoji_game(dices.Casino.emoji)
+        return self.send_emoji_game(dices.SlotMachine.emoji)
 
         
     # --------------------------------------------------------

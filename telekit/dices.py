@@ -13,7 +13,7 @@ __all__ = [
     "Basketball",
     "Football",
     "Bowling",
-    "Casino",
+    "SlotMachine",
 ]
 
 # ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ class GameResult(ABC):
             raise ValueError("Message does not contain a dice")
 
         match message.dice.emoji:
-            case "🎰": return Casino(message)
+            case "🎰": return SlotMachine(message)
             case "🎲": return Dice(message)
             case "🎯": return Darts(message)
             case "🏀": return Basketball(message)
@@ -190,10 +190,10 @@ class Bowling(GameResult):
 
 
 # ---------------------------------------------------------------------------
-# 🎰 Casino
+# 🎰 Slot Machine
 # ---------------------------------------------------------------------------
 
-class CasinoRank:
+class SlotMachineRank:
     NOTHING   = "nothing"
     PAIR      = "pair"        # two matching symbols
     TRIPLE    = "triple"      # three matching symbols (non-7)
@@ -201,9 +201,9 @@ class CasinoRank:
     TRIPLE_7  = "triple_7"    # jackpot — three 7s
 
 
-class Casino(GameResult):
+class SlotMachine(GameResult):
     """
-    🎰 Casino slot machine.
+    🎰 Slot machine.
 
     Telegram encodes 3 reels in a single value (1–64).
     Each reel cycles through 4 symbols:
@@ -212,11 +212,11 @@ class Casino(GameResult):
     """
     emoji = "🎰"
 
-    Rank: type[CasinoRank] = CasinoRank
+    Rank: type[SlotMachineRank] = SlotMachineRank
 
     # Reel symbols in order (value 1–4 per reel)
     _REEL_SYMBOLS = {1: "⬛️", 2: "🍒", 3: "🍋", 4: "7️⃣"}
-    _REEL_LETTERS = {1: "B", 2: "C", 3: "L", 4: "7"}
+    _REEL_LETTERS = {1: "B", 2: "C", 3: "L", 4: "S"}
     _REEL_NAMES   = {1: "BAR", 2: "Cherry", 3: "Lemon", 4: "Seven"}
 
     _TRIPLE_NON_7 = {1, 22, 43}   # ⬛️⬛️⬛️ / 🍒🍒🍒 / 🍋🍋🍋
@@ -225,69 +225,166 @@ class Casino(GameResult):
 
     @property
     def slots(self) -> tuple[int, int, int]:
-        """Raw reel values (1–4) as (left, center, right)."""
+        """
+        Raw reel values (1–4) as (left, center, right).
+
+        >>> dice.slots
+        (2, 1, 4) # Cherry, BAR, Seven
+        
+        ### Values
+        - `1` for BAR
+        - `2` for Cherry
+        - `3` for Lemon
+        - `4` for Seven
+        """
         v = self.value - 1
         left   = v % 4 + 1
         center = (v // 4) % 4 + 1
         right  = (v // 16) % 4 + 1
         return left, center, right
+    
+    @property
+    def emojis(self) -> str:
+        """Visual representation of the slot result.
+        
+        >>> dice.emojis
+        "🍒7️⃣🍋"
+
+        ### Values
+        - `⬛️` - BAR
+        - `🍒` - Cherry
+        - `🍋` - Lemon
+        - `7️⃣` - Seven
+        """
+        return "".join(self.split_emojis)
 
     @property
-    def symbols(self) -> tuple[str, str, str]:
-        """Reel values as emoji symbols."""
-        return tuple(self._REEL_SYMBOLS[s] for s in self.slots) # pyright: ignore[reportReturnType]
+    def split_emojis(self) -> tuple[str, str, str]:
+        """
+        Reel values as emoji symbols. 
+        
+        >>> dice.split_emojis
+        ("🍒", "🍋", "7️⃣")
+
+        ### Values
+        - `⬛️` - BAR
+        - `🍒` - Cherry
+        - `🍋` - Lemon
+        - `7️⃣` - Seven
+        """
+        a, b, c = tuple(self._REEL_SYMBOLS[s] for s in self.slots)
+        return a, b, c
     
     @property
     def letters(self) -> str:
-        """Compact reel representation as letters e.g. 'BCL'."""
+        """
+        Compact reel representation as letters.
+
+        >>> dice.letters
+        "BCL"
+
+        ### Values
+        - `B` for BAR
+        - `C` for Cherry
+        - `L` for Lemon
+        - `S` for Seven
+        """
         return "".join(self._REEL_LETTERS[s] for s in self.slots)
 
     @property
     def names(self) -> str:
-        """Full reel names as a spaced string e.g. 'BAR Cherry Lemon'."""
+        """
+        Full reel names as a spaced string.
+        
+        >>> dice.names
+        "BAR Cherry Lemon"
+
+        ### Values
+        - `BAR`
+        - `Cherry`
+        - `Lemon`
+        - `Seven`
+        """
         return " ".join(self._REEL_NAMES[s] for s in self.slots)
 
     @property
-    def display(self) -> str:
-        """Visual representation of the slot result e.g. 🍒7️⃣🍋"""
-        return "".join(self.symbols)
+    def split_names(self) -> tuple[str, str, str]:
+        """
+        Full reel names as a tuple.
+        
+        >>> dice.split_names
+        ("bar", "cherry", "lemon")
+
+        ### Values
+        - `bar`
+        - `cherry`
+        - `lemon`
+        - `seven`
+        """
+        a, b, c = self.names.lower().split(" ") 
+        return a, b, c
 
     @property
     def rank(self) -> Literal["nothing", "pair", "triple", "double_7", "triple_7"]:
         """Categorised result rank."""
         v = self.value
         if v in self._TRIPLE_7:
-            return CasinoRank.TRIPLE_7
+            return SlotMachineRank.TRIPLE_7
         if v in self._DOUBLE_7:
-            return CasinoRank.DOUBLE_7
+            return SlotMachineRank.DOUBLE_7
         if v in self._TRIPLE_NON_7:
-            return CasinoRank.TRIPLE
+            return SlotMachineRank.TRIPLE
         left, center, right = self.slots
         if left == center or center == right or left == right:
-            return CasinoRank.PAIR
-        return CasinoRank.NOTHING
+            return SlotMachineRank.PAIR
+        return SlotMachineRank.NOTHING
 
     @property
     def is_win(self) -> bool:
-        return self.rank != CasinoRank.NOTHING
+        """
+        True if all three reels show the same symbol (triple of any kind):
+
+        - `⬛️⬛️⬛️`
+        - `🍒🍒🍒`
+        - `🍋🍋🍋`
+        - `7️⃣7️⃣7️⃣`
+
+        Corresponds to the red indicator lighting up above the reels in the Telegram client.
+        """
+        return self.rank.startswith("triple")
 
     @property
     def is_jackpot(self) -> bool:
         """`True` only for 7️⃣7️⃣7️⃣."""
-        return self.rank == CasinoRank.TRIPLE_7
+        return self.rank == SlotMachineRank.TRIPLE_7
 
     @property
     def score(self) -> int:
+        """
+        Numeric score based on the result rank.
+
+        ```
+        if dice.score > 50:
+            print("Congrats!")
+        ```
+
+        ### Values
+        - `0`   — nothing
+        - `25`  — pair
+        - `60`  — triple (non-7)
+        - `75`  — double Seven
+        - `100` — triple Seven (jackpot)
+        """
         return {
-            CasinoRank.NOTHING:  0,
-            CasinoRank.PAIR:     25,
-            CasinoRank.TRIPLE:   60,
-            CasinoRank.DOUBLE_7: 75,
-            CasinoRank.TRIPLE_7: 100,
+            SlotMachineRank.NOTHING:  0,
+            SlotMachineRank.PAIR:     25,
+            SlotMachineRank.TRIPLE:   60,
+            SlotMachineRank.DOUBLE_7: 75,
+            SlotMachineRank.TRIPLE_7: 100,
         }[self.rank]
 
     def __repr__(self) -> str:
         return (
-            f"Casino(value={self.value}, display={self.display}, "
+            f"SlotMachine(value={self.value}, emojis={self.emojis}, "
             f"rank={self.rank!r}, score={self.score})"
         )
