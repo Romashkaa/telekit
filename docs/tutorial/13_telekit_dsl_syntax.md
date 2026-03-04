@@ -242,7 +242,7 @@ Unlike scenes (@), configuration block don’t create a UI — it just set param
 ```js
 $ {
     // set timeout (for example)
-    timeout_time    = 10 // disabled by default
+    timeout_time    = 10 // seconds; 300 by default
     timeout_message = "Are you still here?"
     timeout_label   = "Yes, i'm here"
 }
@@ -1070,7 +1070,7 @@ This method can be used to:
 - Register global functions or filters
 - Adjust Jinja configuration options
 
-#### Built-in Sanitize Filters
+#### Built-in Escape Filters
 
 Telekit automatically registers additional filters in your Jinja environment to safely escape dynamic content depending on the parse mode:
 
