@@ -2,7 +2,7 @@
 
 [![PyPi](https://img.shields.io/pypi/v/telekit.svg)](https://pypi.org/project/telekit/)
 [![Python](https://img.shields.io/pypi/pyversions/telekit.svg)](https://pypi.org/project/telekit/)
-[![PyPi downloads](https://img.shields.io/pypi/dm/telekit.svg)](https://pypi.org/project/telekit/)
+[![PyPi Downloads](https://static.pepy.tech/badge/telekit)](https://pepy.tech/project/telekit)
 
 # Telekit
 
