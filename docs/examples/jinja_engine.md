@@ -1,4 +1,7 @@
-# Jinja Engine
+# Jinja Example
+
+> [!TIP]
+> We recommend checking out the [Jinja section](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#jinja-extended-template-engine) in the DSL tutorial before diving in.
 
 ```py
 import telekit
