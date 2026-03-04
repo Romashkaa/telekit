@@ -29,15 +29,15 @@ $ {
     message = `
         Hello, {{ handler.user.first_name or "guest" | e }} 👋
 
-        Available room types:
+        *Available room types:*
         {% for room in rooms -%}
         • {{ room }}
         {% endfor %}
-        Please choose an option below
     `
     parse_mode = "markdown"
 }
 """
 
-telekit.Server(BOT_TOKEN).polling()
+TOKEN: str = telekit.utils.read_token()
+telekit.Server(TOKEN).polling()
 ```

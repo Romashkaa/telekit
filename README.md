@@ -26,7 +26,7 @@ telekit.Server("BOT_TOKEN").polling()
 
 > Send "Hello!" with a photo on `/start`
 
-Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md), allowing developers to create fully interactive bots with minimal code. It also integrates **Jinja**, giving you loops, conditionals, expressions, and filters to generate dynamic content.
+Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md), allowing developers to create fully interactive bots with minimal code. It also integrates [**Jinja**](https://github.com/Romashkaa/telekit/blob/main/docs/examples/jinja_engine.md), giving you loops, conditionals, expressions, and filters to generate dynamic content.
 
 ```js
 @ main {
