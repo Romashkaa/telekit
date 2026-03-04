@@ -246,7 +246,7 @@ class SuggestButton(InlineButton):
             style=self._style,
             **self._kwargs,
         )
-    
+
 class CallbackButton(InlineButton):
     """
     This object represents an inline keyboard button that triggers a callback function when pressed.
@@ -280,7 +280,7 @@ class CallbackButton(InlineButton):
         def __init__(
                 self, 
                 chain_callback: Callable[[], None],
-                callback: Callable[..., Any], 
+                callback: Callable[..., Any] | None, 
 
                 pass_args: tuple | list | None = None, 
                 pass_kwargs: dict[str, Any] | None = None, 
@@ -288,7 +288,7 @@ class CallbackButton(InlineButton):
                 answer_text: str | None = None,
                 answer_as_alert: bool = True,
 
-                style: str | None = None,
+                style: str | None | ButtonStyle = None,
 
                 kwargs: dict[str, Any] = {}
             ):
@@ -310,15 +310,21 @@ class CallbackButton(InlineButton):
             self.__dict__["_chain_callback"]()
 
         def _invoke_callback(self):
+            callback: Callable[..., Any] | None = self.__dict__["_callback"]
+
+            if callback is None:
+                return
+            
             args = self._pass_args or ()
             kwargs = self._pass_kwargs or {}
-            self.__dict__["_callback"](*args, **kwargs)
+
+            callback(*args, **kwargs)
 
         def _answer_callback_query(self, call: CallbackQuery):
             if self._answer_text:
                 InlineButton._bot.answer_callback_query(
-                    call.id, 
-                    self._answer_text, 
+                    call.id,
+                    self._answer_text,
                     self._answer_as_alert
                 )
 
@@ -329,7 +335,7 @@ class CallbackButton(InlineButton):
 
     def __init__(
             self, 
-            callback: Callable[..., Any], 
+            callback: Callable[..., Any] | None, 
 
             pass_args: tuple | list | None = None, 
             pass_kwargs: dict[str, Any] | None = None, 
@@ -366,7 +372,7 @@ class CallbackButton(InlineButton):
         )
     
     @classmethod
-    def create_invoker(cls, callback: Callable[[], None], chain_callback: Callable[[], None]) -> _CallbackInvoker:
+    def create_invoker(cls, callback: Callable[[], None] | None, chain_callback: Callable[[], None]) -> _CallbackInvoker:
         return cls._CallbackInvoker(
             chain_callback=chain_callback,
             callback=callback,

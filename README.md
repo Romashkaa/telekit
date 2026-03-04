@@ -1,7 +1,8 @@
 ![TeleKit](https://github.com/Romashkaa/images/blob/main/TeleKitWide.png?raw=true)
 
-[![PyPI](https://img.shields.io/pypi/v/telekit.svg)](https://pypi.org/project/telekit/)
+[![PyPi](https://img.shields.io/pypi/v/telekit.svg)](https://pypi.org/project/telekit/)
 [![Python](https://img.shields.io/pypi/pyversions/telekit.svg)](https://pypi.org/project/telekit/)
+[![PyPi downloads](https://img.shields.io/pypi/dm/telekit.svg)](https://pypi.org/project/telekit/)
 
 # Telekit
 
