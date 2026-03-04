@@ -2,34 +2,34 @@
 
 ## Content
 
-- [Our first scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#our-first-scene)
-- [Let’s add another scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#lets-add-another-scene)
-- [Back Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#back)
-- [Other Scene`s Attributes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#other-scenes-attributes)
-- [Links](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#links)
-- [Configuration Block](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#configuration-block)
-    - [Named Configuration Block](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#named-configuration-block)
-- [Timeouts](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#timeout)
-- [Multiline Strings](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#multiline-strings)
-- [Buttons Without Label](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#buttons-without-label)
-- [Next Magic Scene](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#next)
-- [Anonymous Scenes](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#anonymous-scenes)
-- [Template Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#template-variables)
-    - [Available Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#available-variables)
-    - [Custom Static Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-static-variables)
-    - [Custom Dynamic Variables](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#custom-dynamic-variables)
-    - [Default Values](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#default-values)
-    - [Variable Resolution Order](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#variable-resolution-order)
-- [Calling Python Methods in DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#calling-python-methods-in-dsl)
-    - [Argument Data Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#argument-data-types)
-    - [Hook Types](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#hook-types)
-- [Handling Text Input](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handling-text-input)
-- [Handoff Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#handoff-button)
-- [Redirect Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#redirect-button)
-- [Return Button](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#return-button)
-- [Jinja Template Engine](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#jinja-extended-template-engine)
-- [Additional Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#additional-documentation)
-- [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
+- [Our first scene](#our-first-scene)
+- [Let’s add another scene](#lets-add-another-scene)
+- [Back Magic Scene](#back)
+- [Other Scene's Attributes](#other-scenes-attributes)
+- [Links](#links)
+- [Configuration Block](#configuration-block)
+    - [Named Configuration Block](#named-configuration-block)
+- [Timeouts](#timeout)
+- [Multiline Strings](#multiline-strings)
+- [Buttons Without Label](#buttons-without-label)
+- [Next Magic Scene](#next)
+- [Anonymous Scenes](#anonymous-scenes)
+- [Template Variables](#template-variables)
+    - [Available Variables](#available-variables)
+    - [Custom Static Variables](#custom-static-variables)
+    - [Custom Dynamic Variables](#custom-dynamic-variables)
+    - [Default Values](#default-values)
+    - [Variable Resolution Order](#variable-resolution-order)
+- [Calling Python Methods in DSL](#calling-python-methods-in-dsl)
+    - [Argument Data Types](#argument-data-types)
+    - [Hook Types](#hook-types)
+- [Handling Text Input](#handling-text-input)
+- [Handoff Button](#handoff-button)
+- [Redirect Button](#redirect-button)
+- [Return Button](#return-button)
+- [Jinja Template Engine](#jinja-extended-template-engine)
+- [Additional Documentation](#additional-documentation)
+- [Examples](../examples/examples.md#telekit-dsl)
 
 ## Our first scene
 
@@ -596,7 +596,7 @@ $ vars {
 
 > [!NOTE]  
 > Variables defined in a named `$ vars` block are equivalent to creating individual entries in the unnamed configuration block with the same values. For example, `$ vars { PRICE = 99 }` is similar to having a `$ { vars_PRICE = 99 }` in the unnamed configuration block.  
-> See [Named Configuration Blocks](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/13_telekit_dsl_syntax.md#named-configuration-block) for more details.
+> See [Named Configuration Blocks](#named-configuration-block) for more details.
 
 When used in a template, lists and other non-string values are automatically converted to strings:
 

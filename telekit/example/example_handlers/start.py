@@ -22,11 +22,15 @@ class StartHandler(telekit.Handler):
                 "🧮 Counter":            "CounterHandler",
                 "🧙‍♀️ Spells":              "SpellsHandler",
                 "⌨️ Entry":                "EntryHandler",
+
                 "📚 Telekit DSL Examples":   "DSLExampleHandler",
+                
                 "📖 Pages":                "PagesHandler",
                 "🦻 On Text":             "OnTextHandler",
                 "📄 File Info":     "TextDocumentHandler",
-            }, row_width=[3, 1, 3]
+                
+                "🖼️ QR Editor":               "QRHandler",
+            }, row_width=[3, 1, 3, 1]
         )
         def handle_response(handler: str):
             self.handoff(handler).handle()

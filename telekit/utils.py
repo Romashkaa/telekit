@@ -1,5 +1,8 @@
 import re
+
 from pathlib import Path
+from urllib.parse import urlencode, quote
+from typing import Literal
 
 ROOT_DIR = Path(__file__).resolve().parent  # telekit/
 
@@ -100,7 +103,6 @@ def read_token(path: str = "token.txt") -> str:
         token, *_ = first_line.split()
         return token
 
-
 def read_canvas_path(path: str = "canvas_path.txt") -> str:
     """
     Read the ``.canvas`` file path from a file.
@@ -115,7 +117,145 @@ def read_canvas_path(path: str = "canvas_path.txt") -> str:
     """
     with open(path) as f:
         return f.readline().strip()
+    
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Link Generators
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
+def make_bot_link(botname: str, start: str | None = None) -> str:
+    """Return a t.me link to a bot.
+
+    >>> make_bot_link("UserNameOfBot")
+    "https://t.me/UserNameOfBot"
+
+    >>> make_bot_link("UserNameOfBot", start="Hello!")
+    "https://t.me/UserNameOfBot?start=Hello%21"
+
+    Args:
+        botname: Bot username with or without leading '@'.
+        start:   Optional deep-link payload appended as ?start=.
+
+    Returns:
+        A t.me URL string.
+    """
+    botname = botname.lstrip("@")
+    if start is None:
+        return f"https://t.me/{botname}"
+    encoded_start = quote(start, safe="")
+    return f"https://t.me/{botname}?start={encoded_start}"
+
+def make_user_link(username: str, text: str | None = None) -> str:
+    """Return a t.me link to a user.
+
+    >>> make_user_link("UserName")
+    "https://t.me/UserName"
+
+    >>> make_user_link("UserName", text="Hello!")
+    "https://t.me/UserName?text=Hello%21"
+
+    Args:
+        username: Telegram username with or without leading '@'.
+        text:     Optional pre-filled message text appended as ?text=.
+
+    Returns:
+        A t.me URL string.
+    """
+    username = username.lstrip("@")
+    if text is None:
+        return f"https://t.me/{username}"
+    encoded_text = quote(text, safe="")
+    return f"https://t.me/{username}?text={encoded_text}"
+
+def make_qrcode(
+    text: str,
+    *,
+    size: int | None = None,
+    margin: int | None = None,
+    dark: str | None = None,
+    light: str | None = None,
+    ec_level: Literal["L", "M", "Q", "H"] | None = None,
+    format: Literal["png", "svg", "base64"] | None = None,
+    center_image_url: str | None = None,
+    center_image_size_ratio: float | None = None,
+    center_image_width: int | None = None,
+    center_image_height: int | None = None,
+    caption: str | None = None,
+    caption_font_family: str | None = None,
+    caption_font_size: int | None = None,
+    caption_font_color: str | None = None,
+) -> str:
+    """Return a QuickChart URL that renders a QR code.
+
+    >>> make_qrcode("https://example.com")
+    'https://quickchart.io/qr?text=https%3A%2F%2Fexample.com'
+
+    >>> make_qrcode("Hello", dark="ff0000", size=300)
+    'https://quickchart.io/qr?text=Hello&size=300&dark=ff0000'
+
+    Use with sender:
+    >>> sender.set_photo(make_qrcode("https://example.com", caption="Scan Me"))
+
+    Check out the [QuickChart QR Code API](https://quickchart.io/documentation/qr-codes/)
+
+    Args:
+        text:                   Content to encode (URL or any string).
+        size:                   Width and height of the image in pixels.
+        margin:                 Whitespace around the QR image in modules.
+        dark:                   Hex color of dark cells, without '#'.
+        light:                  Hex color of light cells, without '#'.
+                                Use "0000" for a transparent background.
+        ec_level:               Error correction level — L, M, Q, or H.
+        format:                 Output format — png, svg, or base64.
+        center_image_url:       URL of an image to display in the center.
+                                Must be publicly accessible (PNG or JPG).
+        center_image_size_ratio: Float 0.0–1.0 — portion of QR area the
+                                center image occupies. Keep below ~0.3.
+        center_image_width:     Center image width in pixels.
+        center_image_height:    Center image height in pixels.
+        caption:                Caption text displayed below the QR code.
+        caption_font_family:    Font family of the caption.
+        caption_font_size:      Font size of the caption in pixels.
+        caption_font_color:     Color of the caption — name or hex.
+
+    Returns:
+        A quickchart.io URL string.
+    """
+    params: dict = {"text": text}
+
+    if size is not None: 
+        params["size"] = size
+    if margin is not None: 
+        params["margin"] = margin
+    if dark is not None: 
+        params["dark"] = dark
+    if light is not None: 
+        params["light"] = light
+    if ec_level is not None: 
+        params["ecLevel"] = ec_level
+    if format is not None: 
+        params["format"] = format
+    if center_image_url is not None: 
+        params["centerImageUrl"] = center_image_url
+    if center_image_size_ratio is not None: 
+        params["centerImageSizeRatio"] = center_image_size_ratio
+    if center_image_width is not None: 
+        params["centerImageWidth"] = center_image_width
+    if center_image_height is not None: 
+        params["centerImageHeight"] = center_image_height
+    if caption is not None: 
+        params["caption"] = caption
+    if caption_font_family is not None: 
+        params["captionFontFamily"] = caption_font_family
+    if caption_font_size is not None: 
+        params["captionFontSize"] = caption_font_size
+    if caption_font_color is not None: 
+        params["captionFontColor"] = caption_font_color
+
+    return "https://quickchart.io/qr?" + urlencode(params, quote_via=quote)
+
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Markdown Sanitizing
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 # All special chars that must be escaped in MarkdownV2
 _SPECIAL = r'_*[]()~`>#+-=|{}.!' 

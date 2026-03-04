@@ -11,13 +11,16 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 
 ## Basic
 
+> 🌟 means this is a **fully working bot**, not just a concept or demonstration
+
 | Name  | Comment | Used methods |
 |-----------|--------------|-------------------------|
 | [Dialogue](dialogue.md)   | Simple text-based dialogue flow | `on.regexp`, `set_entry_text` |
-| [Risk Game](risk_game.md) | Interactive game | `set_inline_keyboard`, `set_remove_inline_keyboard`, `set_remove_timeout`, `set_default_timeout`, `on.command` |
-| [Counter](counter.md) | Counter with buttons "+" and "-" | `set_photo`, `set_effect`, `set_inline_keyboard`, `set_remove_inline_keyboard`, `sender.set_remove_attachments`, `sender.set_remove_text`, `CallbackButton`, `style=`, `ButtonStyle` |
+| 🌟 [Risk Game](risk_game.md) | Interactive game | `set_inline_keyboard`, `set_remove_inline_keyboard`, `set_remove_timeout`, `set_default_timeout`, `on.command` |
+| 🌟 [Counter](counter.md) | Counter with buttons "+" and "-" | `set_photo`, `set_effect`, `set_inline_keyboard`, `set_remove_inline_keyboard`, `sender.set_remove_attachments`, `sender.set_remove_text`, `CallbackButton`, `style=`, `ButtonStyle` |
 | [On Text](on_text.md) | Example of handling specific templated messages | `on.text`, `on.command`, `user`, `first_name`, `Code`, `Italic`, `set_entry_suggestions`,  |
 | [Append](append_method.md) | Appending messages with timeout control | `append`, `set_timeout`, `Sanitize`, `Quote`, `set_remove_text` |
+| 🌟 [QR Generator](qr_gen.md) | QR code generator with editable text and caption | `on.command`, `set_entry_text`, `set_inline_keyboard`, `set_photo`, `edit`, `Quote`, `utils.make_qrcode`, `utils.read_token` |
 | [Ads](ads.md) | Sending messages to several chats | `on.command`, `whitelist=`, `create_sender`, `send_or_handle_error`, `set_effect` |
 | [Handoff](handoff.md) | Message with buttons linking to other handlers | `handoff`, `on.command`,  `inline_keyboard`, `user`, `first_name` |
 | [Deep Linking: Command Parameters & Invite Code](command_parameters.md) | Example of handling `/start <age> <name>` commands with type-checked parameters | `parameters`, `params=`, `set_parse_mode`, `set_text`, `Sanitize`, `set_reply_to`, `message` |

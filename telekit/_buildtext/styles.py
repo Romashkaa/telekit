@@ -21,6 +21,8 @@ from urllib.parse import quote
 
 import telebot.formatting
 
+import telekit.utils
+
 from .formatter import TextEntity, EasyTextEntity, StaticTextEntity, EasyTextEntityWithPostRender, Group
 
 
@@ -516,19 +518,9 @@ class UserLink(Link):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
     def __init__(self, *content, username: str, text: str | None = None, escape: bool = True, sep: Union["TextEntity", str] = ""):
-        url: str = self.gen_link(username, text)
+        url: str = telekit.utils.make_user_link(username, text)
 
         super().__init__(*content, url=url, escape=escape, sep=sep)
-
-    @staticmethod
-    def gen_link(username: str, text: str | None = None) -> str:
-        username = username.lstrip("@")
-
-        if text is None:
-            return f"https://t.me/{username}"
-        else:
-            encoded_text: str = quote(text, safe="")
-            return f"https://t.me/{username}?text={encoded_text}"
 
 
 class BotLink(Link):
@@ -559,19 +551,9 @@ class BotLink(Link):
     """
     
     def __init__(self, *content, username: str, start: str | None = None, escape: bool = True, sep: Union["TextEntity", str] = ""):
-        url: str = self.gen_link(username, start)
+        url: str = telekit.utils.make_bot_link(username, start)
 
         super().__init__(*content, url=url, escape=escape, sep=sep)
-
-    @staticmethod
-    def gen_link(username: str, start: str | None = None) -> str:
-        username = username.lstrip("@")
-
-        if start is None:
-            return f"https://t.me/{username}"
-        else:
-            encoded_start = quote(start, safe="")
-            return f"https://t.me/{username}?start={encoded_start}"
 
 class EncodeURL(StaticTextEntity):
     """

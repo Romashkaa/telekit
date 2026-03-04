@@ -1,6 +1,6 @@
 # Entries
 
-Telekit provides flexible methods to handle various types of user input, from plain text to documents. These tools make it easy to process messages without manually parsing updates or managing states.
+Telekit provides flexible methods to handle various types of user input, from plain text to documents. These tools make it easy to process messages without manually parsing updates or managing state machines.
 
 ```python
 import telekit
@@ -38,13 +38,11 @@ Explanation:
 - The bot listens for messages that match the pattern `"My name is {name}"`.  
 - When such a message is received, `display_name` is called with the captured `name`.  
 - It greets the user using the captured name.
-- `set_inline_keyboard` adds a button labeled `"✏️ Change"`, which calls the `change_name` method when pressed.  
-- In `change_name`, the bot prompts the user and sets up an entry field using `set_entry_text`.  
-- `delete_user_response=True` ensures that the user's entered text is deleted after being received.
-- Once the user enters a name, `display_name` is invoked with new received name.  
+- `set_inline_keyboard` adds a button labeled `"✏️ Change"`, which calls the `change_name` method when pressed.
+- In `change_name`, the bot prompts the user and sets up an entry handler using `set_entry_text`.  
+- `delete_user_response=True` ensures that the user's sent message is deleted after being received.
+- Once the user enters a name, `display_name` is invoked with new received name.
 - `self.chain.edit()` updates the previous bot message instead of sending a new one.
-
-This handler allows the bot to greet users dynamically by name, provide an inline button to change the name, and update the original message in place rather than sending multiple messages.
 
 ## Input Types
 
@@ -130,12 +128,12 @@ For example, instead of using `@self.chain.entry_text()`, you can use `self.chai
 <summary>Setter version</summary>
 
 ```py
-def handle_name(self, name: str):
-    print(name)
-
 def handle(self):
     self.chain.set_entry_text(self.handle_name)
     self.chain.send()
+
+def handle_name(self, name: str):
+    print(name)
 ```
 
 </details>
@@ -169,12 +167,12 @@ Entries can be combined with inline keyboards to create a more intuitive user ex
 
 ```py
 def handle(self):
-    self.set_inline_keyboard(
+    self.chain.set_entry_text(self.handle_text)
+    self.chain.set_inline_keyboard(
         {
             "Cancel": self.cancel_entry
         }
     )
-    self.chain.set_entry_text(self.handle_text)
 ```
 
 In this setup, Telekit automatically decides which handler to invoke:
@@ -195,7 +193,7 @@ class NameHandler(telekit.Handler):
         cls.on.text("My name is {name}").invoke(cls.display_name)
 
     def display_name(self, name: str | None = None) -> None:
-        self.chain.sender.set_title(f"Hello {name}!" if name else f"Welcome!" )
+        self.chain.sender.set_title(f"Hello {name}!" if name else f"Welcome!")
         self.chain.sender.set_message(
             "Your name has been set. You can change it below if you want"
             if name else

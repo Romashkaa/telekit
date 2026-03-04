@@ -23,6 +23,7 @@ import shlex
 import re
 
 import telebot
+import telebot.types
 
 from . import parameters
 from ._logger import logger
@@ -32,7 +33,7 @@ if typing.TYPE_CHECKING:
     from telekit._handler import Handler # only for type hints
 
 # --------------------------------------------------------
-# Event Handler
+# Invoker
 # --------------------------------------------------------
 
 class Invoker:
@@ -40,12 +41,11 @@ class Invoker:
     • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
     """
 
-    def __init__(self, decorator: Callable[[Callable], Callable | None], handler: type["Handler"]):
+    def __init__(self, registrar: Callable[[Callable], Callable | None], handler: type["Handler"]):
         """
-        Wraps an existing decorator (like cls.on_text) 
-        to add callback/trigger functionality.
+        Wraps a registrar to add callback/trigger functionality.
         """
-        self._decorator: Callable = decorator
+        self._register: Callable = registrar
         self._Handler = handler
 
     def __call__(self, func: Callable):
@@ -58,7 +58,7 @@ class Invoker:
             cls(message).handle(*args, **kwargs)
         ```
         """
-        return self._decorator(func)
+        return self._register(func)
 
     def invoke(self, callback: Callable, pass_args: bool = True):
         """
@@ -74,10 +74,10 @@ class Invoker:
             else:
                 callback(self._Handler(message))
 
-        self._decorator(handler)
+        self._register(handler)
 
 # --------------------------------------------------------
-# On Handlers
+# Triggers
 # --------------------------------------------------------
 
 class On:
@@ -149,7 +149,7 @@ class On:
         Returns:
             Invoker: An invoker object allowing `.invoke()` or @decorator-style usage.
         """
-        original_decorator = self.bot.message_handler(
+        register_trigger = self.bot.message_handler(
             commands=commands,
             regexp=regexp,
             func=func,
@@ -159,18 +159,18 @@ class On:
         )
 
         def decorator(handler: Callable[..., typing.Any]):
-            def wrapped(message):
+            def trigger(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
                 return handler(message)
 
-            return original_decorator(wrapped)
+            return register_trigger(trigger)
 
         return Invoker(decorator, self.handler)
 
     def text(
             self, 
-            *patterns: str, 
+            *patterns: str,
             chat_types: list[str] | None = None,
             whitelist: list[int] | None = None
         ):
@@ -225,11 +225,14 @@ class On:
                     re.IGNORECASE
                 ))
 
-            def _filter_func(message: telebot.types.Message) -> bool:
-                if whitelist is not None and message.chat.id not in whitelist:
+            def _filter(message: telebot.types.Message) -> bool:
+                if not message.text:
                     return False
                 
-                if not message.text:
+                if message.text.startswith("/"):
+                    return False
+                
+                if whitelist is not None and message.chat.id not in whitelist:
                     return False
                 
                 for cregex in compiled:
@@ -239,25 +242,37 @@ class On:
                     
                 return False
 
-            def decorator(func: Callable):
-                @self.bot.message_handler(func=_filter_func, chat_types=chat_types)
-                def _(message):
+            def register(func: Callable): # pyright: ignore[reportRedeclaration]
+                @self.bot.message_handler(func=_filter, chat_types=chat_types)
+                def trigger(message):
                     for cregex in compiled:
                         match = cregex.match(message.text)
                         if match:
                             func(message, **match.groupdict())
                             return
-                        
-                return func
+
+                return trigger
         else:
-            def decorator(func: Callable):
-                @self.bot.message_handler(content_types=["text"], chat_types=chat_types)
-                def _(message):
-                    if whitelist is not None and message.chat.id not in whitelist:
-                        return
-                    func(message)
-                return func
-        return Invoker(decorator, self.handler)
+            def _filter(message: telebot.types.Message) -> bool:
+                if not message.text:
+                    return False
+                
+                if message.text.startswith("/"):
+                    return False
+                
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return False
+
+                return True
+            
+            def register(func: Callable):
+                return self.bot.message_handler(
+                    content_types=["text"],
+                    func=_filter, 
+                    chat_types=chat_types
+                )(func)
+
+        return Invoker(register, self.handler)
     
     def command(
         self,
@@ -305,14 +320,13 @@ class On:
         Returns:
             Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
-        original_decorator = self.bot.message_handler(
-            commands=[c.lstrip("/") for c in commands],
-            chat_types=chat_types,
-            **kwargs
-        )
-
-        def decorator(handler: Callable[..., typing.Any]):
-            def wrapped(message):
+        def register(handler: Callable[..., typing.Any]):
+            @self.bot.message_handler(
+                commands=[c.lstrip("/") for c in commands],
+                chat_types=chat_types,
+                **kwargs
+            )
+            def trigger(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
                 if params:
@@ -320,9 +334,9 @@ class On:
                 
                 return handler(message)
 
-            return original_decorator(wrapped)
+            return trigger
 
-        return Invoker(decorator, self.handler)
+        return Invoker(register, self.handler)
     
     def _analyze_params(self, text: str, types: list[parameters.Parameter]) -> list:
         values: list[str] = shlex.split(text)[1:] # skip the command name
@@ -380,21 +394,20 @@ class On:
         Returns:
             Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
-        original_decorator = self.bot.message_handler(
-            regexp=regexp,
-            chat_types=chat_types,
-            **kwargs
-        )
-
-        def decorator(handler: Callable[..., typing.Any]):
-            def wrapped(message):
+        def register(handler: Callable[..., typing.Any]):
+            @self.bot.message_handler(
+                regexp=regexp,
+                chat_types=chat_types,
+                **kwargs
+            )
+            def trigger(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
                 return handler(message)
 
-            return original_decorator(wrapped)
+            return trigger
 
-        return Invoker(decorator, self.handler)
+        return Invoker(register, self.handler)
     
     def photo(
         self,
@@ -422,8 +435,7 @@ class On:
         ```
         ---
 
-        Triggers:
-            - By receiving a photo message (content_type="photo")
+        Triggers when receive a photo (content_type="photo")
 
         Filters:
             - By chat type(s) (via `chat_types` argument)
@@ -438,21 +450,20 @@ class On:
         Returns:
             Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
         """
-        original_decorator = self.bot.message_handler(
-            content_types=["photo"],
-            chat_types=chat_types,
-            **kwargs
-        )
-
-        def decorator(handler: Callable[..., typing.Any]):
-            def wrapped(message):
+        def register(handler: Callable[..., typing.Any]):
+            @self.bot.message_handler(
+                content_types=["photo"],
+                chat_types=chat_types,
+                **kwargs
+            )
+            def trigger(message):
                 if whitelist is not None and message.chat.id not in whitelist:
                     return
                 return handler(message)
 
-            return original_decorator(wrapped)
+            return trigger
 
-        return Invoker(decorator, self.handler) 
+        return Invoker(register, self.handler) 
     
     def func(
         self,
@@ -508,17 +519,20 @@ class On:
                 return False
             return bool(func(message))
 
-        original_decorator = self.bot.message_handler(
-            func=_filter,
-            chat_types=chat_types,
-            **kwargs
-        )
-
         def decorator(handler: Callable[..., typing.Any]):
             if not invoke_args and not invoke_kwargs:
-                return original_decorator(handler)
+                return self.bot.message_handler(
+                    func=_filter,
+                    chat_types=chat_types,
+                    **kwargs
+                )(handler)
 
-            def _wrap_args(message, *args, **kwargs):
+            @self.bot.message_handler(
+                func=_filter,
+                chat_types=chat_types,
+                **kwargs
+            )
+            def trigger(message, *args, **kwargs):
                 final_args = args
                 final_kwargs = kwargs
 
@@ -530,6 +544,6 @@ class On:
 
                 return handler(message, *final_args, **final_kwargs)
 
-            return original_decorator(_wrap_args)
+            return trigger
 
         return Invoker(decorator, self.handler)

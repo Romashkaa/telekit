@@ -11,5 +11,6 @@ from . import (
     quiz,
     hotel,
     complete_hotel,
-    text_document
+    text_document,
+    qr
 )

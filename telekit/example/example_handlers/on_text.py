@@ -13,6 +13,8 @@ class OnTextHandler(telekit.Handler):
             "I'm {age} years old"
         ).invoke(cls.handle_name_age)
 
+        cls.on.text().invoke(cls.handle)
+
         cls.on.command("on_text").invoke(cls.handle)
             
     # ------------------------------------------
