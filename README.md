@@ -191,6 +191,21 @@ How it works:
 
 It looks like regular Python. And reads like it too.
 
+### Sender
+
+Want to add an image, document or an effect in a single line?
+
+```python
+self.chain.sender.set_effect(Effect.HEART) # Add effect to message. Use enum or string
+self.chain.sender.set_photo("robot.png") # Attach photo. URL, file_id, or path
+self.chain.sender.set_document("README.md") # Attach document. URL, file_id, or path
+self.chain.sender.set_text_as_document("Hello, this is a text document!") # Convert string to text document
+self.chain.sender.send_chat_action(ChatAction.TYPING) # Send chat action. Use enum or string
+```
+
+> [!NOTE]
+> Telekit automatically decides whether to use 'bot.send_message' or 'bot.send_photo' based on the content
+
 ### Styles
 
 Telekit lets you describe formatting as objects instead of writing raw HTML or Markdown.
