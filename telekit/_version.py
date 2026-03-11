@@ -2,4 +2,4 @@
 # PyPI package version: https://img.shields.io/pypi/v/telekit.svg
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-__version__ = "2.2.0"
+__version__ = "2.2.0a1"

@@ -26,11 +26,13 @@ from .utils import format_file_size
 
 from ._user import User
 from ._inline_buttons import (
+    ButtonStyle,
     InlineButton, 
     LinkButton, WebAppButton, 
     CopyTextButton, SuggestButton, 
     CallbackButton, 
-    ButtonStyle
+    AlertButton,
+    NotificationButton
 )
 
 from .styles import Styles, TextEntity, StaticTextEntity, EasyTextEntity
@@ -168,6 +170,8 @@ __all__ = [
     "CopyTextButton",
     "SuggestButton",
     "CallbackButton",
+    "AlertButton",
+    "NotificationButton",
 
     "ButtonStyle",
 
