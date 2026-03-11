@@ -19,11 +19,15 @@
 
 from ._inline_buttons import (
     InlineButton,
+
     LinkButton,
     WebAppButton,
     SuggestButton,
     CopyTextButton,
+    
     CallbackButton,
+    AlertButton,
+    NotificationButton,
 )
 
 __all__ = [
@@ -35,4 +39,6 @@ __all__ = [
     "CopyTextButton",
 
     "CallbackButton",
+    "AlertButton",
+    "NotificationButton",
 ]

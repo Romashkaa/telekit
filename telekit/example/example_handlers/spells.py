@@ -40,15 +40,15 @@ class SpellsHandler(telekit.Handler):
     # ------------------------------------------
 
     def handle(self) -> None:
-        self.display_home_page()
+        self.display_spells()
 
-    def display_home_page(self) -> None:
+    def display_spells(self) -> None:
         self.chain.sender.set_title("📜 Wizarding Library")
         self.chain.sender.set_message("Select a spell from the list below to see its description:")
 
         self.chain.set_inline_keyboard(
             {
-                title: CallbackButton(self.display_home_page, answer_text=content) 
+                title: CallbackButton(self.display_spells, answer_text=content) 
                 for title, content in spells.items()
             }
         )

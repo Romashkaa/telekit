@@ -34,6 +34,8 @@ __all__ = [
     "SuggestButton",
     "CopyTextButton",
     "CallbackButton",
+    "AlertButton",
+    "NotificationButton",
 
     "ButtonStyle"
 ]
@@ -54,6 +56,8 @@ class InlineButton:
     - `SuggestButton`
     - `CopyTextButton`
     - `CallbackButton`
+    - `AlertButton
+    - `NotificationButton
     """
 
     _bot: TeleBot
@@ -70,6 +74,8 @@ class InlineButton:
     Suggest: type["SuggestButton"]
     CopyText: type["CopyTextButton"]
     Callback: type["CallbackButton"]
+    Alert: type["AlertButton"]
+    Notification: type["NotificationButton"]
     
     Styles: type[ButtonStyle] = ButtonStyle
 
@@ -378,8 +384,109 @@ class CallbackButton(InlineButton):
             callback=callback,
         )
     
+class AlertButton(CallbackButton):
+    """
+    An inline keyboard button that shows a popup alert when pressed and terminates the chain.
+
+    When the user presses this button, the specified text is displayed as a modal alert dialog.
+    The chain is finalized: all other buttons in the message become inactive and no further
+    interaction is expected. Typically used as a session-ending buttons.
+
+    :param text: Text to display in the alert popup.
+    :type text: `str | None`
+
+    :param style: Style of the button. Must be one of `ButtonStyle.DANGER` (red),
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue).
+              You can also pass these as string values: "danger", "success", "primary".
+              If omitted, an app-specific default style is used.
+    :type style: `str | ButtonStyle | None`
+
+    :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
+    :type kwargs: `Any`
+
+    Example::
+
+        def entry_word(self) -> None:
+            self.chain.sender.set_title("✏️ Add a new word")
+            self.chain.sender.set_message("Type the word you want to save to your dictionary:")
+            self.chain.set_inline_keyboard({
+                "✕ Cancel": AlertButton(text="Cancelled")
+            })
+            self.chain.set_entry_text(
+                self.entry_translation,
+                delete_user_response=True,
+            )
+            self.chain.edit()
+    """
+    def __init__(
+            self,
+            text: str | None = None,
+            *,
+            style: str | None | ButtonStyle = None,
+            **kwargs
+        ):
+        super().__init__(
+            callback=None,
+            answer_text=text,
+            answer_as_alert=True,
+            style=style,
+            **kwargs
+        )
+
+class NotificationButton(CallbackButton):
+    """
+    An inline keyboard button that shows a brief notification at the top of the chat screen
+    when pressed and terminates the chain.
+
+    When the user presses this button, the specified text appears as a short non-blocking
+    notification. The chain is finalized: all other buttons in the message become inactive
+    and no further interaction is expected. Typically used as a session-ending buttons.
+
+    :param text: Text to display in the notification.
+    :type text: `str | None`
+
+    :param style: Style of the button. Must be one of `ButtonStyle.DANGER` (red),
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue).
+              You can also pass these as string values: "danger", "success", "primary".
+              If omitted, an app-specific default style is used.
+    :type style: `str | ButtonStyle | None`
+
+    :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
+    :type kwargs: `Any`
+
+    Example::
+
+        def entry_word(self) -> None:
+            self.chain.sender.set_title("✏️ Add a new word")
+            self.chain.sender.set_message("Type the word you want to save to your dictionary:")
+            self.chain.set_inline_keyboard({
+                "✕ Cancel": NotificationButton(text="Cancelled")
+            })
+            self.chain.set_entry_text(
+                self.entry_translation,
+                delete_user_response=True,
+            )
+            self.chain.edit()
+    """
+    def __init__(
+            self,
+            text: str | None = None,
+            *,
+            style: str | None | ButtonStyle = None,
+            **kwargs
+        ):
+        super().__init__(
+            callback=None,
+            answer_text=text,
+            answer_as_alert=False,
+            style=style,
+            **kwargs
+        )
+    
 InlineButton.Link = LinkButton
 InlineButton.WebApp = WebAppButton
 InlineButton.Suggest = SuggestButton
 InlineButton.CopyText = CopyTextButton
 InlineButton.Callback = CallbackButton
+InlineButton.Alert = AlertButton
+InlineButton.Notification = NotificationButton

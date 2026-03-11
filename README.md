@@ -1,8 +1,8 @@
 ![TeleKit](https://github.com/Romashkaa/images/blob/main/TeleKitWide.png?raw=true)
 
-[![PyPi](https://img.shields.io/pypi/v/telekit.svg)](https://pypi.org/project/telekit/)
+[![PyPI](https://img.shields.io/pypi/v/telekit.svg)](https://pypi.org/project/telekit/)
 [![Python](https://img.shields.io/pypi/pyversions/telekit.svg)](https://pypi.org/project/telekit/)
-[![PyPi Downloads](https://static.pepy.tech/badge/telekit)](https://pepy.tech/project/telekit)
+[![PyPI Downloads](https://static.pepy.tech/badge/telekit)](https://pepy.tech/project/telekit)
 
 # Telekit
 
@@ -53,7 +53,7 @@ Even in its beta stage, Telekit accelerates bot development, offering typed comm
 - Fast to develop and easy-to-extend code
 
 [GitHub](https://github.com/Romashkaa/telekit)
-[PyPi](https://pypi.org/project/telekit/)
+[PyPI](https://pypi.org/project/telekit/)
 [Telegram](https://t.me/NotRomashka)
 [Community](https://t.me/+wu-dFrOBFIwyNzc0)
 
