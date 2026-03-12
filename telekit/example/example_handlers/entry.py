@@ -63,9 +63,7 @@ class EntryHandler(telekit.Handler):
         # Priority:
         # 1. Previous response (internal database)
         # 2. Telegram username (fallback)
-        name: str | None = self._user_data.get_name(
-            default=self.user.username
-        )
+        name: str | None = self._user_data.get_name() or self.user.username
         
         if name:
             self.chain.set_entry_suggestions([name])
