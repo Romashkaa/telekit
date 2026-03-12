@@ -1,7 +1,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Union, Callable, Protocol
+from typing import Union, Callable
 
 # ------------------------------
 # Formatter
@@ -49,31 +49,32 @@ user_logger.addHandler(uch)
 def enable_user_logging(*user_ids: Union[int, str]) -> None:
     _enabled_users.update(user_ids)
 
-class UserLoggerProtocol(Protocol):
-    def info(self, msg: str, *args, **kwargs) -> None: ...
-    def warning(self, msg: str, *args, **kwargs) -> None: ...
-    def debug(self, msg: str, *args, **kwargs) -> None: ...
-    def error(self, msg: str, *args, **kwargs) -> None: ...
-    def critical(self, msg: str, *args, **kwargs) -> None: ...
+class _UserLogger:
+    """Thin wrapper that prefixes every log line with the user ID."""
 
-def _users(user_id: Union[int, str]) -> UserLoggerProtocol:
-    class UserLogger:
-        def info(self, msg, *args, **kwargs):
-            if user_id in _enabled_users:
-                user_logger.info(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-        def warning(self, msg, *args, **kwargs):
-            if user_id in _enabled_users:
-                user_logger.warning(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-        def debug(self, msg, *args, **kwargs):
-            if user_id in _enabled_users:
-                user_logger.debug(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-        def error(self, msg, *args, **kwargs):
-            if user_id in _enabled_users:
-                user_logger.error(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-        def critical(self, msg, *args, **kwargs):
-            if user_id in _enabled_users:
-                user_logger.critical(f"[{user_id}] {msg}", *args, stacklevel=2, **kwargs)
-    return UserLogger()
+    __slots__ = ("_user_id",)
+
+    def __init__(self, user_id: int | str | None) -> None:
+        self._user_id = user_id
+
+    def _log(self, level: int, msg: str, *args, **kwargs) -> None:
+        if self._user_id in _enabled_users:
+            user_logger.log(level, f"[{self._user_id}] {msg}", *args, stacklevel=3, **kwargs)
+
+    def debug(self, msg: str, *args, **kwargs) -> None: 
+        self._log(logging.DEBUG,    msg, *args, **kwargs)
+
+    def info(self, msg: str, *args, **kwargs) -> None: 
+        self._log(logging.INFO,     msg, *args, **kwargs)
+
+    def warning(self, msg: str, *args, **kwargs) -> None: 
+        self._log(logging.WARNING,  msg, *args, **kwargs)
+
+    def error(self, msg: str, *args, **kwargs) -> None: 
+        self._log(logging.ERROR,    msg, *args, **kwargs)
+
+    def critical(self, msg: str, *args, **kwargs) -> None: 
+        self._log(logging.CRITICAL, msg, *args, **kwargs)
 
 # ------------------------------
 # Server Logging
@@ -115,8 +116,8 @@ class LoggerWrapper:
     enable_user_logging: Callable[..., None] = enable_user_logging
     enable_file_logging: Callable[..., None] = enable_file_logging
 
-    def users(self, user_id: int | str):
-        return _users(user_id)
+    def users(self, user_id: int | str | None):
+        return _UserLogger(user_id)
 
 logger: LoggerWrapper = LoggerWrapper()
 

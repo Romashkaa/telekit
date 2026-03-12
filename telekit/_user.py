@@ -16,9 +16,11 @@
 # You should have received a copy of the GNU General Public License 
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
+from functools import cached_property
+from typing import Literal
 
-import telebot.types
 import telebot
+import telebot.types
 
 from ._logger import logger
 
@@ -28,111 +30,87 @@ __all__ = ["User"]
 class User:
 
     bot: telebot.TeleBot
-    
-    @classmethod
-    def _init(cls, bot: telebot.TeleBot):
-        """
-        Initializes the bot instance for the class.
 
-        Args:
-            bot (TeleBot): The Telegram bot instance to be used for sending messages.
-        """
+    @classmethod
+    def _init(cls, bot: telebot.TeleBot) -> None:
         cls.bot = bot
 
-    def __init__(self, chat_id: int, from_user: telebot.types.User | None):
-        self.chat_id = chat_id
-        self.from_user = from_user
+    def __init__(self, message: telebot.types.Message) -> None:
+        self._message = message
+        self._chat_id = message.chat.id
+        self.logger   = logger.users(self._chat_id)
 
-        self.logger = logger.users(self.chat_id)
+    # ── sender ────────────────────────────────────────────────────
 
-    def enable_logging(self, *user_ids: int | str):
-        """
-        Enable logging for this user or for additional user IDs.
+    @cached_property
+    def _sender(self) -> telebot.types.User | telebot.types.Chat:
+        return self._message.from_user or self._message.chat
 
-        If no arguments are passed, enables logging for this instance's chat_id.
-        """
-        if user_ids:
-            logger.enable_user_logging(*user_ids)
-        else:
-            logger.enable_user_logging(self.chat_id)
+    # ── logging ───────────────────────────────────────────────────
 
-    # Chat Full Info
+    def enable_logging(self, *user_ids: int | str) -> None:
+        """Enable logging for this user or for additional user IDs."""
+        logger.enable_user_logging(*(user_ids or (self._chat_id,)))
 
-    def get_chat_full_info(self) -> telebot.types.ChatFullInfo | None:
-        try:
-            return self.bot.get_chat(self.chat_id)
-        except:
-            return None
-        
-    @property
-    def chat_full_info(self) -> telebot.types.ChatFullInfo | None:
-        # Equivalent to `get_chat_full_info()` but the result is cached so only one API call is needed.
-        if not hasattr(self, "_chat_full_info"):
-            self._chat_full_info = self.get_chat_full_info()
-        
-        return self._chat_full_info
+    # ── identity ──────────────────────────────────────────────────
 
-    # Username
+    @cached_property
+    def id(self) -> int:
+        return self._sender.id
 
-    def get_username(self) -> str | None:
-        if chat := self.get_chat_full_info():
-            return chat.username
-    
-    @property
-    def username(self) -> str | None:
-        if not hasattr(self, "_username"):
-            self._username = self.get_username()
-        
-        return self._username
-    
-    # First Name
+    @cached_property
+    def is_bot(self) -> bool:
+        if isinstance(self._sender, telebot.types.User):
+            return self._sender.is_bot
+        return False
 
-    def get_first_name(self) -> str | None:
-        if chat := self.get_chat_full_info():
-            return chat.first_name
-    
-    @property
+    # ── name ──────────────────────────────────────────────────────
+
+    @cached_property
     def first_name(self) -> str | None:
-        if not hasattr(self, "_first_name"):
-            self._first_name = self.get_first_name()
-        
-        return self._first_name
-    
-    # Last Name
+        if isinstance(self._sender, telebot.types.User):
+            return self._sender.first_name
+        return self._sender.first_name or self._sender.title
 
-    def get_last_name(self) -> str | None:
-        if chat := self.get_chat_full_info():
-            return chat.last_name
-    
-    @property
+    @cached_property
     def last_name(self) -> str | None:
-        if not hasattr(self, "_last_name"):
-            self._last_name = self.get_last_name()
-        
-        return self._last_name
-    
-    # Full Name
+        return self._sender.last_name
 
-    def get_full_name(self) -> str | None:
-        if chat := self.from_user: # TODO
-            return chat.full_name
-    
-    @property
+    @cached_property
     def full_name(self) -> str | None:
-        if not hasattr(self, "_full_name"):
-            self._full_name = self.get_full_name()
-        
-        return self._full_name
+        if isinstance(self._sender, telebot.types.User):
+            return self._sender.full_name
+        return " ".join(filter(None, [self.first_name, self.last_name])) or None
     
-    # User ID
+    @cached_property
+    def username(self) -> str | None:
+        return self._sender.username
 
-    def get_id(self) -> int | None:
-        if chat := self.from_user: # TODO
-            return chat.id # TODO
-    
-    @property
-    def id(self) -> int | None:
-        if not hasattr(self, "_id"):
-            self._id = self.get_id()
-        
-        return self._id
+    # ── locale ────────────────────────────────────────────────────
+
+    @cached_property
+    def language_code(self) -> str | None:
+        if isinstance(self._sender, telebot.types.User):
+            return self._sender.language_code
+        return None
+
+    # ── premium & extras ──────────────────────────────────────────
+
+    @cached_property
+    def is_premium(self) -> bool:
+        if isinstance(self._sender, telebot.types.User):
+            return bool(self._sender.is_premium)
+        return False
+
+    @cached_property
+    def added_to_attachment_menu(self) -> bool:
+        if isinstance(self._sender, telebot.types.User):
+            return bool(self._sender.added_to_attachment_menu)
+        return False
+
+    # ── chat-only ─────────────────────────────────────────────────
+
+    @cached_property
+    def chat_type(self) -> Literal["private", "group", "supergroup", "channel"]:
+        """Type of the chat: private, group, supergroup, or channel."""
+        return self._message.chat.type # pyright: ignore[reportReturnType]

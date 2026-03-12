@@ -98,7 +98,7 @@ class Handler:
 
     def __init__(self, message: Message):
         self.message: Message = message
-        self.user = User(self.message.chat.id, self.message.from_user)
+        self.user = User(self.message)
         self.new_chain()
 
     def handle(self) -> Any:
@@ -112,7 +112,7 @@ class Handler:
         avoids the need for multiple custom entry methods 
         like `start` or `handle_start`.
         """
-        library.warning("Handler `handle` was called but not overridden; no logic executed.")
+        library.warning(f"`{type(self).__qualname__}().handle()` was called but not overridden; no logic executed.")
         return
 
     # -----------------------------------------------------
