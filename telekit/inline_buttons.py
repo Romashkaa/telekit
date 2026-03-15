@@ -28,6 +28,7 @@ from ._inline_buttons import (
     CallbackButton,
     AlertButton,
     NotificationButton,
+    InvokeButton,
 )
 
 __all__ = [
@@ -41,4 +42,5 @@ __all__ = [
     "CallbackButton",
     "AlertButton",
     "NotificationButton",
+    "InvokeButton",
 ]

@@ -36,6 +36,7 @@ __all__ = [
     "CallbackButton",
     "AlertButton",
     "NotificationButton",
+    "InvokeButton",
 
     "ButtonStyle"
 ]
@@ -56,8 +57,9 @@ class InlineButton:
     - `SuggestButton`
     - `CopyTextButton`
     - `CallbackButton`
-    - `AlertButton
-    - `NotificationButton
+    - `AlertButton`
+    - `NotificationButton`
+    - `InvokeButton`
     """
 
     _bot: TeleBot
@@ -76,6 +78,7 @@ class InlineButton:
     Callback: type["CallbackButton"]
     Alert: type["AlertButton"]
     Notification: type["NotificationButton"]
+    Invoke: type["InvokeButton"]
     
     Styles: type[ButtonStyle] = ButtonStyle
 
@@ -340,7 +343,7 @@ class CallbackButton(InlineButton):
             self._answer_callback_query(call)
 
     def __init__(
-            self, 
+            self,
             callback: Callable[..., Any] | None, 
 
             pass_args: tuple | list | None = None, 
@@ -482,6 +485,130 @@ class NotificationButton(CallbackButton):
             style=style,
             **kwargs
         )
+
+class InvokeButton(CallbackButton):
+    """
+    An inline keyboard button that calls a named method on a given object when pressed.
+
+    Unlike `CallbackButton`, which takes a callable directly, `InvokeButton` resolves
+    the method at invocation time via `getattr(obj, invoke)`.
+
+    :param obj: The object on which the method will be called.
+    :type obj: `Any`
+
+    :param invoke: Name of the method to call on `obj`.
+    :type invoke: `str`
+
+    :param pass_args: Positional arguments to pass into the method.
+    :type pass_args: `tuple | list | None`
+
+    :param pass_kwargs: Keyword arguments to pass into the method.
+    :type pass_kwargs: `dict[str, Any] | None`
+
+    :param answer_text: Optional text to send as an answer to the callback query.
+    :type answer_text: `str | None`
+
+    :param answer_as_alert: If `True`, the answer is shown as a popup alert.
+        If `False`, it appears as a notification at the top of the chat.
+    :type answer_as_alert: `bool`
+
+    :param style: Style of the button. Must be one of `ButtonStyle.DANGER` (red),
+              `*.SUCCESS` (green) or `*.PRIMARY` (blue).
+              You can also pass these as string values: "danger", "success", "primary".
+              If omitted, an app-specific default style is used.
+    :type style: `str | ButtonStyle | None`
+
+    :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
+    :type kwargs: `Any`
+
+    Example::
+
+        self.chain.set_inline_keyboard({
+            "📖 My Deck": InvokeButton(self.handoff(DeckHandler), "handle"),
+        })
+    """
+    class _CallbackInvoker(CallbackButton._CallbackInvoker):
+        def __init__(
+                self,
+                chain_callback: Callable[[], None],
+                
+                obj: Any,
+                invoke: str,
+
+                pass_args: tuple | list | None = None, 
+                pass_kwargs: dict[str, Any] | None = None, 
+
+                answer_text: str | None = None,
+                answer_as_alert: bool = True,
+
+                style: str | None | ButtonStyle = None,
+
+                kwargs: dict[str, Any] = {}
+            ):
+            self._obj = obj
+            self._invoke = invoke
+
+            self._pass_args = pass_args
+            self._pass_kwargs = pass_kwargs
+
+            self._answer_text = answer_text
+            self._answer_as_alert = answer_as_alert
+
+            self._style = style
+
+            self._kwargs = {"style": style} | kwargs
+            
+            self._chain_callback: Callable[[], None] = chain_callback
+
+        def _invoke_callback(self):
+            obj: Any = self.__dict__["_obj"]
+            callback: Any = getattr(obj, self._invoke)
+            
+            args = self._pass_args or ()
+            kwargs = self._pass_kwargs or {}
+
+            callback(*args, **kwargs)
+
+    def __init__(
+            self, 
+            obj: Any,
+            invoke: str,
+
+            pass_args: tuple | list | None = None, 
+            pass_kwargs: dict[str, Any] | None = None, 
+            *,
+            answer_text: str | None = None,
+            answer_as_alert: bool = True,
+
+            style: str | None | ButtonStyle = None,
+
+            **kwargs
+        ):
+        self._obj = obj
+        self._invoke = invoke
+
+        self._pass_args = pass_args
+        self._pass_kwargs = pass_kwargs
+
+        self._answer_text = answer_text
+        self._answer_as_alert = answer_as_alert
+
+        self._style = self._normalize_style(style)
+
+        self._kwargs = kwargs
+        
+    def build_invoker(self, chain_callback: Callable[[], None]) -> _CallbackInvoker:
+        return self._CallbackInvoker(
+            chain_callback=chain_callback,
+            obj=self._obj,
+            invoke=self._invoke,
+            pass_args=self._pass_args,
+            pass_kwargs=self._pass_kwargs,
+            answer_text=self._answer_text,
+            answer_as_alert=self._answer_as_alert,
+            style=self._style,
+            kwargs=self._kwargs
+        )
     
 InlineButton.Link = LinkButton
 InlineButton.WebApp = WebAppButton
@@ -490,3 +617,4 @@ InlineButton.CopyText = CopyTextButton
 InlineButton.Callback = CallbackButton
 InlineButton.Alert = AlertButton
 InlineButton.Notification = NotificationButton
+InlineButton.Invoke = InvokeButton

@@ -4,6 +4,7 @@
 |----------------------|----------------------------------------------------------|
 | `AlertButton`        | A callback button that shows a popup alert when pressed. |
 | `NotificationButton` | A callback button that shows a notification.             |
+| `InvokeButton`       | A callback button that calls the object method.          |
 
 ## User Improvements
 

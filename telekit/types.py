@@ -32,7 +32,8 @@ from ._inline_buttons import (
     CopyTextButton, SuggestButton, 
     CallbackButton, 
     AlertButton,
-    NotificationButton
+    NotificationButton,
+    InvokeButton
 )
 
 from .styles import Styles, TextEntity, StaticTextEntity, EasyTextEntity
@@ -172,6 +173,7 @@ __all__ = [
     "CallbackButton",
     "AlertButton",
     "NotificationButton",
+    "InvokeButton",
 
     "ButtonStyle",
 
