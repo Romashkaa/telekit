@@ -25,6 +25,7 @@ import telebot.types
 from .utils import format_file_size
 
 from ._user import User
+from .dices import *
 from ._inline_buttons import (
     ButtonStyle,
     InlineButton, 
@@ -37,6 +38,46 @@ from ._inline_buttons import (
 )
 
 from .styles import Styles, TextEntity, StaticTextEntity, EasyTextEntity
+
+__all__ = [
+    # Types and Dataclasses
+    "TextDocument",
+    "User",
+
+    # Inline Buttons
+    "InlineButton", 
+    "LinkButton", 
+    "WebAppButton", 
+    "CopyTextButton",
+    "SuggestButton",
+    "CallbackButton",
+    "AlertButton",
+    "NotificationButton",
+    "InvokeButton",
+
+    "ButtonStyle",
+
+    # Styles
+    "Styles",
+    "TextEntity",
+    "StaticTextEntity",
+    "EasyTextEntity",
+    
+    # Enums
+    "ChatAction",
+    "Effect",
+    "ParseMode",
+    "GameResult",
+
+    # Dices
+    "GameResult",
+    "Dice",
+    "Darts",
+    "Basketball",
+    "Football",
+    "Bowling",
+    "SlotMachine",
+]
 
 class ParseMode(str, Enum):
     HTML = "html"
@@ -158,33 +199,3 @@ class TextDocument:
     @property
     def size(self) -> int | None:
         return self.document.file_size
-
-__all__ = [
-    # Types / Dataclasses
-    "TextDocument",
-    "User",
-
-    # Inline Buttons
-    "InlineButton", 
-    "LinkButton", 
-    "WebAppButton", 
-    "CopyTextButton",
-    "SuggestButton",
-    "CallbackButton",
-    "AlertButton",
-    "NotificationButton",
-    "InvokeButton",
-
-    "ButtonStyle",
-
-    # Styles
-    "Styles",
-    "TextEntity",
-    "StaticTextEntity",
-    "EasyTextEntity",
-    
-    # Enums
-    "ChatAction",
-    "Effect",
-    "ParseMode",
-]

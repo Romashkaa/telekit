@@ -68,6 +68,8 @@ class ChainEntryLogic(ChainBase):
         """
 
         def callback(message: Message) -> bool:
+            self.received = message
+
             if delete_user_response:
                 self.sender.delete_message(message, True)
 
@@ -154,6 +156,8 @@ class ChainEntryLogic(ChainBase):
         """
 
         def callback(message: Message) -> bool:
+            self.received = message
+
             if delete_user_response:
                 self.sender.delete_message(message, True)
 
@@ -246,6 +250,8 @@ class ChainEntryLogic(ChainBase):
         """
 
         def callback(message: Message) -> bool:
+            self.received = message
+
             if delete_user_response:
                 self.sender.delete_message(message, True)
 
@@ -340,6 +346,8 @@ class ChainEntryLogic(ChainBase):
         """
 
         def callback(message: Message) -> bool:
+            self.received = message
+
             if delete_user_response:
                 self.sender.delete_message(message, True)
 
@@ -453,6 +461,8 @@ class ChainEntryLogic(ChainBase):
         """
 
         def callback(message: Message) -> bool:
+            self.received = message
+
             if delete_user_response:
                 self.sender.delete_message(message, True)
 
@@ -592,6 +602,8 @@ class ChainEntryLogic(ChainBase):
         """
 
         def callback(message: Message) -> bool:
+            self.received = message
+            
             if delete_user_response:
                 self.sender.delete_message(message, True)
 

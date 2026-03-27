@@ -23,10 +23,14 @@ import io
 
 from telebot import TeleBot
 from telebot.types import (
-    Message, InputMediaPhoto, InputFile, InputMediaAudio, InputMediaDocument, InputMediaVideo
+    Message, MessageEntity,
+    ReplyParameters, LinkPreviewOptions,
+    InputMediaPhoto, InputFile, 
+    InputMediaAudio, InputMediaDocument, 
+    InputMediaVideo,
 )
 
-from telekit.styles import TextEntity, Raw, Group, Bold, Italic
+from telekit.styles import TextEntity, Escape, Raw, Group, Bold, Italic
 from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
 from telekit import dices
 from ._logger import logger
@@ -160,6 +164,12 @@ class BaseSender:
         self.thread_id = thread_id
         self.message_effect_id = effect_id
 
+        self.disable_notification = None
+        self.protect_content = None
+        self.reply_parameters = None
+        self.link_preview_options = None
+        self.show_caption_above_media = None
+
         self.photo = photo
         self.document = document
         self.video = video
@@ -173,6 +183,8 @@ class BaseSender:
 
         self._do_remove_text = True
         self._do_remove_attachments = True
+
+        self.sent_message: Message | None = None
 
     # --------------------------------------------------------
     # Setter methods for configuring media attachments
@@ -282,7 +294,7 @@ class BaseSender:
         self.remove_attachments()
         self.animation = self._load_item(animation)
 
-    def set_audio(self, audio: str | None | Any):
+    def set_audio(self, audio: str | None | Any, *, performer: str | None=None, title: str | None=None):
         """
         Sets the audio for the message.
          
@@ -294,6 +306,12 @@ class BaseSender:
         
         :param audio: The audio for the message
         :type audio: str | None | Any
+
+        :param performer: Performer
+        :type performer: :obj:`str`
+
+        :param title: Track name
+        :type title: :obj:`str`
         """
         if audio is None:
             self.audio = None
@@ -301,6 +319,8 @@ class BaseSender:
 
         self.remove_attachments()
         self.audio = self._load_item(audio)
+        self.audio_performer = performer
+        self.audio_title = title
 
     def set_voice(self, voice: str | None | Any):
         """
@@ -498,12 +518,6 @@ class BaseSender:
             case _:
                 raise ValueError("Invalid Parse Mode")
 
-    def set_reply_to_message_id(self, reply_to_message_id: int | None):
-        """
-        Reply to specific message by ID.
-        """
-        self.reply_to_message_id = reply_to_message_id
-
     def set_edit_message_id(self, edit_message_id: int | None):
         """
         Edit an existing message by ID.
@@ -526,11 +540,136 @@ class BaseSender:
         Reply to a specific message by its `Message` object.  
         """
         if reply_to is None:
-            self.reply_to = None
+            self.reply_to_message_id = None
             return
 
         if getattr(reply_to, "message_id", None) is not None:
             self.reply_to_message_id = reply_to.message_id
+
+    def set_reply_to_message_id(self, reply_to_message_id: int | None):
+        """
+        Reply to specific message by ID.
+        """
+        self.reply_to_message_id = reply_to_message_id
+
+    def set_disable_notification(self, disable_notification: bool=True):
+        """
+        Disables notification sound when the message is sent. Users will receive a notification with no sound.
+        """
+        self.disable_notification = disable_notification
+
+    def set_protect_content(self, protect_content: bool=True):
+        """
+        Protects the contents of the sent message from forwarding and saving.
+        """
+        self.protect_content = protect_content
+
+    def set_reply_parameters(
+        self,
+        reply_parameters: ReplyParameters | None = None,
+        *,
+        chat_id: int | str | None = None,
+        allow_sending_without_reply: bool | None = None,
+        quote: str | None = None,
+        quote_parse_mode: str | None = None,
+        quote_entities: list[MessageEntity] | None = None,
+        quote_position: int | None = None,
+        checklist_task_id: int | None = None,
+    ) -> None:
+        """
+        Sets reply parameters for the message to be sent.
+
+        Accepts either a ready-made `ReplyParameters` object or individual keyword
+        arguments that will be used to construct one. Passing both at the same time
+        raises an error.
+
+        Args:
+            reply_parameters: A pre-built `ReplyParameters` instance.
+            chat_id: Chat where the original message was sent, if different from the current chat.
+            allow_sending_without_reply: Send the message even if the replied-to message is not found.
+            quote: Exact substring of the original message to quote in the reply.
+            quote_parse_mode: Formatting mode for entities inside the quote.
+            quote_entities: List of special entities in the quote, as an alternative to `quote_parse_mode`.
+            quote_position: Position of the quote in the original message, in UTF-16 code units.
+            checklist_task_id: ID of the specific checklist task to reply to.
+        """
+        kwargs = {
+            'message_id': self.reply_to_message_id,
+            'chat_id': chat_id,
+            'allow_sending_without_reply': allow_sending_without_reply,
+            'quote': quote,
+            'quote_parse_mode': quote_parse_mode,
+            'quote_entities': quote_entities,
+            'quote_position': quote_position,
+            'checklist_task_id': checklist_task_id,
+        }
+        has_kwargs = any(v is not None for v in kwargs.values())
+
+        if reply_parameters is not None and has_kwargs:
+            raise ValueError(
+                "Pass either a `ReplyParameters` instance or keyword arguments, not both."
+            )
+
+        if has_kwargs:
+            if self.reply_to_message_id is None:
+                raise ValueError("call `sender.set_reply_to_message_id(...)` before constructing `ReplyParameters` from kwargs.")
+            reply_parameters = ReplyParameters(
+                **{k: v for k, v in kwargs.items() if v is not None}
+            )
+
+        self.reply_parameters = reply_parameters
+
+    def set_link_preview_options(
+        self,
+        link_preview_options: LinkPreviewOptions | None = None,
+        *,
+        is_disabled: bool | None = None,
+        url: str | None = None,
+        prefer_small_media: bool | None = None,
+        prefer_large_media: bool | None = None,
+        show_above_text: bool | None = None,
+    ) -> None:
+        """
+        Sets link preview options for the message to be sent.
+
+        Accepts either a ready-made `LinkPreviewOptions` object or individual keyword
+        arguments that will be used to construct one. Passing both at the same time
+        raises an error.
+
+        Args:
+            link_preview_options: A pre-built `LinkPreviewOptions` instance.
+            is_disabled: Disables link preview entirely.
+            url: URL to use for the preview. Defaults to the first URL found in the message text.
+            prefer_small_media: Shrinks the media in the preview. Only applies when `url` is set.
+            prefer_large_media: Enlarges the media in the preview. Only applies when `url` is set.
+            show_above_text: Shows the link preview above the message text instead of below.
+        """
+        kwargs = {
+            'is_disabled': is_disabled,
+            'url': url,
+            'prefer_small_media': prefer_small_media,
+            'prefer_large_media': prefer_large_media,
+            'show_above_text': show_above_text,
+        }
+        has_kwargs = any(v is not None for v in kwargs.values())
+
+        if link_preview_options is not None and has_kwargs:
+            raise ValueError(
+                "Pass either a `LinkPreviewOptions` instance or keyword arguments, not both."
+            )
+
+        if has_kwargs:
+            link_preview_options = LinkPreviewOptions(
+                **{k: v for k, v in kwargs.items() if v is not None}
+            )
+
+        self.link_preview_options = link_preview_options
+
+    def set_show_caption_above_media(self, show_caption_above_media: bool = True):
+        """
+        Shows the caption above the media instead of below.
+        """
+        self.show_caption_above_media = show_caption_above_media
 
     def append(self, *args, **kwargs): # TODO
         """
@@ -574,6 +713,8 @@ class BaseSender:
         self.remove_attachments()
 
     def _reset_after_send(self):
+        self.sent_message = None
+        
         if self._do_remove_text:
             self.remove_text()
         if self._do_remove_attachments:
@@ -599,6 +740,8 @@ class BaseSender:
         self.photo: str | Any = None
         self.video: str | Any = None
         self.audio: str | Any = None
+        self.audio_performer: str | None = None
+        self.audio_title: str | None = None
         self.voice: str | Any = None
         self.venue: list[Any] = []
         
@@ -607,33 +750,100 @@ class BaseSender:
     # Methods for preparing send and edit message configurations
     # --------------------------------------------------------
 
-    def _get_send_configs(self) -> dict[str, Any]:
+    def _get_base_params(self) -> dict[str, Any]:
         return {
             "chat_id": self.chat_id,
             "parse_mode": self._get_parse_mode(),
-            "message_thread_id": self.thread_id,
-            "reply_to_message_id": self.reply_to_message_id,
+            "message_thread_id": self.thread_id
         }
 
-    def _get_send_args(self) -> dict[str, Any]:
-        args: dict[str, Any] = {
-            "reply_markup": self.reply_markup,
-        }
+    def _get_send_params(self, *, include: tuple[str, ...] | None = None, ignore: tuple[str, ...] | None = None) -> dict[str, Any]:
+        """
+        Base Params:
+        - `chat_id`
+        - `parse_mode`
+        - `message_thread_id`
 
+        Additional Params:
+        - `reply_markup`
+        - `reply_to_message_id`
+        - `reply_parameters`
+        - `message_effect_id`
+        - `disable_notification`
+        """
+        params = self._get_base_params()
+
+        if self.reply_markup:
+            params["reply_markup"] = self.reply_markup
+        if self.reply_to_message_id:
+            params["reply_to_message_id"] = self.reply_to_message_id
+        if self.reply_parameters:
+            params["reply_parameters"] = self.reply_parameters
         if self.message_effect_id:
-            args["message_effect_id"] = self.message_effect_id
+            params["message_effect_id"] = self.message_effect_id
+        if self.disable_notification:
+            params["disable_notification"] = self.disable_notification
 
-        args.update(self._get_send_configs())
+        if include is not None:
+            params = {k: v for k, v in params.items() if k in include}
 
-        return args
+        if ignore is not None:
+            params = {k: v for k, v in params.items() if k not in ignore}
 
-    def _get_edit_configs(self) -> dict[str, Any]:
-        return {
-            "chat_id": self.chat_id,
-            # "message_thread_id": self.thread_id,
-            "message_id": self.edit_message_id,
-        }
+        return params
     
+    def get_send_media_params(self, *, include: tuple[str, ...] | None = None, ignore: tuple[str, ...] | None = None) -> dict[str, Any]:
+        """
+        Base Params:
+        - `chat_id`
+        - `parse_mode`
+        - `message_thread_id`
+
+        Send Params:
+        - `reply_markup`
+        - `reply_to_message_id`
+        - `reply_parameters`
+        - `message_effect_id`
+        - `disable_notification`
+
+        Additional Params:
+        - `protect_content`
+        """
+
+        params = self._get_send_params()
+
+        if self.protect_content:
+            params["protect_content"] = self.protect_content
+
+        if include is not None:
+            params = {k: v for k, v in params.items() if k in include}
+
+        if ignore is not None:
+            params = {k: v for k, v in params.items() if k not in ignore}
+
+        return params
+
+    def _get_edit_params(self) -> dict[str, Any]:
+        """
+        Base Params:
+        - `chat_id`
+
+        Additional Params:
+        - `reply_markup`
+        - `message_id` (edit message id)
+        """
+        params = self._get_base_params()
+
+        params.pop("parse_mode",        None)
+        params.pop("message_thread_id", None)
+
+        if self.reply_markup:
+            params["reply_markup"] = self.reply_markup
+        if self.edit_message_id:
+            params["message_id"] = self.edit_message_id
+
+        return params
+
     # --------------------------------------------------------
     # Internal methods for managing temporary messages
     # --------------------------------------------------------
@@ -685,6 +895,7 @@ class BaseSender:
             message = self._send_text()
         
         self._reset_after_send()
+        self.sent_message = message
 
         return message
         
@@ -692,51 +903,54 @@ class BaseSender:
         return self.bot.send_photo(
             photo=self.photo,
             caption=self.text,
-            **self._get_send_args()
-        )
-    
-    def _send_document(self) -> Message | None:
-        return self.bot.send_document(
-            document=self.document,
-            caption=self.text,
-            **self._get_send_args()
+            show_caption_above_media=self.show_caption_above_media,
+            **self.get_send_media_params()
         )
     
     def _send_video(self) -> Message | None:
         return self.bot.send_video(
             video=self.video,
             caption=self.text,
-            **self._get_send_args()
+            show_caption_above_media=self.show_caption_above_media,
+            **self.get_send_media_params()
         )
     
     def _send_animation(self) -> Message | None:
         return self.bot.send_animation(
             animation=self.animation,
             caption=self.text,
-            **self._get_send_args()
+            show_caption_above_media=self.show_caption_above_media,
+            **self.get_send_media_params()
+        )
+    
+    def _send_document(self) -> Message | None:
+        return self.bot.send_document(
+            document=self.document,
+            caption=self.text,
+            **self.get_send_media_params()
         )
     
     def _send_audio(self) -> Message | None:
         return self.bot.send_audio(
             audio=self.audio,
             caption=self.text,
-            **self._get_send_args()
+            title=self.audio_title,
+            performer=self.audio_performer,
+            **self.get_send_media_params()
         )
     
     def _send_voice(self) -> Message | None:
         return self.bot.send_voice(
             voice=self.voice,
             caption=self.text,
-            **self._get_send_args()
+            **self.get_send_media_params()
         )
     
     def _send_video_note(self) -> Message | None:
         return self.bot.send_video_note(
             data=self.video_note,
             chat_id=self.chat_id,
-            reply_to_message_id=self.reply_to_message_id,
-            reply_markup=self.reply_markup,
-            message_effect_id=self.message_effect_id
+            **self.get_send_media_params(ignore=("parse_mode",))
         )
     
     def _send_venue(self) -> Message | None:
@@ -747,10 +961,7 @@ class BaseSender:
             address=self.venue[3],
             foursquare_id=self.venue[4],
             foursquare_type=self.venue[5],
-            chat_id=self.chat_id,
-            reply_to_message_id=self.reply_to_message_id,
-            reply_markup=self.reply_markup,
-            message_effect_id=self.message_effect_id
+            **self.get_send_media_params(ignore=("parse_mode", "reply_to_message_id"))
         )
     
     def _send_media(self) -> Message | None:
@@ -760,8 +971,15 @@ class BaseSender:
         return self.bot.send_media_group(
             media=media,
             reply_to_message_id=self.reply_to_message_id,
-            chat_id=self.chat_id
+            chat_id=self.chat_id,
+            **self.get_send_media_params(ignore=("parse_mode", "reply_to_message_id"))
         )[0]
+    
+    def _send_text(self):
+        return self.bot.send_message(
+            text=self.text,
+            **self._get_send_params()
+        )
     
     # --------------------------------------------------------
     # Internal methods for sending and editing messages
@@ -776,17 +994,11 @@ class BaseSender:
             case _:
                 return None
 
-    def _send_text(self):
-        return self.bot.send_message(
-            text=self.text,
-            **self._get_send_args()
-        )
-
     def _edit(self) -> Message | None:
-        configs = self._get_edit_configs()
-
         if not self.edit_message_id:
             raise ValueError("edit_message_id is None: Unable to edit message without a valid message ID.")
+        
+        configs = self._get_edit_params()
         
         if self.photo:
             media = InputMediaPhoto(
@@ -796,20 +1008,19 @@ class BaseSender:
             )
             message = self.bot.edit_message_media(
                 media=media,
-                reply_markup=self.reply_markup,
                 **configs
             )
         else:
             message = self.bot.edit_message_text(
                 text=self.text,
                 parse_mode=self._get_parse_mode(),
-                reply_markup=self.reply_markup,
                 **configs
             )
 
         self._reset_after_send()
 
         if isinstance(message, Message):
+            self.sent_message = message
             return message
 
     def _edit_or_send(self) -> tuple[Message | None, bool]:
@@ -857,7 +1068,7 @@ class BaseSender:
     # Methods for sending and editing messages 
     # --------------------------------------------------------
 
-    def pyerror(self, exception: BaseException) -> Message | None: # type: ignore
+    def send_pyerror(self, exception: Exception) -> Message | None:
         """
         Sends a message with the Python exception details for debugging.
 
@@ -868,28 +1079,28 @@ class BaseSender:
             Message | None: The error message sent or None if sending failed.
         """
         try:
-            configs = self._get_send_configs()
+            configs = self._get_base_params()
             configs["parse_mode"] = "HTML"
             return self.bot.send_message(text=f"<b>{type(exception).__name__}</b>\n\n<i>{exception}.</i>", **configs)
         except Exception as exception:
             library.warning(f"Failed to send `pyerror` message: {exception}")
             return None
 
-    def error(self, title: str | TextEntity, message: str | TextEntity) -> Message | None: # type: ignore
+    def send_error(self, title: str, message: str) -> Message | None:
         """
         Sends a custom error message with a title and detailed message.
 
         Args:
-            title (str): The title of the error.
-            message (str): The error message.
+            title (`str` | `TextEntity`): The title of the error.
+            message (`str` | `TextEntity`): The error message.
 
         Returns:
             Message | None: The sent error message or None if sending failed.
         """
         try:
-            configs = self._get_send_configs()
+            configs = self._get_base_params()
             configs["parse_mode"] = "HTML"
-            return self.bot.send_message(text=f"<b>{title}</b>\n\n<i>{message}.</i>", **configs)
+            return self.bot.send_message(text=f"<b>{Escape(title)}</b>\n\n<i>{Escape(message)}.</i>", **configs)
         except Exception as exception:
             library.warning(f"Failed to send `error` message: {exception}")
             return None
@@ -922,7 +1133,7 @@ class BaseSender:
         message, error = self.try_send()
     
         if error:
-            self.pyerror(error)
+            self.send_pyerror(error)
         
         return message
         
@@ -948,7 +1159,7 @@ class BaseSender:
         Send a chat action to a chat.
 
         ```
-        self.chain.sender.send_chat_action(self.chain.sender.ChatAction.UPLOAD_AUDIO)
+        self.chain.sender.send_chat_action(ChatAction.UPLOAD_AUDIO)
         self.chain.sender.send_chat_action("upload_audio")
         ```
         
@@ -990,7 +1201,7 @@ class BaseSender:
         :returns: the result of the emoji game.
         :rtype: dices.GameResult
         """
-        args: dict[str, Any] = self._get_send_args()
+        args: dict[str, Any] = self._get_send_params()
         args.pop("parse_mode", None)
 
         message: Message = self.bot.send_dice(

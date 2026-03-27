@@ -509,70 +509,6 @@ self.chain.send()
 
 </details>
 
-## Sending & Error Handling
-
-<details>
-<summary>send</summary>
-
-Sends or edits the message, including management of temporary messages. Does **not** handle exceptions — any error will be raised:
-
-```py
-self.chain.sender.send()
-```
-
-> [!IMPORTANT]
-> `self.chain.sender.send()` only sends the message itself. It does not handle inline keyboards or other interactions — for those, you should use `self.chain.send()` or `self.chain.edit()`!
-
-</details>
-
-<details>
-<summary>try_send</summary>
-
-Attempt to send the message, returning message OR exception:
-
-```py
-message, error = self.chain.sender.try_send()
-
-if message:
-    print(f"Message #{message.message_id} was sent")
-else:
-    print(f"Exception: {error}")
-```
-
-> Attempts to send the message with error handling. 
-
-Returns: 
-- `[Message, None]` on success
-- `[None, Exception]` on failure
-
-</details>
-
-<details>
-<summary>send_or_handle_error</summary>
-
-Attempts to send the message with error handling. Returns `Message` if the message was sent successfully, or `None` if an error occurred:
-
-```py
-message: Message | None = self.chain.sender.send_or_handle_error()
-
-if message:
-    print(f"Message #{message.message_id} was sent successfully")
-```
-
-If an error occurs, an error message containing the **exception type and description** is automatically sent to the user:
-
-```md
-ApiTelegramException
-
-A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse entities: Can't find end tag corresponding to start tag "b".
-```
-
-> [!IMPORTANT]
-> `self.chain.sender.send_or_handle_error()` only sends the message itself. It does not handle inline keyboards or other interactions — for those, you should use `self.chain.send()` or `self.chain.edit()`
-
-
-</details>
-
 ## Action Methods
 
 These methods do not configure the current message; instead, they perform a specific action immediately.
@@ -593,6 +529,36 @@ self.chain.sender.send_chat_action(ChatAction.TYPING)
 </details>
 
 <details>
+<summary>send_emoji_game</summary>
+
+Send a dice message with the given emoji and returns the game result.
+
+Currently, emoji must be one of `🎲 🎯 🏀 ⚽ 🎳 🎰`:
+
+```py
+from telekit.dices import SlotMachine
+
+result: SlotMachine = self.chain.sender.send_emoji_game("🎰")
+
+print(
+    f"\n{result.value=}", # Raw dice value: 1-64
+    f"\n{result.slots=}", # Reel values as a tuple: (2, 1, 4)
+
+    f"\n{result.is_win=}", # Corresponds to the red indicator
+    f"\n{result.is_jackpot=}\n", # True only for "7️⃣7️⃣7️⃣"
+    f"\n{result.rank=}", # 'nothing', 'pair', 'triple', 'double_7' or 'triple_7'
+
+    f"\n{result.emojis=}", # Visual representation: "🍒7️⃣🍋"
+    f"\n{result.split_names=}" # Reel names: ("cherry", "seven", "lemon")
+)
+```
+
+> [!TIP]
+> Prefer using the specific methods (e.g. `send_dice()`, `send_slot_machine()`) for typed return values. Use this method only when the emoji is dynamic.
+
+</details>
+
+<details>
 <summary>delete_message</summary>
 
 Deletes a message, optionally ignoring bot messages.
@@ -603,11 +569,11 @@ self.chain.sender.delete_message(message, only_user_messages=False)
 
 **Parameters:**
 - `message: Message | None` — The message to delete.
-- `only_user_messages: bool` — If True, only deletes user messages.
+- `only_user_messages: bool` — If `True`, only deletes user messages.
 </details>
 
 <details>
-<summary>pyerror</summary>
+<summary>send_pyerror</summary>
 
 Sends a Python exception as a message.
 
@@ -615,29 +581,29 @@ Sends a Python exception as a message.
 try:
     ...
 except Exception as exception:
-    self.chain.sender.pyerror(exception)
+    self.chain.sender.send_pyerror(exception)
 ```
 
 </details>
 
 <details>
-<summary>error</summary>
+<summary>send_error</summary>
 
 Sends a custom error message.
 
 ```py
-self.chain.sender.error("Error Heading", "Something went wrong...")
+self.chain.sender.send_error("Error Heading", "Something went wrong...")
 ```
 
 **Parameters:**
-- `title: str | StyleFormatter` — The title of the error.
-- `message: str | StyleFormatter` — The error message body.
+- `title: str | TextEntity` — The title of the error.
+- `message: str | TextEntity` — The error message body.
 </details>
 
 <details>
 <summary>get_message_id</summary>
 
-Retrieves the message ID from a Message object.
+Retrieves the message ID from a `Message` object.
 
 ```py
 msg_id = self.chain.sender.get_message_id(message)

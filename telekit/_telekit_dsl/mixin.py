@@ -368,7 +368,7 @@ class DSLHandler(telekit.Handler):
         if not hasattr(self, "_script_data_factory"):
             message: str = f"{type(self).__name__}().start_script(): Script is not analyzed yet. Call cls.analyze_file() or cls.analyze_string() before starting it."
             library.error(message)
-            self.chain.sender.pyerror(RuntimeError(message))
+            self.chain.sender.send_error("DSLError", message)
             return
 
         self.script_data = self._script_data_factory()
@@ -799,7 +799,7 @@ class DSLHandler(telekit.Handler):
     # ----------------------------------------------------------------------------
 
     def _fail(self, message: str, exception: type[Exception]=Exception):
-        self.chain.sender.error("🤷 Something went wrong...", message)
+        self.chain.sender.send_error("🤷 Something went wrong...", message)
         library.error(message)
         return exception(message)
         

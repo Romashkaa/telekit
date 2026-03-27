@@ -23,3 +23,22 @@
 
 - Refactor: `User` now accepts a `Message` object instead of `chat_id` + `from_user`. All properties are derived from `_sender` (`from_user` or `chat`) and migrated to `cached_property`. Fixed broken `get_id` and `get_full_name` references.
 - Added `__repr__`.
+
+## Sender Improvements
+
+| **Name**                   | **Description**                                        |
+| -------------------------- | ------------------------------------------------------ |
+| `sent_message`             | The last message sent by this sender instance.         |
+| `disable_notification`     | Disables notification sound when the message is sent.  |
+| `protect_content`          | Protects the message contents from forwarding and saving. |
+| `reply_parameters`         | Reply parameters for the message to be sent.           |
+| `link_preview_options`     | Link preview options for the message to be sent.       |
+| `show_caption_above_media` | Shows the caption above the media instead of below.    |
+
+- Refactored sending system.
+
+## Chain Improvements
+
+| **Name**    | **Description**                                              |
+| ----------- | ------------------------------------------------------------ |
+| `received`  | The message received from the user during entry processing.  |
