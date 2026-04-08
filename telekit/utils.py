@@ -6,6 +6,31 @@ from typing import Literal
 
 ROOT_DIR = Path(__file__).resolve().parent  # telekit/
 
+def is_valid_callback_data(callback_data: str) -> bool:
+    """
+    Check whether a callback data string is valid for Telegram inline buttons.
+
+    Telegram requires callback data to be between 1 and 64 bytes (UTF-8 encoded).
+
+    :param callback_data: Callback data string to validate.
+    :type callback_data: `str`
+    :return: `True` if the string is within the allowed byte range, `False` otherwise.
+    :rtype: `bool`
+
+    Examples:
+
+        >>> is_valid_callback_data("buy")
+        True
+
+        >>> is_valid_callback_data("")
+        False
+
+        >>> is_valid_callback_data("a" * 65)
+        False
+    """
+    byte_size = len(callback_data.encode('utf-8'))
+    return 1 <= byte_size <= 64
+
 
 def format_file_size(size: int, precision: int = 1) -> str:
     """

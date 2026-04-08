@@ -1,5 +1,6 @@
-import telebot.types
 import telekit
+
+from telekit.inline_buttons import CallbackButton
 
 source = """
 # Page Title
@@ -46,9 +47,12 @@ class PagesHandler(telekit.Handler):
         self.chain.sender.set_title("Simple Pages Example")
         self.chain.sender.set_message("Here are some common questions and answers to help you get started:")
 
-        @self.chain.inline_keyboard(pages)
-        def _(page: tuple[str, str]) -> None:
-            self.display_page(page)
+        self.chain.set_inline_choice(
+            self.display_page, 
+            pages | {
+                "« Back": CallbackButton(self.handoff_start)
+            }
+        )
 
         self.chain.disable_timeout_warnings()
         self.chain.edit()
@@ -61,3 +65,6 @@ class PagesHandler(telekit.Handler):
 
         self.chain.set_inline_keyboard({"« Back": self.display_home_page})
         self.chain.edit()
+
+    def handoff_start(self):
+        self.handoff("StartHandler").handle()

@@ -32,7 +32,7 @@ from telebot.types import (
 
 from ._callback_query_handler import CallbackQueryHandler
 from ._inline_buttons import InlineButton, CallbackButton
-from ._chain_base import ChainBase
+from ._chain_base import ChainBase, library
 
 if typing.TYPE_CHECKING:
     from ._chain import Chain # only for type hints
@@ -151,15 +151,24 @@ class ChainInlineKeyboardLogic(ChainBase):
             buttons: list[InlineKeyboardButton] = []
 
             for index, (caption, value) in enumerate(keyboard.items()):
-                if enable_special_buttons and isinstance(value, InlineButton):
+                if enable_special_buttons and isinstance(value, InlineButton) and not isinstance(value, CallbackButton):
                     buttons.append(value._compile(caption))
                 else:
+                    if isinstance(value, CallbackButton):
+                        invoker = value.build_invoker(self._cancel_timeout_and_handlers)
+                    else:
+                        invoker = self._get_invoker_with_argument(func, value)
+
                     callback_data = CallbackQueryHandler.inline_button(f"{index}:{random.randint(1000, 9999)}")
-                    callback_functions[callback_data] = self._get_callback_with_argument(func, value)
+                    callback_functions[callback_data] = invoker
+
+                    kwargs: dict[str, Any] = getattr(invoker, "_kwargs", None) or {}
+
                     buttons.append(
                         InlineKeyboardButton(
                             text=caption,
-                            callback_data=callback_data
+                            callback_data=callback_data,
+                            **kwargs
                         )
                     )
 
@@ -242,18 +251,34 @@ class ChainInlineKeyboardLogic(ChainBase):
         buttons: list[InlineKeyboardButton] = []
 
         if not isinstance(choices, dict):
+            for c in choices:
+                if type(c).__str__ is object.__str__:
+                    library.warning(
+                        f"{type(c).__name__} does not implement __str__. "
+                        f"Consider passing a dict with explicit labels.",
+                        stacklevel=3
+                    )
             choices = {str(c): c for c in choices}
 
         for index, (caption, value) in enumerate(choices.items()):
-            if enable_special_buttons and isinstance(value, InlineButton):
+            if enable_special_buttons and isinstance(value, InlineButton) and not isinstance(value, CallbackButton):
                 buttons.append(value._compile(caption))
             else:
+                if isinstance(value, CallbackButton):
+                    invoker = value.build_invoker(self._cancel_timeout_and_handlers)
+                else:
+                    invoker = self._get_invoker_with_argument(func, value)
+
                 callback_data = CallbackQueryHandler.inline_button(f"{index}:{random.randint(1000, 9999)}")
-                callback_functions[callback_data] = self._get_callback_with_argument(func, value)
+                callback_functions[callback_data] = invoker
+
+                kwargs: dict[str, Any] = getattr(invoker, "_kwargs", None) or {}
+
                 buttons.append(
                     InlineKeyboardButton(
                         text=caption,
-                        callback_data=callback_data
+                        callback_data=callback_data,
+                        **kwargs
                     )
                 )
 
@@ -314,21 +339,21 @@ class ChainInlineKeyboardLogic(ChainBase):
 
         self.sender.set_reply_markup(markup)
 
-    def _get_callback_with_argument(self, func: Callable, argument: Any, query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
-        def callback(call: CallbackQuery) -> None:
+    def _get_invoker_with_argument(self, callback: Callable, argument: Any, query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
+        def invoker(call: CallbackQuery) -> None:
             self._cancel_timeout_and_handlers()
-            func(argument)
+            callback(argument)
             self._answer_callback_query(call, query_answer)
 
-        return callback
+        return invoker
     
-    def _get_callback(self, func: Callable[..., None], query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
-        def callback(call: CallbackQuery):
+    def _get_invoker(self, callback: Callable[..., None], query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
+        def invoker(call: CallbackQuery):
             self._cancel_timeout_and_handlers()
-            func()
+            callback()
             self._answer_callback_query(call, query_answer)
 
-        return callback
+        return invoker
     
     def _answer_callback_query(self, call: CallbackQuery, query_answer: tuple[str, bool] | None = None):
         if query_answer is None:
@@ -370,7 +395,3 @@ class ChainInlineKeyboardLogic(ChainBase):
                 index += last_width
 
         return rows
-    
-    def _is_valid_telegram_callback(self, data: str) -> bool:
-        byte_size = len(data.encode('utf-8'))
-        return 1 <= byte_size <= 64

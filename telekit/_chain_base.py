@@ -30,6 +30,10 @@ from . import senders
 from . import _input_handler
 from . import _timeout
 
+# Logging
+from ._logger import logger
+library = logger.library
+
 class ChainBase:
 
     bot: telebot.TeleBot

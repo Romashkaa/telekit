@@ -28,11 +28,8 @@ from telebot.types import Message
 from . import senders
 from .styles import TextEntity
 
-# Logging
-from ._logger import logger
-library = logger.library
-
 # Chain modules
+from ._chain_base import library
 from ._chain_inline_keyboards_logic import ChainInlineKeyboardLogic
 from ._chain_entry_logic import ChainEntryLogic, TextDocument
 
