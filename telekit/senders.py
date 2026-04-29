@@ -17,7 +17,7 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from typing import Any, Literal
+from typing import Any, Literal, NoReturn
 import textwrap
 import io
 
@@ -27,7 +27,7 @@ from telebot.types import (
     ReplyParameters, LinkPreviewOptions,
     InputMediaPhoto, InputFile, 
     InputMediaAudio, InputMediaDocument, 
-    InputMediaVideo,
+    InputMediaVideo, InputMediaAnimation
 )
 
 from telekit.styles import TextEntity, Escape, Raw, Group, Bold, Italic
@@ -90,6 +90,9 @@ class TempMessageStore:
 # Base Sender
 # ---------------------------------------------------------------------------------
 
+class _FallbackToSend(Exception):
+    """Raised when editing is not supported — silently falls back to delete + send."""
+
 class BaseSender:
 
     bot: TeleBot
@@ -108,6 +111,15 @@ class BaseSender:
         cls.bot = bot
 
     parse_mode: Literal["html", "markdown"] | None
+
+    def _get_parse_mode(self):
+        match self.parse_mode:
+            case "html":
+                return "HTML"
+            case "markdown":
+                return "MarkdownV2"
+            case _:
+                return None
 
     def __init__(
             self,
@@ -872,6 +884,25 @@ class BaseSender:
     # Internal send dispatcher
     # --------------------------------------------------------
 
+    def _edit_or_send(self) -> tuple[Message | None, bool]:
+        if self.edit_message_id:
+
+            try:
+                return self._edit(), True
+            except _FallbackToSend:
+                # silently delete and resend
+                self._delete_message(self.edit_message_id)
+            except Exception as exception:
+                if "Bad Request: there is no text in the message to edit" not in str(exception):
+                    library.warning(f"Failed to edit message {self.edit_message_id}, sending new one instead. Exception: {exception}")
+                self._delete_message(self.edit_message_id)
+        
+        return self._send(), False
+    
+    # --------------------------------------------------------
+    # Internal methods for sending messages
+    # --------------------------------------------------------
+
     def _send(self) -> Message | None:
         if self.photo:
             message = self._send_photo()
@@ -982,40 +1013,33 @@ class BaseSender:
         )
     
     # --------------------------------------------------------
-    # Internal methods for sending and editing messages
+    # Internal methods for editing messages
     # --------------------------------------------------------
-
-    def _get_parse_mode(self):
-        match self.parse_mode:
-            case "html":
-                return "HTML"
-            case "markdown":
-                return "MarkdownV2"
-            case _:
-                return None
 
     def _edit(self) -> Message | None:
         if not self.edit_message_id:
             raise ValueError("edit_message_id is None: Unable to edit message without a valid message ID.")
-        
-        configs = self._get_edit_params()
-        
+
         if self.photo:
-            media = InputMediaPhoto(
-                media=self.photo, 
-                caption=self.text, 
-                parse_mode=self._get_parse_mode()
-            )
-            message = self.bot.edit_message_media(
-                media=media,
-                **configs
-            )
+            message = self._edit_photo()
+        elif self.document:
+            message = self._edit_document()
+        elif self.video:
+            message = self._edit_video()
+        elif self.animation:
+            message = self._edit_animation()
+        elif self.audio:
+            message = self._edit_audio()
+        elif self.voice:
+            message = self._edit_voice()
+        elif self.video_note:
+            message = self._edit_video_note()
+        elif self.venue:
+            message = self._edit_venue()
+        elif self.media:
+            message = self._edit_media()
         else:
-            message = self.bot.edit_message_text(
-                text=self.text,
-                parse_mode=self._get_parse_mode(),
-                **configs
-            )
+            message = self._edit_text()
 
         self._reset_after_send()
 
@@ -1023,17 +1047,84 @@ class BaseSender:
             self.sent_message = message
             return message
 
-    def _edit_or_send(self) -> tuple[Message | None, bool]:
-        if self.edit_message_id:
+    def _edit_text(self) -> Message | bool:
+        configs: dict = self._get_edit_params()
+        return self.bot.edit_message_text(
+            text=self.text,
+            parse_mode=self._get_parse_mode(),
+            link_preview_options=self.link_preview_options,
+            **configs,
+        )
 
-            try:
-                return self._edit(), True
-            except Exception as exception:
-                if "Bad Request: there is no text in the message to edit" not in str(exception):
-                    library.warning(f"Failed to edit message {self.edit_message_id}, sending new one instead. Exception: {exception}")
-                self._delete_message(self.edit_message_id)
-        
-        return self._send(), False
+    def _edit_document(self) -> Message | bool:
+        configs: dict = self._get_edit_params()
+        media = InputMediaDocument(
+            media=self.document,
+            caption=self.text,
+            parse_mode=self._get_parse_mode(),
+        )
+        return self.bot.edit_message_media(media=media, **configs)
+
+    def _edit_video(self) -> Message | bool:
+        configs: dict = self._get_edit_params()
+        media = InputMediaVideo(
+            media=self.video,
+            caption=self.text,
+            show_caption_above_media=self.show_caption_above_media,
+            parse_mode=self._get_parse_mode(),
+        )
+        return self.bot.edit_message_media(media=media, **configs)
+
+    def _edit_animation(self) -> Message | bool:
+        configs: dict = self._get_edit_params()
+        media = InputMediaAnimation(
+            media=self.animation,
+            caption=self.text,
+            show_caption_above_media=self.show_caption_above_media,
+            parse_mode=self._get_parse_mode(),
+        )
+        return self.bot.edit_message_media(media=media, **configs)
+
+    def _edit_audio(self) -> Message | bool:
+        configs: dict = self._get_edit_params()
+        media = InputMediaAudio(
+            media=self.audio,
+            caption=self.text,
+            performer=self.audio_performer,
+            title=self.audio_title,
+            parse_mode=self._get_parse_mode(),
+        )
+        return self.bot.edit_message_media(media=media, **configs)
+    
+    def _edit_photo(self) -> Message | bool:
+        configs: dict = self._get_edit_params()
+
+        media = InputMediaPhoto(
+            media=self.photo, 
+            caption=self.text, 
+            show_caption_above_media=self.show_caption_above_media,
+            parse_mode=self._get_parse_mode()
+        )
+        return self.bot.edit_message_media(
+            media=media,
+            **configs
+        )
+
+    def _edit_voice(self) -> NoReturn:
+        # Voice messages cannot be edited.
+        raise _FallbackToSend() # fallback to _edit_or_send
+
+    def _edit_video_note(self) -> NoReturn:
+        # Video notes cannot be edited.
+        raise _FallbackToSend() # fallback to _edit_or_send
+
+    def _edit_venue(self) -> NoReturn:
+        # Venues cannot be edited.
+        raise _FallbackToSend() # fallback to _edit_or_send
+
+    def _edit_media(self) -> NoReturn:
+        # Media groups cannot be edited.
+        raise _FallbackToSend() # fallback to _edit_or_send
     
     # --------------------------------------------------------
     # Methods for deleting messages

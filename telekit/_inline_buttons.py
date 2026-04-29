@@ -339,8 +339,8 @@ class CallbackButton(InlineButton):
 
         def __call__(self, call: CallbackQuery):
             self._invoke_chain_callback()
-            self._invoke_callback()
             self._answer_callback_query(call)
+            self._invoke_callback()
 
     def __init__(
             self,

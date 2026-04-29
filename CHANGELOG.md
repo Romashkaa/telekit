@@ -42,3 +42,9 @@
 | **Name**    | **Description**                                              |
 | ----------- | ------------------------------------------------------------ |
 | `received`  | The message received from the user during entry processing.  |
+
+## Bug Fixes
+| **Name** | **Description** |
+| -------- | --------------- |
+| Media edit fallback | Fixed a bug where editing a text message with a new attachment (photo, audio, document, etc.) would only update the text, ignoring the attachment entirely. |
+| Callback answer order | Fixed a bug where `answer_callback_query` was not always displayed. |
