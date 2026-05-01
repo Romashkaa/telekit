@@ -1,3 +1,4 @@
+import os
 import re
 
 from pathlib import Path
@@ -5,6 +6,10 @@ from urllib.parse import urlencode, quote
 from typing import Literal
 
 ROOT_DIR = Path(__file__).resolve().parent  # telekit/
+
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Checks
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 def is_valid_callback_data(callback_data: str) -> bool:
     """
@@ -31,6 +36,9 @@ def is_valid_callback_data(callback_data: str) -> bool:
     byte_size = len(callback_data.encode('utf-8'))
     return 1 <= byte_size <= 64
 
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Formatting
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 def format_file_size(size: int, precision: int = 1) -> str:
     """
@@ -105,46 +113,140 @@ def format_file_size(size: int, precision: int = 1) -> str:
 
     return f"{formatted} {units[index]}"
 
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Environment
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+def _split_env_path(path: str, default: str) -> tuple[str, str]:
+    if ":" in path:
+        path, name = path.split(":", 1)
+    else:
+        path, name = path, default
+
+    return path, name
+
+
+def load_env(path=".env") -> dict[str, str]:
+    """
+    Load all key-value pairs from a ``.env`` file.
+
+    Lines starting with ``#`` and empty lines are ignored.
+
+    :param path: Path to the ``.env`` file. Defaults to ``".env"``.
+    :type path: ``str``
+    :return: Dictionary of all key-value pairs found in the file,
+             or an empty dict if the file does not exist.
+    :rtype: ``dict[str, str]``
+    """
+    if not os.path.exists(path):
+        return {}
+    
+    env: dict[str, str] = {}
+        
+    with open(path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            
+            key, value = line.split("=", 1)
+            env[key.strip()] = value.strip()
+
+    return env
+
+
+def read_envar(path: str, name: str) -> str:
+    """
+    Read a single environment variable from a ``.env`` file.
+
+    :param path: Path to the ``.env`` file.
+    :type path: ``str``
+    :param name: Name of the key to read.
+    :type name: ``str``
+    :return: Value of the key.
+    :rtype: ``str``
+    :raises KeyError: If ``name`` is not found in the file.
+    """
+    env: dict[str, str] = load_env(path)
+
+    if name not in env:
+        raise KeyError(f"{name} not found in {path}")
+
+    return env[name]
+
+
 def read_token(path: str = "token.txt") -> str:
     """
-    Read the bot token from a file.
+    Read the bot token from a file or ``.env``.
 
-    Reads only the first line, so multiple tokens can be stored in the file
-    and swapped quickly by reordering lines — no need to delete or copy.
+    **Plain text file** (default)::
 
-    Inline comments are supported — everything after the first whitespace
-    is ignored::
-
+        # token.txt
         123456789:BotSecretToken  Main production bot
         987654321:AnotherToken    Backup bot
 
-    :param path: Path to the token file
+    Reads only the first line. Inline comments (everything after the first
+    whitespace) are ignored. Multiple tokens can be stored and swapped by
+    reordering lines.
+
+    **Environment file** (``.env``)::
+
+        read_token(".env")          # reads the key named TOKEN
+        read_token(".env:TOKEN")    # same, explicit key
+        read_token(".env:BOT_KEY")  # reads a custom key
+
+    :param path: Path to a token file, or ``".env"`` / ``".env:KEY"`` for
+                 environment files. Defaults to ``"token.txt"``.
     :type path: ``str``
-    :return: Bot token string
+    :return: Bot token string.
     :rtype: ``str``
+    :raises KeyError: If the key is not found in the ``.env`` file.
+    :raises FileNotFoundError: If the file does not exist.
     """
+    if path.endswith(".env") or ".env:" in path:
+        return read_envar(*_split_env_path(path, "TOKEN"))
+    
     with open(path) as f:
         first_line: str = f.readline().strip()
         token, *_ = first_line.split()
         return token
+    
 
 def read_canvas_path(path: str = "canvas_path.txt") -> str:
     """
-    Read the ``.canvas`` file path from a file.
+    Read the ``.canvas`` file path from a file or ``.env``.
 
-    Reads only the first line, so multiple pathes can be stored in the file
-    and swapped quickly by reordering lines — no need to delete or copy.
+    **Plain text file** (default)::
 
-    :param path: Path to the file containing the canvas path
+        # canvas_path.txt
+        /home/user/project/main.canvas  Production canvas
+        /home/user/project/test.canvas  Test canvas
+
+    Reads only the first line. Multiple paths can be stored and swapped by
+    reordering lines.
+
+    **Environment file** (``.env``)::
+
+        read_canvas_path(".env")               # reads the key named CANVAS_PATH
+        read_canvas_path(".env:CANVAS_PATH")   # same, explicit key
+        read_canvas_path(".env:MY_CANVAS")     # reads a custom key
+
+    :param path: Path to a canvas path file, or ``".env"`` / ``".env:KEY"`` for
+                 environment files. Defaults to ``"canvas_path.txt"``.
     :type path: ``str``
-    :return: Path to the ``.canvas`` file
+    :return: Path to the ``.canvas`` file.
     :rtype: ``str``
+    :raises KeyError: If the key is not found in the ``.env`` file.
+    :raises FileNotFoundError: If the file does not exist.
     """
+    if path.endswith(".env") or ".env:" in path:
+        return read_envar(*_split_env_path(path, "CANVAS_PATH"))
+    
     with open(path) as f:
         return f.readline().strip()
     
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-# Link Generators
+# Link Generating
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 def make_bot_link(botname: str, start: str | None = None) -> str:
