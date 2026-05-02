@@ -1,24 +1,4 @@
-# Quiz
-
-Example of a quiz written in Telekit DSL.
-
-<details>
-  <summary>Click to See Result</summary>
-  <table>
-    <tr>
-      <td><img src="../images/telekit_example_6.jpg" alt="Telekit Example 6" width="300"></td>
-    </tr>
-  </table>
-</details>
-
-```python
 import telekit
-
-class QuizHandler(DSLHandler):
-    @classmethod
-    def init_handler(cls) -> None:
-        cls.analyze_string(script)
-        cls.on.command("start").invoke(cls.start_script)
 
 # ------------------------------------------------------
 # Telekit DSL
@@ -45,10 +25,10 @@ $ timeout {
     title   = "🐶 Question 1";
     message = "Which animal is the fastest on land?";
     buttons {
-        _lose("Elephant");
-        next("Cheetah");       // correct answer
-        _lose("Horse");
-        _lose("Lion");
+        _lose("🐘 Elephant");
+        next("🐆 Cheetah");       // correct answer
+        _lose("🐴 Horse");
+        _lose("🦁 Lion");
     }
 }
 
@@ -56,10 +36,10 @@ $ timeout {
     title   = "🍫 Question 2";
     message = "From which product is chocolate made?";
     buttons {
-        _lose("Cocoa powder");
-        next("Cocoa beans");   // correct answer
-        _lose("Cocoa butter");
-        _lose("Cocoa drink");
+        _lose("🥣 Cocoa powder");
+        next("🫘 Cocoa beans");   // correct answer
+        _lose("🧈 Cocoa butter");
+        _lose("🫗 Cocoa drink");
     }
 }
 
@@ -67,10 +47,10 @@ $ timeout {
     title   = "🌌 Question 3";
     message = "Which planet is known for its prominent rings?";
     buttons {
-        _lose("Jupiter");
-        next("Saturn");        // correct answer
-        _lose("Mars");
-        _lose("Neptune");
+        _lose("🟠 Jupiter");
+        next("🟡 Saturn");        // correct answer
+        _lose("🔴 Mars");
+        _lose("🔵 Neptune");
     }
 }
 
@@ -78,10 +58,10 @@ $ timeout {
     title   = "🦎 Question 4";
     message = "Which animal can change the color of its skin?";
     buttons {
-        next("Chameleon");     // correct answer
-        _lose("Crocodile");
-        _lose("Turtle");
-        _lose("Snake");
+        next("🦎 Chameleon");     // correct answer
+        _lose("🐊 Crocodile");
+        _lose("🐢 Turtle");
+        _lose("🐍 Snake");
     }
 }
 
@@ -89,10 +69,10 @@ $ timeout {
     title   = "🍌 Question 5";
     message = "Which vitamin is most abundant in a banana?";
     buttons {
-        _lose("Vitamin C");
-        next("Vitamin B6");    // correct answer
-        _lose("Vitamin D");
-        _lose("Vitamin A");
+        _lose("🍊 Vitamin C");
+        next("🧠 Vitamin B6");    // correct answer
+        _lose("☀️ Vitamin D");
+        _lose("🥕 Vitamin A");
     }
 }
 
@@ -111,10 +91,10 @@ $ timeout {
     title   = "🎵 Question 7";
     message = "Which musical instrument has 88 keys?";
     buttons {
-        _lose("Guitar");
-        _lose("Harmonica");
-        next("Piano");          // correct answer
-        _lose("Saxophone");
+        _lose("🎸 Guitar");
+        _lose("🎵 Harmonica");
+        next("🎹 Piano");          // correct answer
+        _lose("🎷 Saxophone");
     }
 }
 
@@ -144,10 +124,10 @@ $ timeout {
     title   = "🍕 Question 10";
     message = "Which country is pizza originally from?";
     buttons {
-        _lose("France");
-        _end("Italy");          // correct answer
-        _lose("Spain");
-        _lose("USA");
+        _lose("🇫🇷 France");
+        _end("🇮🇹 Italy");          // correct answer
+        _lose("🇪🇸 Spain");
+        _lose("🇺🇸 USA");
     }
 }
 
@@ -170,7 +150,12 @@ $ timeout {
 }
 """
 
-telekit.Server(TOKEN).polling()
-```
+class StartHandler(telekit.DSLHandler):
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.analyze_string(script)
+        cls.on.command("start").invoke(cls.start_script)
 
-- [See other examples »](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
+TOKEN: str = telekit.utils.read_token(".env")
+
+telekit.Server(TOKEN).polling()

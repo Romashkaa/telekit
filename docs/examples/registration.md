@@ -3,6 +3,7 @@
 ```python
 import telekit
 
+
 class UserData:
     names: telekit.Vault = telekit.Vault(
         path             = "data_base", 
@@ -33,6 +34,7 @@ class UserData:
     def set_age(self, value: int):
         self.ages[self.chat_id] = value
 
+
 class StartHandler(telekit.Handler):
 
     @classmethod
@@ -46,8 +48,12 @@ class StartHandler(telekit.Handler):
     # Handling Logic
     # ------------------------------------------
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._user_data = UserData(self.user.id)
+
     def handle(self) -> None:
-        self._user_data = UserData(self.message.chat.id)
         self.chain.disable_timeout_warnings()
         self.entry_name()
 

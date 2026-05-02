@@ -44,8 +44,12 @@ class EntryHandler(telekit.Handler):
     # Handling Logic
     # ------------------------------------------
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._user_data = UserData(self.user.id)
+
     def handle(self) -> None:
-        self._user_data = UserData(self.message.chat.id)
         self.chain.disable_timeout_warnings()
         self.entry_name()
 
