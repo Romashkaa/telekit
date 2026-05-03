@@ -1,11 +1,10 @@
-from telebot.types import Message
 from telekit.types import (
     TextDocument, CopyTextButton, ParseMode
 )
 from telekit.styles import Quote, Escape
 import telekit
     
-class TextDocumentHandler(telekit.Handler):
+class TextDocumentHandler(telekit.traits.TrackHandoffOrigin, telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
@@ -25,6 +24,11 @@ class TextDocumentHandler(telekit.Handler):
         self.chain.set_entry_text_document(
             self.handle_text_document,
             allowed_extensions=(".txt", ".py", ".md", ".html")
+        )
+        self.chain.set_inline_keyboard(
+            {
+                "« Back": self.handoff_back_or("StartHandler")
+            }
         )
 
         self.chain.disable_timeout_warnings()

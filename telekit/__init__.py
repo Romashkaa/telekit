@@ -35,12 +35,14 @@ from . import parameters
 from . import inline_buttons
 from . import dices
 from . import utils
+from . import traits
 
 Styles = styles.Styles
 
 from ._version import __version__
     
 __all__ = [
+    "traits",
     "utils",
     "senders", 
     "types",

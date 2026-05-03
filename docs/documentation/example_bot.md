@@ -1,4 +1,4 @@
-# Telekit Example Bot / Gallery
+# Telekit Example Bot
 
 ## Example Bot
 

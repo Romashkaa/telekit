@@ -225,9 +225,16 @@ class Handler:
         
         handler_instance = handler(self.message)
         handler_instance.chain._set_previous_message(self.chain.get_previous_message())
+        handler_instance._on_handoff(self)
         
         return handler_instance
     
+
+    def _on_handoff(self, origin: "Handler") -> None:
+        """Called when this handler is reached via handoff(). Override to customize."""
+        pass
+    
+
     def freeze(self, func, *args):
         """
         Return a zero-argument callback that invokes the given function
