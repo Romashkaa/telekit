@@ -12,8 +12,8 @@
 | **Member**          | **Description**                                                                  |
 | ------------------- | -------------------------------------------------------------------------------- |
 | `handoff_origin`    | The handler instance that handed off to this one, or `None` if invoked directly. |
-| `is_handoffed`      | `True` if this handler was reached via `handoff()`, `False` otherwise.           |
-| `handoff_back()`    | Transfer control back to the origin handler.                                     |
+| `is_handed_off`     | `True` if this handler was reached via `handoff()`, `False` otherwise.           |
+| `handoff_back()`    | Transfer control back to the origin handler via `self.handoff_origin.handle()`   |
 | `handoff_back_or(handler)` | Like `handoff_back()`, but falls back to `handler` on fail.               |
 
 Set `TRACK_HANDOFF_ORIGIN = False` on any subclass to opt out of tracking.
