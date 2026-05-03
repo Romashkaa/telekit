@@ -36,7 +36,11 @@ Navigation buttons (`« Back`, `Next »`) are added automatically.
 
 | **Member**           | **Description**                                                              |
 | -------------------- | ---------------------------------------------------------------------------- |
-| `paginated_choice(choices, on_choice, on_update, row_width)` | Display a paginated choice keyboard. |
+| `paginated_choice(choices, on_choice, ...)` | Display a paginated choice keyboard. |
+| `PAGINATED_CHOICE_BACK_LABEL` | Label for the back navigation button. Defaults to `« Back`. |
+| `PAGINATED_CHOICE_NEXT_LABEL` | Label for the next navigation button. Defaults to `Next »`. |
+| `PAGINATED_CHOICE_PAGE_LABEL` | Label template for the page indicator button. Supports `{page}` and `{pages}` placeholders. Set to `None` to hide. Defaults to `{page} / {pages}`. |
+
 
 ```python
 self.chain.sender.set_title("🔤 What is your initial?")
@@ -48,6 +52,15 @@ self.paginated_choice(
     on_choice=self.handle_letter,
     row_width=5
 )
+```
+
+Override labels per handler to localise or restyle navigation:
+
+```python
+class MyHandler(PaginatedChoice, telekit.Handler):
+    PAGINATED_CHOICE_BACK_LABEL = "⬅️ Назад"
+    PAGINATED_CHOICE_NEXT_LABEL = "Далі ➡️"
+    PAGINATED_CHOICE_PAGE_LABEL = None  # hide page indicator
 ```
 
 <details>

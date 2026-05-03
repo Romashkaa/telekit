@@ -14,6 +14,10 @@ class PaginatedChoice(telekit.Handler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    PAGINATED_CHOICE_BACK_LABEL: str = "« Back"
+    PAGINATED_CHOICE_NEXT_LABEL: str = "Next »"
+    PAGINATED_CHOICE_PAGE_LABEL: str | None = "({page}/{pages})"  # use .format(page=..., pages=...)
+
     def paginated_choice[T](self, choices: dict[str, T] | Iterable[T], on_choice: Callable[[T], Any], on_update: Callable[[], Any] | None = None, row_width: int = 1, page_size: int = 10) -> None:
         """
         Display a paginated inline keyboard for choosing from a list of items.
@@ -75,11 +79,14 @@ class PaginatedChoice(telekit.Handler):
         nav: dict[str, T | _NavButton] = {}
 
         if has_back:
-            nav["« Back"] = _NavButton(start - page_size)
-        if has_back and has_next:
-            nav[f"({page}/{pages})" ] = _NavButton(start)
+            nav[self.PAGINATED_CHOICE_BACK_LABEL] = \
+                _NavButton(start - page_size)
+        if has_back and has_next and self.PAGINATED_CHOICE_PAGE_LABEL:
+            nav[self.PAGINATED_CHOICE_PAGE_LABEL.format(page=page, pages=pages)] = \
+                _NavButton(start)
         if has_next:
-            nav["Next »"] = _NavButton(start + page_size)
+            nav[self.PAGINATED_CHOICE_NEXT_LABEL] = \
+                _NavButton(start + page_size)
 
         # each choice on its own row, nav row at the end
         choices_count  = len(keyboard)
