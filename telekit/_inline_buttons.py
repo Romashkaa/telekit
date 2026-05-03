@@ -27,13 +27,15 @@ from telebot import TeleBot
 from ._callback_query_handler import CallbackQueryHandler
 
 __all__ = [
-    "InlineButton", 
+    "InlineButton",
 
+    "StaticButton",
     "LinkButton", 
     "WebAppButton", 
     "SuggestButton",
     "CopyTextButton",
     "CallbackButton",
+    "AnswerButton",
     "AlertButton",
     "NotificationButton",
     "InvokeButton",
@@ -57,9 +59,11 @@ class InlineButton:
     - `SuggestButton`
     - `CopyTextButton`
     - `CallbackButton`
-    - `AlertButton`
-    - `NotificationButton`
-    - `InvokeButton`
+        - `InvokeButton`
+        - `AnswerButton`
+            - `AlertButton`
+            - `NotificationButton`
+    - `StaticButton`
     """
 
     _bot: TeleBot
@@ -70,12 +74,14 @@ class InlineButton:
 
     MAX_SIZE: int | None = None
     MIN_SIZE: int | None = None
-
+    
+    Static: type["StaticButton"]
     Link: type["LinkButton"]
     WebApp: type["WebAppButton"]
     Suggest: type["SuggestButton"]
     CopyText: type["CopyTextButton"]
     Callback: type["CallbackButton"]
+    Answer: type["AnswerButton"]
     Alert: type["AlertButton"]
     Notification: type["NotificationButton"]
     Invoke: type["InvokeButton"]
@@ -115,7 +121,20 @@ class InlineButton:
                 return normalized
             raise ValueError(f"Unknown style: {style!r}. Must be one of {_BUTTON_STYLES_LIST}")
         raise TypeError(f"Style must be str, ButtonStyle, or None, got {type(style)}")
+    
+class StaticButton(InlineButton):
 
+    def __init__(self, *, style: str | None | ButtonStyle = None, **kwargs):
+        self._style = self._normalize_style(style)
+        self._kwargs = kwargs
+        
+    def _compile(self, caption: str) -> InlineKeyboardButton:
+        return InlineKeyboardButton(
+            text=caption,
+            callback_data=CallbackQueryHandler.STATIC_BUTTON,
+            style=self._style,
+            **self._kwargs,
+        )
     
 class LinkButton(InlineButton):
     """
@@ -387,7 +406,77 @@ class CallbackButton(InlineButton):
             callback=callback,
         )
     
-class AlertButton(CallbackButton):
+class AnswerButton(CallbackButton):
+
+    class _CallbackInvoker(CallbackButton._CallbackInvoker):
+        def __init__(
+                self, 
+                chain_callback: Callable[[], None],
+
+                answer_text: str | None = None,
+                answer_as_alert: bool = True,
+
+                persistent: bool = True,
+
+                style: str | None | ButtonStyle = None,
+
+                kwargs: dict[str, Any] = {}
+            ):
+            self._answer_text = answer_text
+            self._answer_as_alert = answer_as_alert
+
+            self._persistent = persistent
+
+            self._style = style
+
+            self._kwargs = {"style": style} | kwargs
+            
+            self._chain_callback: Callable[[], None] = chain_callback
+
+        def _answer_callback_query(self, call: CallbackQuery):
+            if self._answer_text:
+                InlineButton._bot.answer_callback_query(
+                    call.id,
+                    self._answer_text,
+                    self._answer_as_alert
+                )
+
+        def __call__(self, call: CallbackQuery):
+            if not self._persistent:
+                self._invoke_chain_callback()
+            self._answer_callback_query(call)
+
+    def __init__(
+            self,
+            answer_text: str | None = None,
+            answer_as_alert: bool = True,
+
+            persistent: bool = True,
+
+            style: str | None | ButtonStyle = None,
+
+            **kwargs
+        ):
+        self._answer_text = answer_text
+        self._answer_as_alert = answer_as_alert
+
+        self._persistent = persistent
+
+        self._style = self._normalize_style(style)
+
+        self._kwargs = kwargs
+        
+    def build_invoker(self, chain_callback: Callable[[], None]) -> _CallbackInvoker:
+        return self._CallbackInvoker(
+            chain_callback=chain_callback,
+            answer_text=self._answer_text,
+            answer_as_alert=self._answer_as_alert,
+            persistent=self._persistent,
+            style=self._style,
+            kwargs=self._kwargs
+        )
+
+class AlertButton(AnswerButton):
     """
     An inline keyboard button that shows a popup alert when pressed and terminates the chain.
 
@@ -424,19 +513,19 @@ class AlertButton(CallbackButton):
     def __init__(
             self,
             text: str | None = None,
-            *,
+            persistent: bool = True,
             style: str | None | ButtonStyle = None,
             **kwargs
         ):
         super().__init__(
-            callback=None,
             answer_text=text,
             answer_as_alert=True,
+            persistent=persistent,
             style=style,
             **kwargs
         )
 
-class NotificationButton(CallbackButton):
+class NotificationButton(AnswerButton):
     """
     An inline keyboard button that shows a brief notification at the top of the chat screen
     when pressed and terminates the chain.
@@ -475,13 +564,14 @@ class NotificationButton(CallbackButton):
             self,
             text: str | None = None,
             *,
+            persistent: bool = True,
             style: str | None | ButtonStyle = None,
             **kwargs
         ):
         super().__init__(
-            callback=None,
             answer_text=text,
             answer_as_alert=False,
+            persistent=persistent,
             style=style,
             **kwargs
         )
@@ -611,10 +701,12 @@ class InvokeButton(CallbackButton):
         )
     
 InlineButton.Link = LinkButton
+InlineButton.Static = StaticButton
 InlineButton.WebApp = WebAppButton
 InlineButton.Suggest = SuggestButton
 InlineButton.CopyText = CopyTextButton
 InlineButton.Callback = CallbackButton
+InlineButton.Answer = AnswerButton
 InlineButton.Alert = AlertButton
 InlineButton.Notification = NotificationButton
 InlineButton.Invoke = InvokeButton

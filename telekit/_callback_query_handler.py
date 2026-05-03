@@ -40,15 +40,17 @@ class CallbackQueryHandler:
             bot (TeleBot): The Telegram bot instance to be used for sending messages.
         """
         cls.bot = bot
-        cls.user_button_callbacks: dict[int, dict[str, Callable[[telebot.types.CallbackQuery], None]]] = {}
+        cls.user_button_callbacks: dict[int, dict[str, Callable[[CallbackQuery], None]]] = {}
 
         @bot.callback_query_handler(func=lambda call: True)
-        def handle(call: telebot.types.CallbackQuery) -> None:
+        def handle(call: CallbackQuery) -> None:
             if not call.data:
                 return
             
             if call.data.startswith(cls.INLINE_BUTTON):
                 cls._handle_inline_button(call)
+            elif call.data.startswith(cls.STATIC_BUTTON):
+                cls._handle_static_button(call)
             elif call.data.startswith(cls.SUGGEST):
                 cls._handle_suggestion(call)
             else:
@@ -59,7 +61,7 @@ class CallbackQueryHandler:
     # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
     @classmethod
-    def _handle_inline_button(cls, call: telebot.types.CallbackQuery):
+    def _handle_inline_button(cls, call: CallbackQuery):
         if not call.data:
             cls.bot.answer_callback_query(call.id, text=cls._invalid_data_answer[0], show_alert=cls._invalid_data_answer[1])
             return
@@ -76,9 +78,18 @@ class CallbackQueryHandler:
             cls.bot.answer_callback_query(call.id, text=cls._button_is_no_active_answer[0], show_alert=cls._button_is_no_active_answer[1])
             return
 
-        cls.remove_user_button_callbacks(call.from_user.id)
+        if not getattr(callback, "_persistent", False):
+            cls.remove_user_button_callbacks(call.from_user.id)
         
         callback(call)
+
+    # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Static Buttons Handling
+    # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+    @classmethod
+    def _handle_static_button(cls, call: CallbackQuery):
+        cls.bot.answer_callback_query(call.id, text="")
 
     # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     # Suggestion Handling
@@ -87,7 +98,7 @@ class CallbackQueryHandler:
     @classmethod
     def _handle_suggestion(cls, call: CallbackQuery):
         text: str = str(call.data)[len(cls.SUGGEST):]
-        cls.simulate(call.message, text, from_user=call.from_user)
+        cls.simulate(call.message, text, from_user=call.from_user) # pyright: ignore[reportArgumentType]
         cls.bot.answer_callback_query(call.id)
 
     @classmethod
@@ -126,9 +137,10 @@ class CallbackQueryHandler:
     # Query Types
     # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
+    STATIC_BUTTON: str = "static_button"
     INLINE_BUTTON: str = "inline_button:"
     SUGGEST: str = "suggest:"
-
+    
     @classmethod
     def suggest(cls, suggestion: str):
         return f"{cls.SUGGEST}{suggestion}"

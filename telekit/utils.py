@@ -3,7 +3,7 @@ import re
 
 from pathlib import Path
 from urllib.parse import urlencode, quote
-from typing import Literal
+from typing import Literal, Any, Iterable
 
 ROOT_DIR = Path(__file__).resolve().parent  # telekit/
 
@@ -245,6 +245,79 @@ def read_canvas_path(path: str = "canvas_path.txt") -> str:
     with open(path) as f:
         return f.readline().strip()
     
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Inline Keyboards
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+def compose_keyboard(
+    *groups: dict[str, Any],
+    widths: Iterable[int] = (1, -1),
+) -> tuple[dict[str, Any], tuple[int, ...]]:
+    """
+    Merge multiple button groups into a single keyboard dict with computed row widths.
+
+    Each group is laid out independently using its corresponding width from ``widths``.
+    A width of ``-1`` means "all buttons in one row" (i.e. ``len(group)``).
+
+    :param groups: One or more dicts mapping button labels to values.
+    :type groups: ``dict[str, Any]``
+    :param widths: Row width for each group. Must match the number of groups,
+                   or be a single value applied to all groups.
+                   Use ``-1`` to fit the entire group on one row.
+    :type widths: ``Iterable[int]``
+    :return: Merged keyboard dict and the computed row_width tuple.
+    :rtype: ``tuple[dict[str, Any], tuple[int, ...]]``
+
+    Example::
+
+        keyboard, row_width = compose_keyboard(
+            {"🆕 Create": "create"},
+            {str(n): str(n) for n in range(1, 10)},
+            {"« Back": "back", "Next »": "next"},
+            widths=(1, 3, -1),
+        )
+        chain.set_inline_choice(keyboard, row_width)
+        # row_width → (1, 3, 3, 3, 2)
+        # layout:
+        #   | 🆕 Create        |
+        #   | 1  | 2  | 3      |
+        #   | 4  | 5  | 6      |
+        #   | 7  | 8  | 9      |
+        #   | « Back | Next »  |
+    """
+    widths_list = list(widths)
+
+    if len(widths_list) == 1:
+        widths_list = widths_list * len(groups)
+
+    if len(widths_list) != len(groups):
+        raise ValueError(
+            f"Number of widths ({len(widths_list)}) must match "
+            f"number of groups ({len(groups)}) or be 1."
+        )
+
+    keyboard: dict[str, Any] = {}
+    row_width: list[int] = []
+
+    for group, width in zip(groups, widths_list):
+        if not group:
+            continue
+
+        count = len(group)
+        w = count if width == -1 else width
+
+        full_rows = count // w
+        remainder = count % w
+
+        row_width.extend([w] * full_rows)
+        if remainder:
+            row_width.append(remainder)
+
+        keyboard.update(group)
+
+    return keyboard, tuple(row_width)
+
+
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 # Link Generating
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––

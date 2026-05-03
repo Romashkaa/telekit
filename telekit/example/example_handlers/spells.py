@@ -1,25 +1,21 @@
 import telekit
 
-from telekit.inline_buttons import CallbackButton
+from telekit.inline_buttons import AlertButton
 
 spells_text = """
-# Expelliarmus
-
-The Disarming Charm. It causes whatever the victim is holding to fly out of their hand. It became Harry Potter's signature spell.
-
-# Wingardium Leviosa
+# 🦋 Wingardium Leviosa
 
 The Levitation Charm. Used to make objects fly. As Hermione Granger famously noted, it's "Levi-o-sa, not Levio-sar."
 
-# Expecto Patronum
+# 🧌 Expecto Patronum
 
 The Patronus Charm. A highly advanced spell that conjures a silver guardian to protect the caster against Dementors.
 
-# Alohomora
+# 🗝️ Alohomora
 
 The Unlocking Charm. Used to open doors and windows that are not protected by magic.
 
-# Lumos
+# 🪄 Lumos
 
 The Wand-Lighting Charm. Illuminates the tip of the caster's wand, allowing them to see in the dark.
 """
@@ -48,11 +44,14 @@ class SpellsHandler(telekit.Handler):
 
         self.chain.set_inline_keyboard(
             {
-                title: CallbackButton(self.display_spells, answer_text=content) 
+                title: AlertButton(content) 
                 for title, content in spells.items()
-            }
+            } | {"« Back": self.handle_back},
+            row_width=2
         )
-        self.chain.set_remove_inline_keyboard(False)
 
         self.chain.disable_timeout_warnings()
         self.chain.edit()
+
+    def handle_back(self):
+        self.handoff("StartHandler").handle()

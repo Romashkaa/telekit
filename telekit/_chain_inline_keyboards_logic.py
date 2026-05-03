@@ -40,8 +40,7 @@ if typing.TYPE_CHECKING:
 class ChainInlineKeyboardLogic(ChainBase):
     def set_inline_keyboard(
             self, 
-            keyboard: dict[str, Callable[[], Any] | InlineButton | str], 
-            *,
+            keyboard: dict[str, Any], 
             row_width: int | Iterable[int] = 1
         ) -> None:
         """
@@ -118,7 +117,6 @@ class ChainInlineKeyboardLogic(ChainBase):
     def inline_keyboard[Caption: str, Value](
             self, 
             keyboard: dict[Caption, Value],
-            *,
             row_width: int | Iterable[int] = 1,
             enable_special_buttons: bool = True
         ) -> Callable[[Callable[[Value], None]], None]:
@@ -183,7 +181,6 @@ class ChainInlineKeyboardLogic(ChainBase):
     def inline_choice(
             self, 
             choices: list[Any] | tuple[Any, ...] | dict[str, Any | InlineButton],
-            *,
             row_width: int | Iterable[int] = 1,
             enable_special_buttons: bool = True
         ) -> Callable[[Callable[[Any], None]], None]:
@@ -219,7 +216,6 @@ class ChainInlineKeyboardLogic(ChainBase):
             self,
             func: Callable[[Any], None],
             choices: list[Any] | tuple[Any, ...] | dict[str, Any | InlineButton],
-            *,
             row_width: int | Iterable[int] = 1,
             enable_special_buttons: bool = True
         ) -> None:

@@ -1,3 +1,14 @@
+## Inline Buttons
+
+| **Name**         | **Description**                                                                 |
+| ---------------- | ------------------------------------------------------------------------------- |
+| `StaticButton`   | A non-interactive inline button that performs no action when pressed.           |
+| `AnswerButton`   | A button that responds to a callback query with a notification or alert without executing custom logic. |
+
+- `AnswerButton` and its subclasses (`AlertButton`, `NotificationButton`) now support the `persistent` parameter (Defauts to `True`):
+  - `True` — non-blocking hint (does not affect further interactions)
+  - `False` — terminates interaction after click
+
 ## Traits
 
 | **Name**                   | **Description**                                                       |
@@ -77,10 +88,13 @@ If only one item is present, `on_choice` is called immediately without rendering
 
 ## Utils
 
-| **Name**         | **Description**                                                    |
-| ---------------- | ------------------------------------------------------------------ |
-| `load_env`       | Load all key-value pairs from a `.env` file into a dictionary.     |
-| `read_env_var`   | Read a single variable by name from a `.env` file.                 |
+| **Name**           | **Description**                                                    |
+| ------------------ | ------------------------------------------------------------------ |
+| `load_env`         | Load all key-value pairs from a `.env` file into a dictionary.     |
+| `read_env_var`     | Read a single variable by name from a `.env` file.                 |
+| `compose_keyboard` | Merge multiple button groups into a single inline keyboard with computed `row_width`. |
+
+### Environment Utils
 
 - `read_token` and `read_canvas_path` now support reading from `.env` files.
   Pass `".env"` to use the default key, or `".env:KEY"` to specify a custom one:
@@ -91,4 +105,39 @@ read_token(".env:BOT_TOKEN")       # reads BOT_TOKEN
 
 read_canvas_path(".env")           # reads CANVAS_PATH
 read_canvas_path(".env:MY_CANVAS") # reads MY_CANVAS
+```
+
+### Inline Keyboard Utils
+
+`compose_keyboard` combines multiple button groups into a single keyboard and automatically calculates `row_width` for each group.
+
+Each group is laid out independently using its corresponding width from `widths`.
+A width of `-1` means "all buttons in one row" (i.e. ``len(group)``).
+
+| **Param** | **Type**         | **Description**                             |
+|-----------|------------------|---------------------------------------------|
+| `groups`  | `dict[str, Any]` | One or more button groups                   |
+| `widths`  | `Iterable[int]`  | Row width per group or single value for all |
+
+| **Returns** | **Type** |
+|------------|----------|
+| `keyboard` | `dict[str, Any]` |
+| `row_width` | `tuple[int, ...]` |
+
+```py
+# row_width → (1, 3, 3, 3, 2)
+# layout:
+#   |    🆕 Create    |
+#   |  1  |  2  |  3  |
+#   |  4  |  5  |  6  |
+#   |  7  |  8  |  9  |
+#   | « Back | Next » |
+
+keyboard, row_width = compose_keyboard(
+    {"🆕 Create": "create"},
+    {str(n): str(n) for n in range(1, 10)},
+    {"« Back": "back", "Next »": "next"},
+    widths=(-1, 3, -1), # or (1, 3, 2)
+)
+self.chain.set_inline_choice(keyboard, row_width)
 ```
