@@ -31,7 +31,7 @@ import telebot
 __all__ = ["init"]
 
 def init(bot: telebot.TeleBot) -> None:
-    TelekitState.init(bot)
+    TelekitState._init(bot)
     BaseSender._init(bot)
     Handler._init(bot)
     Chain._init(bot)

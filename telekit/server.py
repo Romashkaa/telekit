@@ -22,7 +22,7 @@ import traceback
 import sys
 from typing import Optional
 
-from . import _init, _state
+from . import _init, _state, debug as _debug
 import telebot
 
 from ._logger import logger
@@ -49,7 +49,7 @@ class Server:
     ):
         
         self._auto_restart = auto_restart
-        _state.TelekitState.DEBUG = debug
+        _debug.Debug.set_all(debug)
 
         if isinstance(bot, str):
             bot = telebot.TeleBot(bot)
@@ -133,6 +133,7 @@ class Server:
                     raise exception
             finally:
                 time.sleep(10)
+                _state.TelekitState._update()
 
     def long_polling(self, *, timeout: int = 60):
         """Long `bot.polling(none_stop=True, timeout=timeout)` polling with custom timeout"""
@@ -150,6 +151,7 @@ class Server:
                     raise exception
             finally:
                 time.sleep(5)
+                _state.TelekitState._update()
 
 
 # Example

@@ -30,6 +30,7 @@ from telebot.types import (
     InputMediaVideo, InputMediaAnimation
 )
 
+from telekit.debug import Debug
 from telekit.styles import TextEntity, Escape, Raw, Group, Bold, Italic
 from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
 from telekit import dices
@@ -1143,7 +1144,8 @@ class BaseSender:
         try:
             return self.bot.delete_message(chat_id=self.chat_id, message_id=message_id)
         except Exception as exception:
-            library.warning(f"Failed to delete message {message_id}. Maybe the user deleted it. Exception: {exception}")
+            if Debug.deletion_warnings:
+                library.warning(f"Failed to delete message {message_id}. Maybe the user deleted it. Exception: {exception}")
             return False
         
     def delete_message(self, message: Message | None, only_user_messages: bool=False) -> bool:

@@ -12,5 +12,6 @@ from . import (
     hotel,
     complete_hotel,
     text_document,
-    qr
+    qr,
+    calendar,
 )

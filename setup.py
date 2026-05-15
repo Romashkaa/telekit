@@ -28,8 +28,7 @@ def readme():
         return f.read()
   
 def changelog():
-    with open('CHANGELOG.md', 'r') as f:
-        return f.read()
+    return f"[View changelog on GitHub](https://github.com/Romashkaa/telekit/blob/main/CHANGELOG.md)"
 
 def install_requires():
     with open('telekit/requirements.txt', 'r') as f:

@@ -9,7 +9,7 @@ from telekit.utils import compose_keyboard
 class _NavButton:
     start_index: int
 
-class PaginatedChoice(telekit.Handler):
+class PaginatedChoice(telekit.Trait):
     """
     A trait that adds a paginated inline keyboard to any handler.
 

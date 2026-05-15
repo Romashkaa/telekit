@@ -26,6 +26,8 @@ from telebot.types import InlineKeyboardButton, CallbackQuery
 from telebot import TeleBot
 from ._callback_query_handler import CallbackQueryHandler
 
+from ._state import TelekitState
+
 __all__ = [
     "InlineButton",
 
@@ -121,6 +123,15 @@ class InlineButton:
                 return normalized
             raise ValueError(f"Unknown style: {style!r}. Must be one of {_BUTTON_STYLES_LIST}")
         raise TypeError(f"Style must be str, ButtonStyle, or None, got {type(style)}")
+    
+    def _normalize_custom_emoji_id(self, custom_emoji_id: int | str | None) -> str | None:
+        if not custom_emoji_id:
+            return None
+        
+        if not TelekitState.is_premium():
+            return None
+
+        return str(custom_emoji_id)
     
 class StaticButton(InlineButton):
 

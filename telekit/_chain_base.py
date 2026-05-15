@@ -31,14 +31,13 @@ from . import _input_handler
 from . import _timeout
 
 # Logging
+from .debug import Debug
 from ._logger import logger
 library = logger.library
 
 class ChainBase:
 
     bot: telebot.TeleBot
-
-    _timeout_warnings_enabled: bool = True
     
     @classmethod
     def _init(cls, bot: telebot.TeleBot):
@@ -206,4 +205,5 @@ class ChainBase:
     # Timeout API
 
     def disable_timeout_warnings(self, value: bool = True) -> None:
-        self._timeout_warnings_enabled = not value
+        """.. deprecated:: Set ``Debug.timeout_warnings`` directly."""
+        Debug.timeout_warnings = not value

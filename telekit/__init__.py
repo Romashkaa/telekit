@@ -18,6 +18,7 @@
 # 
 
 from ._handler import Handler
+from ._trait import Trait
 from ._chain import Chain
 from ._callback_query_handler import CallbackQueryHandler
 from .server import Server, example
@@ -36,6 +37,7 @@ from . import inline_buttons
 from . import dices
 from . import utils
 from . import traits
+from . import debug
 
 Styles = styles.Styles
 
@@ -56,6 +58,7 @@ __all__ = [
 
     "Server", 
     "Chain", 
+    "Trait",
     "Handler", 
     "CallbackQueryHandler",
 
@@ -66,4 +69,5 @@ __all__ = [
     "enable_file_logging",
     "chapters",
     "example",
+    "debug",
 ]

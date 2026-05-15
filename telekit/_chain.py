@@ -26,6 +26,7 @@ from telebot.types import Message
 
 # Local modules
 from . import senders
+from .debug import Debug
 from .styles import TextEntity
 
 # Chain modules
@@ -154,7 +155,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
         self.sender.set_edit_message(None)
         self._previous_message = message
 
-        if self._timeout_warnings_enabled and _handler and not _timeout:
+        if Debug.timeout_warnings and _handler and not _timeout:
             library.warning(
                 "Next-message handler is active, but no timeout was set for the chain. "
                 "This may cause the bot to wait indefinitely."

@@ -13,8 +13,10 @@
 
 | **Name**                   | **Description**                                                       |
 | -------------------------- | --------------------------------------------------------------------- |
-| `TrackHandoffOrigin`  | Tracks which handler transferred control to this one via `handoff()`.      |
-| `PaginatedChoice`    | Adds a paginated inline keyboard for choosing from a list of items.        |
+| `TrackHandoffOrigin`       | Tracks which handler transferred control to this one via `handoff()`. |
+| `PaginatedChoice`          | Adds a paginated inline keyboard for choosing from a list of items.   |
+| `CalendarPick`             | Adds an inline date picker with month, year, and decade navigation.   |
+
 
 ### TrackHandoffOrigin
 
@@ -85,6 +87,65 @@ class MyHandler(PaginatedChoice, telekit.Handler):
 
 `choices` accepts a `dict[str, T]`, or any `Iterable[T]`.
 If only one item is present, `on_choice` is called immediately without rendering a keyboard.
+
+### CalendarPick
+
+Renders a three-view inline date picker: month grid, month picker, decade picker.
+Navigation is constrained by locking parameters; keyboard input is supported in all views.
+
+| **Member** | **Description** |
+| --- | --- |
+| `calendar_pick(on_date, ...)` | Open the date picker. |
+
+```python
+class BookingHandler(telekit.traits.CalendarPick, telekit.Handler):
+    ...
+
+    def handle(self) -> None:
+        self.chain.sender.set_title("📅 Booking date")
+        self.chain.sender.set_message(
+            "Please select a convenient booking date using the calendar below:"
+        )
+        self.chain.sender.set_remove_text(False)
+        self.calendar_pick(
+            on_date=self._on_date_picked,
+            year_range=(2000, datetime.date.today().year),
+        )
+
+    def _on_date_picked(self, date: datetime.date) -> None:
+        self.chain.sender.set_title("📅 Date selected")
+        self.chain.sender.set_message(
+            f"You selected {date.strftime('%d.%m.%Y')}"
+        )
+        self.chain.edit()
+```
+
+| **Param** | **Type** | **Description** |
+|-----------|----------|-----------------|
+| `on_date` | `callable` | Called with the selected `datetime.date` when the user taps a day. |
+| `initial` | `date \| int \| None` | Starting view: a `date` opens that month; an `int` opens that year's month grid; `None` uses the current month (default). Ignored when `locked_month` is set. |
+| `locked_month`   | `tuple[int, int] \| None` | `(year, month)` — restrict to a single month; the user only picks the day and all navigation is hidden. |
+| `locked_year`    | `int \| None` | Restrict navigation to a single year; year arrows and the decade picker are hidden. |
+| `year_range`     | `tuple[int, int] \| None` | `(min_year, max_year)` — constrain free navigation to this inclusive year span. |
+| `show_nav_hints` | `bool` | When `True`, arrow buttons include the neighbour label: `« Apr` / `Jun »` in month view, `« 2024` / `2026 »` in year/decade view. Defaults to `False`. |
+
+**Locking modes**
+
+- `locked_month=(year, month)` — user only picks the day; no navigation is shown.
+- `locked_year=year` — user picks month then day within the given year.
+- `year_range=(min_year, max_year)` — free navigation restricted to the given span.
+
+**Keyboard input**
+
+The user can type a date directly into the message box in any view:
+
+| Input        | Action                       |
+|--------------|------------------------------|
+| `YYYY`       | Navigate to that year        |
+| `YYYY.MM`    | Navigate to that month       |
+| `YYYY.MM.DD` | Select that date immediately |
+
+Separator is `.` or `-`. Values outside the allowed range are silently ignored.
 
 ## Utils
 

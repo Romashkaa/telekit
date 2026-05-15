@@ -2,7 +2,7 @@ from typing import Callable
 
 import telekit
 
-class TrackHandoffOrigin(telekit.Handler):
+class TrackHandoffOrigin(telekit.Trait):
 
     TRACK_HANDOFF_ORIGIN: bool = True
 
