@@ -305,8 +305,12 @@ telekit.Server(BOT_TOKEN).polling()
   <summary>Click to see what you can do with the DSL</summary>
   <table>
     <tr>
-      <td><img src="../images/telekit_example_7.jpg" alt="Telekit Example 7" width="300"></td>
-      <td><img src="../images/telekit_example_8.jpg" alt="Telekit Example 8" width="300"></td>
+      <td><img src="./docs/images/telekit_example_7.jpg" alt="Telekit Example 7" width="300"></td>
+      <td><img src="./docs/images/telekit_example_8.jpg" alt="Telekit Example 8" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="./docs/images/telekit_example_6.jpg" alt="Telekit Example 7" width="300"></td>
+      <td><img src="./docs/images/telekit_example_1.jpg" alt="Telekit Example 8" width="300"></td>
     </tr>
   </table>
 </details>
