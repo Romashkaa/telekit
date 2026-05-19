@@ -21,6 +21,7 @@ This guide will help you quickly get familiar with the library and understand it
     - [Entries](8_entries.md)
     - Timeouts
     - Chain
+    - Traits
 - Handle Parameters:
     - [Command Parameters: Deep Linking](command_trigger_parameters.md)
     - [Text Parameters: Templates](text_trigger_parameters.md)

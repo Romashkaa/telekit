@@ -20,6 +20,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | 🌟 [Counter](counter.md) | Counter with buttons "+" and "-" | `set_photo`, `set_effect`, `set_inline_keyboard`, `set_remove_inline_keyboard`, `sender.set_remove_attachments`, `sender.set_remove_text`, `CallbackButton`, `style=`, `ButtonStyle` |
 | [On Text](on_text.md) | Example of handling specific templated messages | `on.text`, `on.command`, `user`, `first_name`, `Code`, `Italic`, `set_entry_suggestions`,  |
 | [Append](append_method.md) | Appending messages with timeout control | `append`, `set_timeout`, `Sanitize`, `Quote`, `set_remove_text` |
+| 🌟 [Calendar](calendar.md) | Calendar picker example: a bot lets the user select a date and calculates how far it is from today | `CalendarPick`, `calendar_pick`, `set_inline_keyboard` |
 | 🌟 [QR Generator](qr_gen.md) | QR code generator with editable text and caption | `on.command`, `set_entry_text`, `set_inline_keyboard`, `set_photo`, `edit`, `Quote`, `utils.make_qrcode`, `utils.read_token` |
 | [Ads](ads.md) | Sending messages to several chats | `on.command`, `whitelist=`, `create_sender`, `send_or_handle_error`, `set_effect` |
 | [Handoff](handoff.md) | Message with buttons linking to other handlers | `handoff`, `on.command`,  `inline_keyboard`, `user`, `first_name` |
@@ -51,7 +52,8 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 ## Complex
 
 | Name | Comment | Used methods |
-|-----------|--------------|-------------------------|
+|------|---------|--------------|
 | [Registration](registration.md) | Simple registration example | `Vault`, `set_entry_text`, `set_entry_suggestions`, `set_inline_keyboard` |
+| [Calendar](calendar.md) | Calendar picker example: a bot lets the user select a date and calculates how far it is from today | `CalendarPick`, `calendar_pick`, `set_inline_keyboard` |
 
 If you're unsure how the examples work, [check out our tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/0_tutorial.md) for a full walkthrough.

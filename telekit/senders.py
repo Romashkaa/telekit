@@ -1210,7 +1210,14 @@ class BaseSender:
         try:
             return self.send(), None
         except Exception as exception:
-            library.warning(f"Failed to send message in `try_send`: {exception}")
+            tip: str = ""
+
+            if "message text is empty" in str(exception).lower(): 
+                tip = "Did you forget sender.set_remove_text(False)?"
+            if tip:
+                tip = f"\n\n{tip}\n"
+
+            library.warning(f"Failed to send message in `try_send`: {exception}{tip}")
             return None, exception
 
     def send_or_handle_error(self) -> Message | None:

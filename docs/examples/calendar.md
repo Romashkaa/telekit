@@ -1,7 +1,47 @@
+# Calandar Examples
+
+## Minimal Example
+
+This example demonstrates the simplest way to use the built-in CalendarPick trait. It allows a user to pick a date from an inline calendar and handles the result via a callback.
+
+```py
+class CalendarHandler(telekit.traits.CalendarPick, telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.command("calendar").invoke(cls.handle)
+
+    def handle(self) -> None:
+        self.chain.sender.set_title("📅 Choose a date")
+        self.chain.sender.set_message("Select any date — past or future:")
+        self.chain.sender.set_remove_text(False)
+
+        self.calendar_pick(self.handle_date) # HERE
+
+    def handle_date(self, date: datetime.date) -> None:
+        self.chain.sender.set_text(f"You picked: {date}")
+        self.chain.send()
+```
+
+<details>
+  <summary>Result</summary>
+  <table>
+    <tr>
+      <td><img src="../images/calendar.png" alt="Telekit Calendar Example" width="500"></td>
+    </tr>
+  </table>
+</details>
+
+## Event Distance Bot
+
+This example shows a more advanced use case: a bot that calculates how far a selected date is from today.
+
+Works for both past events ("it was X ago") and future events ("it will be in X"):
+
+```py
 import datetime
 
 import telekit
-
 
 # ---------------------------------------------------------------------------
 # Time-distance helpers
@@ -94,7 +134,7 @@ class CalendarHandler(
 ):
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.command("calendar").invoke(cls.handle)
+        cls.on.command("start").invoke(cls.handle)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -144,7 +184,7 @@ class CalendarHandler(
         self.chain.sender.set_message(
             _describe(date)
         )
-        # "« Change" reopens the calendar at the previously selected month
+        # « Change reopens the calendar at the previously selected month.
         self.chain.set_inline_keyboard(
             {
                 "« Change": self.entry_date,
@@ -153,3 +193,9 @@ class CalendarHandler(
             row_width=2,
         )
         self.chain.edit()
+
+
+TOKEN: str = telekit.utils.read_token(".env")
+
+telekit.Server(TOKEN).polling()
+```

@@ -20,7 +20,7 @@
 
 ### TrackHandoffOrigin
 
-`TrackHandoffOrigin` adds three members to any handler that inherits it:
+`TrackHandoffOrigin` adds four members to any handler that inherits it:
 
 | **Member**          | **Description**                                                                  |
 | ------------------- | -------------------------------------------------------------------------------- |

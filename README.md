@@ -41,7 +41,7 @@ Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/ma
 
 > See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
 
-Even in its beta stage, Telekit accelerates bot development, offering typed command parameters, text styling via `Bold()`, `Italic()`, built-in emoji game results for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
+Even in its beta stage, Telekit accelerates bot development, offering typed command parameters, text styling via `Bold()`, `Italic()`, a built-in declarative calendar picker, emoji game results for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
 
 **Key features:**  
 - Declarative bot logic with **chains** for effortless handling of complex conversations
@@ -289,40 +289,6 @@ $ timeout {
 telekit.Server(BOT_TOKEN).polling()
 ```
 
-### Traits
-
-Traits are reusable behavior modules you can mix into any handler.
-
-```py
-class CalendarHandler(telekit.traits.CalendarPick, telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        cls.on.command("calendar").invoke(cls.handle)
-
-    def handle(self) -> None:
-        self.chain.sender.set_title("📅 Choose a date")
-        self.chain.sender.set_message("Select any date — past or future:")
-        self.chain.sender.set_remove_text(False)
-
-        self.calendar_pick(self.handle_date) # HERE ;)
-
-    def handle_date(self, date: datetime.date) -> None:
-        self.chain.sender.set_text(f"You picked: {date}")
-        self.chain.send()
-```
-
-<details>
-  <summary>Result</summary>
-  <table>
-    <tr>
-      <td><img src="./docs/images/calendar.png" alt="Telekit Calendar Example" width="500"></td>
-    </tr>
-  </table>
-</details>
-
-Just inherit the trait — it wires itself in automatically.
-
 **Key features of the Telekit DSL:**
 
 - Scene-based architecture
@@ -347,6 +313,42 @@ Just inherit the trait — it wires itself in automatically.
 
 You can find a [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md) and [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) in the repository.
 
+### Traits
+
+Traits are reusable behavior modules you can mix into any handler.
+
+This example demonstrates the simplest way to use the built-in CalendarPick trait. It allows a user to pick a date from an inline calendar and handles the result via a callback.
+
+```py
+from telekit.traits import CalendarPick
+
+class CalendarHandler(CalendarPick, telekit.Handler):
+
+    @classmethod
+    def init_handler(cls) -> None:
+        cls.on.command("calendar").invoke(cls.handle)
+
+    def handle(self) -> None:
+        self.chain.sender.set_title("📅 Choose a date")
+        self.chain.sender.set_message("Select any date — past or future:")
+        self.chain.sender.set_remove_text(False)
+
+        self.calendar_pick(self.handle_date) # HERE
+
+    def handle_date(self, date: datetime.date) -> None:
+        self.chain.sender.set_text(f"You picked: {date}")
+        self.chain.send()
+```
+
+<details>
+  <summary>Result</summary>
+  <table>
+    <tr>
+      <td><img src="./docs/images/calendar.png" alt="Telekit Calendar Example" width="500"></td>
+    </tr>
+  </table>
+</details>
+
 ### Example Bot
 
 You can launch an example bot by **running the following code**:
@@ -367,7 +369,7 @@ It includes example commands, dialogs, keyboards, and style usage.
 - **Styles API** for rich text (`Bold`, `Italic`, `Links`) with **automatic escaping**.
 - Deep linking and **typed command parameters**.
 - **Built-in DSL** for menus, FAQs, and simple bots.
-- Reusable **Traits** for composable, plug-and-play handler behavior.
+- Reusable **Traits** for composable, plug-and-play behavior (for example, a built-in declarative calendar picker).
 - **Zero-code** [Obsidian Canvas](https://github.com/Romashkaa/telekit/blob/main/docs/examples/canvas_faq.md) mode.
 - Seamless integration with **pyTelegramBotAPI**.
 

@@ -105,7 +105,7 @@ class Server:
 
         :return:
         """
-        print("Telekit server has started polling...")
+        print("Telekit server has started polling...", end="\n\n")
         self._bot.infinity_polling(
             timeout = timeout,
             skip_pending = skip_pending,
@@ -120,7 +120,7 @@ class Server:
         """Standard `bot.polling(none_stop=True)` polling"""
         while True:
             server_logger.info("Telekit server is polling...")
-            print("Telekit server has started polling...")
+            print("Telekit server has started polling...", end="\n\n")
 
             try:
                 self._bot.polling(none_stop=True)
@@ -139,7 +139,7 @@ class Server:
         """Long `bot.polling(none_stop=True, timeout=timeout)` polling with custom timeout"""
         while True:
             server_logger.info("Telekit server is long polling...")
-            print(f"Telekit server started long polling with timeout={timeout}...")
+            print(f"Telekit server started long polling with timeout={timeout}...", end="\n\n")
             try:
                 self._bot.polling(none_stop=True, timeout=timeout)
             except Exception as exception:
