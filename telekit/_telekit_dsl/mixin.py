@@ -17,10 +17,9 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-import re
-import json
-from typing import NoReturn, Callable, Any, Literal
 import jinja2
+import re, json, copy
+from typing import NoReturn, Callable, Any, Literal
 
 import telekit
 from telekit.styles import Escape, Raw, Bold, Italic
@@ -186,7 +185,7 @@ class ScriptData:
             raise TypeError("'next_order' config should be a list of strings.")
         
         # timeout
-        timeout_time = config.get("timeout_time", 300) # 5min
+        timeout_time = config.get("timeout_time", 300) # 5 min
 
         return config, scenes, scene_order, next_order, timeout_time
 
@@ -856,3 +855,478 @@ class JinjaFilters:
 # ----------------------------------------------------
 #
 # See on GitHub: https://github.com/Romashkaa/telekit/blob/main/docs/documentation/dsl_analyzer_output.md
+
+RestrictedToken = Literal[
+    "handoff",
+    "redirect", 
+    "hook",
+    "jinja",
+    "timeout",
+    "config",
+    "vars",
+    "images",
+    "links",
+    "suggest",
+    "entry",
+    "next",
+    "back",
+]
+
+class InstanceDSLHandler(DSLHandler):
+    """
+    Instance-oriented variant of DSLHandler.
+
+    Each instance carries its own ``executable_model``, ``_script_data_factory``,
+    and ``_jinja_env``, so multiple instances can run completely independent
+    scripts at the same time.
+
+    Use the ``*_locally`` instance methods instead of the class-level ones:
+
+    .. code-block:: python
+
+        class MyHandler(InstanceDSLHandler):
+            @classmethod
+            def init_handler(cls) -> None:
+                cls.on.message().invoke(cls.handle)
+
+            def handle(self):
+                script = fetch_script_from_db(self.user.id)   # per-user DSL
+                self.analyze_string_locally(script)
+                self.start_script()
+
+    Security
+    --------
+    When accepting scripts from untrusted users, restrict dangerous features
+    via the ``RESTRICTED`` class attribute:
+
+    .. code-block:: python
+
+        class SafeDSL(InstanceDSLHandler):
+            RESTRICTED = ["handoff", "redirect", "hook", "jinja", "timeout", "config"]
+            DEFAULT_TIMEOUT = 120  # seconds
+
+    Available restriction tokens:
+
+    - ``"handoff"``   — disables ``handoff`` button type (cross-handler transitions).
+    - ``"redirect"``  — disables ``redirect`` button type (simulated user messages).
+    - ``"hook"``      — disables all ``on_enter``, ``on_enter_once``, ``on_exit``,
+                        ``on_timeout`` hooks.
+    - ``"jinja"``     — forces ``template`` engine to ``"vars"``; Jinja is never executed.
+    - ``"timeout"``   — ignores per-script ``timeout_time``; uses ``DEFAULT_TIMEOUT`` only.
+    - ``"config"``    — replaces the script config with the class-level ``DEFAULT_CONFIG``
+                        (``vars_*`` keys from the script are still applied on top).
+    - ``"vars"``      — disables ``vars_*`` config keys and ``{{variable}}`` substitution.
+    - ``"images"``    — strips ``image`` field from every scene (no photo attachments).
+    - ``"links"``     — disables ``link`` button type (external URLs).
+    - ``"suggest"``   — disables ``suggest`` button type (pre-filled entry suggestions).
+    - ``"entry"``     — disables entry handlers (free-text input routing).
+    - ``"next"``      — disables ``next`` magic scene navigation.
+    - ``"back"``      — disables ``back`` magic scene navigation.
+    """
+
+    # ------------------------------------------------------------------
+    # Security configuration (override in subclasses)
+    # ------------------------------------------------------------------
+
+    RESTRICTED: list[RestrictedToken] = []
+    """
+    List of feature tokens to disable for untrusted scripts.
+    See class docstring for the full list of available tokens.
+    """
+
+    DEFAULT_TIMEOUT: int = 300
+    """
+    Fallback timeout in seconds used when ``"timeout"`` is in :attr:`RESTRICTED`
+    or the script does not specify one.
+    Override at the class level to change the default:
+
+    .. code-block:: python
+
+        class SafeDSL(InstanceDSLHandler):
+            DEFAULT_TIMEOUT = 60
+    """
+
+    DEFAULT_CONFIG: dict = {}
+    """
+    Config dict used as the base when ``"config"`` is in :attr:`RESTRICTED`.
+    ``vars_*`` keys from the script are merged on top (unless ``"vars"`` is
+    also restricted).
+    Override at the class level to provide safe defaults.
+    """
+
+    # ------------------------------------------------------------------ #
+    # Disable class-level analyse methods                                #
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def analyze_file(cls, *_, **__) -> None:
+        """
+        .. deprecated::
+            Disabled on :class:`InstanceDSLHandler`.
+
+            Use the instance method :meth:`analyze_file_locally` instead:
+
+            .. code-block:: python
+
+                self.analyze_file_locally("script.scr")
+        """
+        raise AttributeError(
+            "analyze_file() is disabled on InstanceDSLHandler. "
+            "Use self.analyze_file_locally() instead."
+        )
+
+    @classmethod
+    def analyze_string(cls, *_, **__) -> None:
+        """
+        .. deprecated::
+            Disabled on :class:`InstanceDSLHandler`.
+
+            Use the instance method :meth:`analyze_string_locally` instead:
+
+            .. code-block:: python
+
+                self.analyze_string_locally(script_source)
+        """
+        raise AttributeError(
+            "analyze_string() is disabled on InstanceDSLHandler. "
+            "Use self.analyze_string_locally() instead."
+        )
+
+    @classmethod
+    def analyze_canvas(cls, *_, **__) -> None:
+        """
+        .. deprecated::
+            Disabled on :class:`InstanceDSLHandler`.
+
+            Use the instance method :meth:`analyze_canvas_locally` instead:
+
+            .. code-block:: python
+
+                self.analyze_canvas_locally("board.canvas")
+        """
+        raise AttributeError(
+            "analyze_canvas() is disabled on InstanceDSLHandler. "
+            "Use self.analyze_canvas_locally() instead."
+        )
+
+    @classmethod
+    def analyze_executable_model(cls, *_, **__) -> None:
+        """
+        .. deprecated::
+            Disabled on :class:`InstanceDSLHandler`.
+
+            Use the instance method :meth:`analyze_executable_model_locally` instead:
+
+            .. code-block:: python
+
+                self.analyze_executable_model_locally(model_dict)
+        """
+        raise AttributeError(
+            "analyze_executable_model() is disabled on InstanceDSLHandler. "
+            "Use self.analyze_executable_model_locally() instead."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Instance-level analyse methods                                     #
+    # ------------------------------------------------------------------ #
+
+    def analyze_file_locally(self, path: str, encoding: str = "utf-8") -> None:
+        """
+        Analyse a script file and store the result on **this instance**.
+
+        :param path: Path to the script file. Supports any extension.
+        :type path: str
+        :param encoding: File encoding (default ``utf-8``).
+        :type encoding: str
+        """
+        with open(path, "r", encoding=encoding) as f:
+            content = f.read()
+        self.analyze_string_locally(content)
+
+    def analyze_string_locally(self, script: str) -> None:
+        """
+        Analyse a DSL script from a string and store the result on **this instance**.
+
+        :param script: Telekit DSL source code.
+        :type script: str
+        """
+        self.executable_model = parser.analyze(script)
+        self._prepare_script_locally(self.executable_model)
+
+    def analyze_canvas_locally(self, file_path: str) -> None:
+        """
+        Analyse an Obsidian ``.canvas`` file and store the result on **this instance**.
+
+        :param file_path: Path to the ``.canvas`` file.
+        :type file_path: str
+        """
+        self.executable_model = parser.canvas_parser.parse(file_path)
+        self._prepare_script_locally(self.executable_model)
+
+    def analyze_executable_model_locally(self, executable_model: dict) -> None:
+        """
+        Load a pre-built executable model dict and store it on **this instance**.
+
+        :param executable_model: Telekit DSL executable model.
+        :type executable_model: dict
+        """
+        self.executable_model = executable_model
+        self._prepare_script_locally(self.executable_model)
+
+    # ------------------------------------------------------------------ #
+    # Instance-level Jinja env                                           #
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def get_jinja_env(cls):
+        raise AttributeError(
+            "get_jinja_env() is a class method and is disabled on InstanceDSLHandler. "
+            "Access self._jinja_env directly."
+        )
+
+    def set_jinja_env(self, env: jinja2.Environment | None = None) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
+        """
+        Set the Jinja Environment on **this instance** (not the class).
+
+        :param env: Custom environment, or ``None`` for a default one.
+        :type env: jinja2.Environment | None
+        """
+        if env is None:
+            self._jinja_env = jinja2.Environment(autoescape=False)
+        else:
+            self._jinja_env = env
+
+        self._jinja_env.filters["e_md"]   = JinjaFilters.escape_md
+        self._jinja_env.filters["e_html"] = JinjaFilters.escape_html
+
+    # ------------------------------------------------------------------ #
+    # Security helpers                                                   #
+    # ------------------------------------------------------------------ #
+
+    def _is_restricted(self, token: str) -> bool:
+        """
+        Return ``True`` if *token* is listed in :attr:`RESTRICTED`.
+
+        :param token: Feature token to check (e.g. ``"hook"``, ``"jinja"``).
+        :type token: str
+        :rtype: bool
+        """
+        return token in self.RESTRICTED
+
+    def _apply_restrictions(self, executable_model: dict) -> dict:
+        """
+        Return a sanitised copy of *executable_model* with restricted
+        features stripped out.
+
+        Mutations applied per active token:
+
+        - ``"config"``   — replaces ``config`` with :attr:`DEFAULT_CONFIG`;
+                           ``vars_*`` keys from the original are preserved
+                           unless ``"vars"`` is also active.
+        - ``"vars"``     — removes all ``vars_*`` keys from ``config``.
+        - ``"timeout"``  — forces ``timeout_time`` to :attr:`DEFAULT_TIMEOUT`.
+        - ``"images"``   — removes ``image`` key from every scene.
+        - ``"hook"``     — removes ``on_enter``, ``on_enter_once``, ``on_exit``,
+                           ``on_timeout`` from every scene.
+        - ``"entry"``    — removes ``entries`` and ``_default_entry_target``
+                           from every scene.
+        - ``"next"``     — removes ``_next`` from every scene.
+        - ``"back"``     — removes all ``"back"`` scene targets from buttons.
+        - ``"handoff"``  — removes buttons of type ``"handoff"``.
+        - ``"redirect"`` — removes buttons of type ``"redirect"``.
+        - ``"suggest"``  — removes buttons of type ``"suggest"``.
+        - ``"links"``    — removes buttons of type ``"link"``.
+        - ``"jinja"``    — resets ``template`` to ``"vars"`` in config and
+                           every scene.
+
+        :param executable_model: Raw model produced by the parser.
+        :type executable_model: dict
+        :return: Sanitised copy of the model.
+        :rtype: dict
+        """
+        model = copy.deepcopy(executable_model)
+
+        config: dict = model.get("config", {})
+        scenes: dict = model.get("scenes", {})
+
+        # ── config restriction ────────────────────────────────────────
+        if self._is_restricted("config"):
+            safe_config = dict(self.DEFAULT_CONFIG)
+            
+            safe_config["next_order"] = config["next_order"]
+
+            if not self._is_restricted("vars"):
+                # preserve vars_* from the original script
+                for k, v in config.items():
+                    if k.startswith("vars_"):
+                        safe_config[k] = v
+
+            config = safe_config
+            model["config"] = config
+
+        # ── vars restriction ──────────────────────────────────────────
+        if self._is_restricted("vars"):
+            for key in [k for k in config if k.startswith("vars_")]:
+                del config[key]
+            if "template" not in config:
+                pass  # leave template alone; _parse_variables will be a no-op
+            # scene-level template override handled below under "jinja"
+
+        # ── timeout restriction ───────────────────────────────────────
+        if self._is_restricted("timeout"):
+            config["timeout_time"] = self.DEFAULT_TIMEOUT
+        else:
+            # ensure a sane fallback even without restriction
+            config.setdefault("timeout_time", self.DEFAULT_TIMEOUT)
+
+        # ── jinja restriction ─────────────────────────────────────────
+        if self._is_restricted("jinja"):
+            if config.get("template") == "jinja":
+                config["template"] = "vars"
+
+        # ── per-scene restrictions ────────────────────────────────────
+        _hook_keys   = ("on_enter", "on_enter_once", "on_exit", "on_timeout")
+        _entry_keys  = ("entries", "_default_entry_target")
+        _button_type_blocks: list[str] = []
+
+        if self._is_restricted("handoff"):
+            _button_type_blocks.append("handoff")
+        if self._is_restricted("redirect"):
+            _button_type_blocks.append("redirect")
+        if self._is_restricted("suggest"):
+            _button_type_blocks.append("suggest")
+        if self._is_restricted("links"):
+            _button_type_blocks.append("link")
+
+        for scene in scenes.values():
+            # hooks
+            if self._is_restricted("hook"):
+                for hook_key in _hook_keys:
+                    scene.pop(hook_key, None)
+
+            # entry handlers
+            if self._is_restricted("entry"):
+                for entry_key in _entry_keys:
+                    scene.pop(entry_key, None)
+
+            # images
+            if self._is_restricted("images"):
+                scene.pop("image", None)
+
+            # _next (next magic scene)
+            if self._is_restricted("next"):
+                scene.pop("_next", None)
+
+            # jinja per-scene template
+            if self._is_restricted("jinja"):
+                if scene.get("template") == "jinja":
+                    scene["template"] = "vars"
+
+            # vars per-scene template (no variable substitution at all)
+            if self._is_restricted("vars"):
+                scene["template"] = "plain"
+
+            # buttons
+            buttons: dict = scene.get("buttons", {})
+            blocked_labels = []
+
+            for label, attrs in buttons.items():
+                btn_type = attrs.get("type")
+
+                # blocked button types
+                if btn_type in _button_type_blocks:
+                    blocked_labels.append(label)
+                    continue
+
+                # "back" magic scene
+                if self._is_restricted("back") and attrs.get("target") == "back":
+                    blocked_labels.append(label)
+                    continue
+
+                # "next" magic scene
+                if self._is_restricted("next") and attrs.get("target") == "next":
+                    blocked_labels.append(label)
+                    continue
+
+            for label in blocked_labels:
+                del buttons[label]
+
+        model["config"] = config
+        model["scenes"] = scenes
+        return model
+
+    # ------------------------------------------------------------------ #
+    # Override rendering hooks to respect restrictions at runtime        #
+    # ------------------------------------------------------------------ #
+
+    def _execute_on_enter_hooks(self, scene: dict, scene_name: str, template_engine: str):
+        if self._is_restricted("hook"):
+            return
+        super()._execute_on_enter_hooks(scene, scene_name, template_engine)
+
+    def _execute_on_exit_hooks(self, scene: dict, template_engine: str):
+        if self._is_restricted("hook"):
+            return
+        super()._execute_on_exit_hooks(scene, template_engine)
+
+    def _on_timeout(self):
+        if self._is_restricted("hook"):
+            return
+        super()._on_timeout()
+
+    def _parse_template(self, template_str: str, parse_mode=None, template_engine: str = "plain"):
+        if self._is_restricted("vars") and template_engine == "vars":
+            return template_str
+        if self._is_restricted("jinja") and template_engine == "jinja":
+            return template_str
+        return super()._parse_template(template_str, parse_mode, template_engine)
+
+    # ------------------------------------------------------------------ #
+    # Internal: instance-scoped _prepare_script                          #
+    # ------------------------------------------------------------------ #
+
+    def _prepare_script_locally(self, executable_model: dict) -> None:
+        """
+        Instance-scoped counterpart of :meth:`DSLHandler._prepare_script`.
+
+        Applies :meth:`_apply_restrictions` before building the factory,
+        then writes ``_script_data_factory`` and ``_jinja_env`` onto ``self``.
+
+        :param executable_model: Raw model from the parser.
+        :type executable_model: dict
+        """
+        if not executable_model:
+            raise ValueError(
+                "Script data is empty. "
+                "Call analyze_file_locally() or analyze_string_locally() first."
+            )
+
+        safe_model = self._apply_restrictions(executable_model)
+
+        self._script_data_factory = ScriptData._script_data_factory(safe_model)
+
+        if not hasattr(self, "_jinja_env"):
+            self.set_jinja_env()
+
+    # ------------------------------------------------------------------ #
+    # start_script — clearer error for the instance case                 #
+    # ------------------------------------------------------------------ #
+
+    def start_script(self, initial_scene: str = "main") -> None:
+        """
+        Start the script. Raises a descriptive error when the instance
+        has not been analysed yet.
+
+        :param initial_scene: Name of the scene to open first (default ``"main"``).
+        :type initial_scene: str
+        """
+        if not hasattr(self, "_script_data_factory"):
+            message = (
+                f"{type(self).__name__}.start_script(): script not analysed yet. "
+                "Call self.analyze_file_locally() or self.analyze_string_locally() first."
+            )
+            library.error(message)
+            self.chain.sender.send_error("DSLError", message)
+            return
+
+        super().start_script(initial_scene)

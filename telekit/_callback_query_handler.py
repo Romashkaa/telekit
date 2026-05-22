@@ -26,6 +26,9 @@ from telebot.types import (
     CallbackQuery
 )
 
+from .debug import Debug
+from ._logger import _library
+
 
 class CallbackQueryHandler:
 
@@ -44,9 +47,18 @@ class CallbackQueryHandler:
 
         @bot.callback_query_handler(func=lambda call: True)
         def handle(call: CallbackQuery) -> None:
+            if Debug.callback_query_tracing:
+                _library.info(
+                    "CallbackQuery("
+                    f"user_id={call.from_user.id}, "
+                    f"data={call.data!r},\n"
+                    f"message_text={call.message.text if call.message else None!r}"
+                    f") - {Debug.callback_query_tracing=}"
+                )
+
             if not call.data:
                 return
-            
+
             if call.data.startswith(cls.INLINE_BUTTON):
                 cls._handle_inline_button(call)
             elif call.data.startswith(cls.STATIC_BUTTON):
@@ -180,11 +192,11 @@ class CallbackQueryHandler:
     
     # (text: str, is_alert: bool)
 
-    _invalid_data_answer: tuple[str, bool] = ("Invalid Call Data (None)", True)
+    _invalid_data_answer: tuple[str, bool] = ("Invalid Call Data", True)
     _button_is_no_active_answer: tuple[str, bool] = ("Button is no longer active", True)
 
     @classmethod
-    def set_invalid_data_answer(cls, answer: str="Invalid Call Data (None)", is_alert: bool=True):
+    def set_invalid_data_answer(cls, answer: str="Invalid Call Data", is_alert: bool=True):
         """
         Sets the response message and type for cases when the received callback data is invalid or empty.
 

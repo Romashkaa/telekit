@@ -122,4 +122,8 @@ class LoggerWrapper:
 
 
 logger: LoggerWrapper = LoggerWrapper()
-__all__ = ["logger", "enable_user_logging", "enable_file_logging"]
+
+_library = logger.library
+_server = logger.server
+
+__all__ = ["logger", "enable_user_logging", "enable_file_logging", "_library", "_server"]

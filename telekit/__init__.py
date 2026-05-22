@@ -26,7 +26,7 @@ from ._snapvault import Vault
 from ._chapters import chapters
 from ._user import User
 from ._telekit_dsl.telekit_dsl import TelekitDSL
-from ._telekit_dsl.mixin import DSLHandler
+from ._telekit_dsl.mixin import DSLHandler, InstanceDSLHandler
 from ._logger import enable_file_logging
 
 from . import senders
@@ -38,6 +38,7 @@ from . import dices
 from . import utils
 from . import traits
 from . import debug
+from . import scheduler
 
 Styles = styles.Styles
 
@@ -52,6 +53,7 @@ __all__ = [
     "parameters",
     "inline_buttons",
     "dices",
+    "scheduler",
 
     "Styles",
     "User",
@@ -64,6 +66,7 @@ __all__ = [
 
     "TelekitDSL",
     "DSLHandler",
+    "InstanceDSLHandler",
 
     "Vault", 
     "enable_file_logging",

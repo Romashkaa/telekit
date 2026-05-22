@@ -1465,14 +1465,14 @@ class BaseSender:
         # At the end of the block, send() is called automatically.
         """
         class AutoSendContext:
-            def __init__(self, sender: BaseSender):
+            def __init__(self, sender):
                 self.sender = sender
 
             def __enter__(self):
                 return self.sender
 
             def __exit__(self, exc_type, exc_val, exc_tb):
-                self.sender.send()
+                self.sender.send_or_handle_error()
                 return False
 
         return AutoSendContext(self)

@@ -1,6 +1,7 @@
 class Debug:
     timeout_warnings: bool = False
     deletion_warnings: bool = False
+    callback_query_tracing: bool = False
 
     @classmethod
     def set_all(cls, value: bool) -> None:

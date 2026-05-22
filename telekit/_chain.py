@@ -30,7 +30,7 @@ from .debug import Debug
 from .styles import TextEntity
 
 # Chain modules
-from ._chain_base import library
+from ._chain_base import _library
 from ._chain_inline_keyboards_logic import ChainInlineKeyboardLogic
 from ._chain_entry_logic import ChainEntryLogic, TextDocument
 
@@ -156,7 +156,7 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
         self._previous_message = message
 
         if Debug.timeout_warnings and _handler and not _timeout:
-            library.warning(
+            _library.warning(
                 "Next-message handler is active, but no timeout was set for the chain. "
                 "This may cause the bot to wait indefinitely."
             )

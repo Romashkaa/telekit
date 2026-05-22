@@ -41,7 +41,7 @@ Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/ma
 
 > See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
 
-Even in its beta stage, Telekit accelerates bot development, offering typed command parameters, text styling via `Bold()`, `Italic()`, a built-in declarative calendar picker, emoji game results for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
+Even in its beta stage, Telekit accelerates bot development, offering typed **command parameters**, **text styling** via `Bold()`, `Italic()`, a built-in declarative **calendar picker**, emoji **game results** for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
 
 **Key features:**  
 - Declarative bot logic with **chains** for effortless handling of complex conversations

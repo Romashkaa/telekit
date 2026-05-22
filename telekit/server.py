@@ -44,12 +44,10 @@ class Server:
         self, 
         bot: telebot.TeleBot | str, 
         *, 
-        auto_restart: bool=True, 
-        debug: bool = False
+        auto_restart: bool=True
     ):
         
         self._auto_restart = auto_restart
-        _debug.Debug.set_all(debug)
 
         if isinstance(bot, str):
             bot = telebot.TeleBot(bot)
