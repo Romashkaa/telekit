@@ -26,10 +26,11 @@ remove_cache()
 def readme():
     with open('README.md', 'r') as f:
         return f.read()
-  
+    
 def changelog():
-    return f"[View changelog on GitHub](https://github.com/Romashkaa/telekit/blob/main/CHANGELOG.md)"
-
+    with open('CHANGELOG.md', 'r') as f:
+        return f.read()
+    
 def install_requires():
     with open('telekit/requirements.txt', 'r') as f:
         return f.read().split("\n")
