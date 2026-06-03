@@ -26,6 +26,8 @@ from .utils import format_file_size
 
 from ._user import User
 from .dices import *
+
+from ._inline_keyboard import InlineKeyboard
 from ._inline_buttons import (
     ButtonStyle,
     InlineButton, 
@@ -34,8 +36,21 @@ from ._inline_buttons import (
     CallbackButton, 
     AlertButton,
     NotificationButton,
-    InvokeButton
+    InvokeButton,
+    StaticButton,
 )
+from ._reply_keyboard import ReplyKeyboard
+from .reply_buttons import (
+    ReplyButton,
+    TextButton,
+    ContactButton,
+    LocationButton,
+    PollButton,
+    WebAppReplyButton,
+    RequestUserButton,
+    RequestChatButton,
+)
+
 
 from .styles import Styles, TextEntity, StaticTextEntity, EasyTextEntity
 
@@ -43,6 +58,10 @@ __all__ = [
     # Types and Dataclasses
     "TextDocument",
     "User",
+
+    # Keyboards
+    "InlineKeyboard",
+    "ReplyKeyboard",
 
     # Inline Buttons
     "InlineButton", 
@@ -54,8 +73,19 @@ __all__ = [
     "AlertButton",
     "NotificationButton",
     "InvokeButton",
+    "StaticButton",
 
     "ButtonStyle",
+
+    # Reply Keyboards
+    "ReplyButton",
+    "TextButton",
+    "ContactButton",
+    "LocationButton",
+    "PollButton",
+    "WebAppReplyButton",
+    "RequestUserButton",
+    "RequestChatButton",
 
     # Styles
     "Styles",

@@ -32,6 +32,8 @@ from ._inline_buttons import (
     AnswerButton,
     AlertButton,
     NotificationButton,
+
+    ButtonStyle
 )
 
 __all__ = [
@@ -49,4 +51,6 @@ __all__ = [
     "AnswerButton",
     "AlertButton",
     "NotificationButton",
+
+    "ButtonStyle",
 ]

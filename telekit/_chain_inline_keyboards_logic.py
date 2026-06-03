@@ -31,6 +31,8 @@ from telebot.types import (
 )
 
 from ._callback_query_handler import CallbackQueryHandler
+from ._inline_keyboard import InlineKeyboard
+from ._reply_keyboard import ReplyKeyboard
 from ._inline_buttons import InlineButton, CallbackButton
 from ._chain_base import ChainBase, _library
 
@@ -334,6 +336,73 @@ class ChainInlineKeyboardLogic(ChainBase):
         markup.keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
+
+    # 
+
+    def set_keyboard(self, keyboard: InlineKeyboard | ReplyKeyboard) -> None:
+        """
+        Sets a keyboard for the chain from an `InlineKeyboard` or `ReplyKeyboard` object.
+
+        Example::
+
+            from telekit.types import InlineKeyboard, ReplyKeyboard
+
+            # Inline keyboard
+            self.chain.set_keyboard(
+                InlineKeyboard()
+                    .add_callback("Click Me!", self.handle)
+                .row()
+                    .add_link("YouTube", "https://youtube.com")
+            )
+
+            # Reply keyboard
+            self.chain.set_keyboard(
+                ReplyKeyboard(one_time_keyboard=True)
+                    .add_text("Hello!")
+                    .add_text("Hi")
+                .row()
+                    .add_contact("📱 Share phone")
+            )
+        
+        :param keyboard: A constructed `InlineKeyboard` instance with buttons and rows.
+        :type keyboard: `InlineKeyboard`
+        """
+        # --- ReplyKeyboard ---
+        if isinstance(keyboard, ReplyKeyboard):
+            markup = keyboard._compile()
+            self.sender.set_reply_markup(markup)
+            self._handler.set_button_callbacks(None)
+            return
+        
+        # --- InlineKeyboard ---
+        button_callbacks: dict[str, Callable[[CallbackQuery], None]] = {}
+        markup = InlineKeyboardMarkup()
+
+        button_index = 0
+
+        for row in keyboard._compile():
+            compiled_row: list[InlineKeyboardButton] = []
+            for caption, inline_button in row:
+                if isinstance(inline_button, CallbackButton):
+                    invoker = inline_button.build_invoker(self._cancel_timeout_and_handlers)
+                    callback_data = CallbackQueryHandler.inline_button(f"{button_index}:{random.randint(1000, 9999)}")
+                    button_callbacks[callback_data] = invoker
+                    compiled_row.append(
+                        InlineKeyboardButton(
+                            text=caption,
+                            callback_data=callback_data,
+                            **invoker._kwargs # pyright: ignore[reportArgumentType]
+                        )
+                    )
+                else:
+                    compiled_row.append(inline_button._compile(caption))
+                button_index += 1
+            markup.keyboard.append(compiled_row)
+
+        self.sender.set_reply_markup(markup)
+        self._handler.set_button_callbacks(button_callbacks)
+
+    # Utils
 
     def _get_invoker_with_argument(self, callback: Callable, argument: Any, query_answer: tuple[str, bool] | None = None) -> Callable[[CallbackQuery], None]:
         def invoker(call: CallbackQuery) -> None:

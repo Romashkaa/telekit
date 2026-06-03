@@ -22,6 +22,8 @@ from ._trait import Trait
 from ._chain import Chain
 from ._callback_query_handler import CallbackQueryHandler
 from .server import Server, example
+from ._inline_keyboard import InlineKeyboard
+from ._reply_keyboard import ReplyKeyboard
 from ._snapvault import Vault
 from ._chapters import chapters
 from ._user import User
@@ -63,6 +65,9 @@ __all__ = [
     "Trait",
     "Handler", 
     "CallbackQueryHandler",
+
+    "InlineKeyboard",
+    "ReplyKeyboard",
 
     "TelekitDSL",
     "DSLHandler",

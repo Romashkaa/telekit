@@ -17,9 +17,10 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from typing import Callable, Any
+from typing import Callable
 
 from telebot.types import Message
+import telebot.types
 import telebot
 
 from ._logger import logger
@@ -41,7 +42,7 @@ class InputHandler:
         Initializes the bot instance for the class.
 
         Args:
-            bot (TeleBot): The Telegram bot instance to be used for sending messages.
+            bot (TeleBot): The Telegram bot instance.
         """
         cls.bot = bot
         

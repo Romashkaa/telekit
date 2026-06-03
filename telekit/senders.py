@@ -27,7 +27,8 @@ from telebot.types import (
     ReplyParameters, LinkPreviewOptions,
     InputMediaPhoto, InputFile, 
     InputMediaAudio, InputMediaDocument, 
-    InputMediaVideo, InputMediaAnimation
+    InputMediaVideo, InputMediaAnimation,
+    ReplyKeyboardMarkup
 )
 
 from telekit.debug import Debug
@@ -894,8 +895,15 @@ class BaseSender:
                 # silently delete and resend
                 self._delete_message(self.edit_message_id)
             except Exception as exception:
-                if "Bad Request: there is no text in the message to edit" not in str(exception):
-                    library.warning(f"Failed to edit message {self.edit_message_id}, sending new one instead. Exception: {exception}")
+                _SILENT_EDIT_ERRORS = (
+                    "Bad Request: there is no text in the message to edit",
+                    "Bad Request: message can't be edited",
+                )
+                if not any(hint in str(exception) for hint in _SILENT_EDIT_ERRORS):
+                    library.warning(
+                        f"Failed to edit message {self.edit_message_id}, "
+                        f"sending new one instead. Exception: {exception}"
+                    )
                 self._delete_message(self.edit_message_id)
         
         return self._send(), False
@@ -1020,6 +1028,9 @@ class BaseSender:
     def _edit(self) -> Message | None:
         if not self.edit_message_id:
             raise ValueError("edit_message_id is None: Unable to edit message without a valid message ID.")
+
+        if isinstance(self.reply_markup, ReplyKeyboardMarkup):
+            raise _FallbackToSend("ReplyKeyboardMarkup cannot be edited")
 
         if self.photo:
             message = self._edit_photo()
