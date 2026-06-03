@@ -195,7 +195,7 @@ class ScriptData:
 
 class DSLHandler(telekit.Handler):
     """
-    DSLHandler — Mixin for creating interactive pages, such as FAQs. 
+    DSLHandler — Trait for creating interactive pages, such as FAQs. 
     
     It allows you to describe the message layout, add images, and buttons for navigation between pages in a convenient, structured format that your bot can easily process.
 

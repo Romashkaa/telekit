@@ -128,6 +128,36 @@ self.chain.set_inline_keyboard({
 
 Useful for pagination, navigation, or menus.
 
+**Builder keyboard** — full control over layout via an `InlineKeyboard` object:
+
+```python
+self.chain.set_keyboard(
+    InlineKeyboard()
+        .add_alert("Click Me!", "Hello!")
+        .add_link("YouTube", "https://youtube.com")
+    .row()
+        .add_callback("« Back", self.go_back)
+        .add_callback("Next »", self.go_next)
+)
+```
+
+Prefer `InlineKeyboard` over `set_inline_keyboard` when you need precise layout control or conditional buttons via `when=` — avoiding scattered `if` checks in your code.
+
+### Reply Keyboards
+
+Replace the user's system keyboard with custom buttons using a `ReplyKeyboard` object:
+
+```python
+self.chain.set_keyboard(
+    ReplyKeyboard(one_time_keyboard=True)
+        .add_text("Hello!")
+        .add_text("Hi")
+    .row()
+        .add_contact("📱 Share phone")
+        .add_location("📍 Share location")
+)
+```
+
 ### Command Parameters
 
 Telekit can parse and validate command parameters for you.
@@ -252,7 +282,7 @@ If you prefer not to write dialog logic in Python, you can use the built-in DSL 
 ```py
 import telekit
 
-class QuizHandler(telekit.TelekitDSL.Mixin):
+class QuizHandler(telekit.DSLHandler):
     @classmethod
     def init_handler(cls) -> None:
         cls.analyze_string(script)
