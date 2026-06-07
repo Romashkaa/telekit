@@ -34,7 +34,7 @@ Used to listen for specific commands sent by the user. You can specify one or mo
 cls.on.command("start", "greet").invoke(cls.handle)
 ```
 
-[Learn more about "command" trigger: Parameters »](command_trigger_parameters.md)
+🌟 [Learn more about "command" trigger (with parameters) »](command_trigger_parameters.md)
 
 </details>
 
@@ -55,7 +55,7 @@ If you don’t pass any parameters, the trigger will respond to **any text messa
 cls.on.text().invoke(cls.handle) # accepts all text messages
 ```
 
-[Learn more about "text" trigger: Parameters »](text_trigger_parameters.md)
+🌟 [Learn more about "text" trigger (with parameters) »](text_trigger_parameters.md)
 
 </details>
 
@@ -90,7 +90,7 @@ cls.on.func(
 ).invoke(cls.handle)
 ```
 
-[Learn more about "func" trigger: Parameters »](func_trigger_parameters.md)
+🌟 [Learn more about "func" trigger (with parameters) »](func_trigger_parameters.md)
 </details>
 
 <details>
@@ -120,7 +120,7 @@ cls.on.message(regexp=r"^Hello|Hi there!$").invoke(cls.handle)
 ## Filters
 
 <details>
-<summary>Whitelist Filter</summary>
+<summary>`whitelist=` Filter</summary>
 Used to restrict who the trigger responds to:
 
 ```py
@@ -129,7 +129,7 @@ cls.on.command("admin", whitelist=[123456789]).invoke(cls.handle)
 </details>
 
 <details>
-<summary>Chat Types Filter</summary>
+<summary>`chat_types=` Filter</summary>
 Used to restrict which chats the trigger responds to:
 
 ```py

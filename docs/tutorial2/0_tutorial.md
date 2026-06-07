@@ -15,16 +15,19 @@ This guide will help you quickly get familiar with the library and understand it
         - [Command Parameters & Deep Linking](./command_trigger_parameters.md)
         - [Text Templates](./text_trigger_parameters.md)
         - [Func Parameters](./func_trigger_parameters.md)
-    - [Senders](5_senders.md)
-    - [Styles](6_styles.md)
-    - [Inline Keyboards](7_inline_keyboards.md)
-    - [Entries](8_entries.md)
-    - Timeouts
+    - [Sender](5_senders.md)
+        - [Styles](6_styles.md)
     - Chain
-    - Traits
-- Handle Parameters:
-    - [Command Parameters: Deep Linking](command_trigger_parameters.md)
-    - [Text Parameters: Templates](text_trigger_parameters.md)
+        - [Inline Keyboards](7_inline_keyboards.md)
+            - Inline Keyboard `chain.set_inline_keyboard()`
+            - Inline Buttons
+            - Inline Keyboard Builder `chain.set_keyboard()`
+            - Inline Choice Keyboard `chain.set_inline_choice()`
+        - [Entries](8_entries.md)
+        - [Timeouts](./9_timeouts.md)
+    - [Traits](./10_traits.md)
+        - [Creating Traits](./10_2_creating_traits.md)
+    - 
 - Building Bots with Telekit DSL:
     - [Introduction](../tutorial/11_telekit_dsl.md)
     - [Learn Syntax](../tutorial/13_telekit_dsl_syntax.md)

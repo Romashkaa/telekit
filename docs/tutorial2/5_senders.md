@@ -1,6 +1,6 @@
-# Senders
+# Sender
 
-Senders in Telekit provide a high-level interface for sending and managing messages in Telegram bots. They wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, adding photos and effects.
+Sender in Telekit provide a high-level interface for sending and managing messages in Telegram bots. It wrap the standard TeleBot API, adding convenience features such as temporary messages, automatic editing, error handling, formatting, adding photos and effects.
 
 ```python
 import telekit
@@ -9,7 +9,7 @@ class EchoHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.text().invoke(cls.echo) # accepts all text messages
+        cls.on.text().invoke(cls.echo) # `on.text()` accepts all text messages
 
     def echo(self) -> None:
         self.chain.sender.set_text(f"{self.message.text}!")
@@ -651,4 +651,5 @@ with self.chain.sender.then_send() as sender:
 
 </details>
 
-[Next: Styles »](6_styles.md)
+- [How to use Sender independently?](./_sender_by_itself.md)
+- [Next: Styles »](6_styles.md)

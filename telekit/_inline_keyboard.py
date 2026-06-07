@@ -12,7 +12,7 @@ class InlineKeyboard:
         self._current: list[tuple[str, InlineButton]] = []
         self._column_mode: bool = False
 
-    def row(self, *, when: bool = True):
+    def row(self, *, when: bool | int = True):
         """
         Finalizes the current row and starts a new one.
 
@@ -64,7 +64,7 @@ class InlineKeyboard:
         self.row()
         return self._rows
     
-    def add(self, text: str, inline_button: InlineButton | None = None, *, when: bool = True):
+    def add(self, text: str, inline_button: InlineButton | None = None, *, when: bool | int = True):
         """
         Adds a button to the current row.
 
@@ -95,7 +95,7 @@ class InlineKeyboard:
         answer_text: str | None = None,
         answer_as_alert: bool = True,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True
+        when: bool | int = True
     ):
         """
         Adds a button that triggers a callback function when pressed.
@@ -149,7 +149,7 @@ class InlineKeyboard:
         url: str,
         *,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -185,7 +185,7 @@ class InlineKeyboard:
         url: str,
         *,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -222,7 +222,7 @@ class InlineKeyboard:
         *,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
         strict: bool = True,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -262,7 +262,7 @@ class InlineKeyboard:
         *,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
         strict: bool = True,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -300,7 +300,7 @@ class InlineKeyboard:
         text: str,
         *,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -334,7 +334,7 @@ class InlineKeyboard:
         *,
         persistent: bool = True,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -374,7 +374,7 @@ class InlineKeyboard:
         *,
         persistent: bool = True,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -418,7 +418,7 @@ class InlineKeyboard:
         answer_text: str | None = None,
         answer_as_alert: bool = True,
         style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
-        when: bool = True,
+        when: bool | int = True,
         **kwargs
     ):
         """
@@ -477,7 +477,7 @@ class InlineKeyboard:
         buttons: dict[str, InlineButton | None] | list[str],
         *,
         column: bool = False,
-        when: bool = True,
+        when: bool | int = True,
     ) -> "InlineKeyboard":
         """
         Adds multiple buttons at once from a dict or list.
@@ -516,7 +516,7 @@ class InlineKeyboard:
         self._column_mode = _saved_mode
         return self
     
-    def extend_rows(self, *rows: list[tuple[str, InlineButton]], when: bool = True,) -> "InlineKeyboard":
+    def extend_rows(self, *rows: list[tuple[str, InlineButton]], when: bool | int = True,) -> "InlineKeyboard":
         """
         Adds one or more fully-defined rows to the keyboard.
 

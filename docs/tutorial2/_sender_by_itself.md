@@ -1,4 +1,3 @@
-
 ## Sending & Error Handling
 
 <details>

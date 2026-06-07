@@ -14,24 +14,13 @@ Counter with "+" and "-" buttons.
 
 ```python
 import telekit
-from telekit.types import ButtonStyle, CallbackButton
+from telekit.types import InlineKeyboard, ButtonStyle
 
 class CounterHandler(telekit.Handler):
 
-    # ------------------------------------------
-    # Initialization
-    # ------------------------------------------
-
     @classmethod
     def init_handler(cls) -> None:
-        """
-        Initializes the message handler for the '/start' command.
-        """
         cls.on.command("start").invoke(cls.handle)
-
-    # ------------------------------------------
-    # Handling Logic
-    # ------------------------------------------
 
     def handle(self) -> None:
         self.chain.sender.set_remove_attachments(False)
@@ -44,15 +33,16 @@ class CounterHandler(telekit.Handler):
 
         self.click_count = 0
 
-        self.chain.set_inline_keyboard(
-            {
-                "⊖": CallbackButton(self.update_count, [-1], style=ButtonStyle.DANGER),
-                "⊕": CallbackButton(self.update_count, [1], style=ButtonStyle.SUCCESS),
-            }, row_width=2
-        )
-            
         self.chain.set_remove_inline_keyboard(False)
-        self.chain.disable_timeout_warnings()
+        
+        self.chain.set_keyboard(
+            InlineKeyboard()
+                .add_callback("⊖", self.update_count, [-1], style=ButtonStyle.DANGER)
+                .add_callback("⊕", self.update_count, [1], style=ButtonStyle.SUCCESS)
+            .row()
+                .add_callback("↺ Reset", self.handle)
+        )
+
         self.chain.edit()
 
     def update_count(self, value: int):
