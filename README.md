@@ -205,7 +205,7 @@ class GreetHandler(telekit.Handler):
 
 Now `/greet 64 "Alice Reingold"` or `/greet 128 Dracula` are parsed automatically.
 
-> [!INFO]
+> [!NOTE]
 > If arguments are invalid or missing, you simply receive `None` and decide how to respond.
 
 ### Dialogue
@@ -261,7 +261,7 @@ self.chain.sender.send_chat_action(ChatAction.TYPING) # Send chat action. Use en
 ```
 
 > [!NOTE]
-> Telekit automatically decides whether to use 'bot.send_message' or 'bot.send_photo' based on the content
+> Telekit automatically decides whether to use `bot.send_message` or `bot.send_photo` based on the content
 
 ### Styles
 
