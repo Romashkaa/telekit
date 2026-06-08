@@ -188,10 +188,10 @@ def display_page(self, description: str) -> None:
 
 `choices` accepts a `dict[str, T]` or any `Iterable[T]`.
 
+</details>
+
 > [!TIP]
 > See full [example](../examples/logging.md).
-
-</details>
 
 > [!CAUTION]
 > Values remain in memory until the user clicks or navigates away. See [Timeouts](9_timeouts.md).

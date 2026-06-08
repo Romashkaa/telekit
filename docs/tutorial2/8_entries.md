@@ -222,4 +222,4 @@ telekit.Server(BOT_TOKEN).polling()
 
 </details>
 
-[Next: ]
+[Next: Timeouts »](./9_timeouts.md)
