@@ -39,7 +39,7 @@ Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/ma
 }
 ```
 
-> See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/quiz.md)
+> See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md)
 
 Even in its beta stage, Telekit accelerates bot development, offering typed **command parameters**, **text styling** via `Bold()`, `Italic()`, a built-in declarative **calendar picker**, emoji **game results** for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
 
@@ -97,55 +97,78 @@ The `handle` method sends a message and registers `handle_name` as the next step
 
 ### Inline Keyboards
 
-Buttons can either **return a value** or **call a method directly**.
+The fastest way to add buttons to a message. Pass a plain `dict` where each key is the button label and each value is the callback to invoke when pressed:
 
-**Choice keyboard** — map button labels to values. The selected value is passed straight into your handler:
-
-```py
-self.chain.set_inline_choice(
-    self.on_choice,
-    choices={
-        "Option 1": "Value 1",
-        "Option 2": "Value 2",
-        "Option 3": [3, "Yes, it's an array"],
+```python
+self.chain.set_inline_keyboard(
+    {
+        "✏️ Change": self.change_name,
+        "❌ Delete": self.delete,
     }
 )
-
-def on_choice(self, choice: str | list):
-    print(f"{choice!r}") # "Value 1", "Value 2" or [3, "Yes, it's an array"]
 ```
 
-Inside `on_choice`, you receive exactly what you defined in `choices`: a string, list, number, function — anything.
+`row_width` controls how many buttons appear per row:
 
-**Callback keyboard** — each button calls its own method:
-
-```py
-self.chain.set_inline_keyboard({
-    "« Back": self.display_previous_page,
-    "Next »": self.display_next_page,
-})
+```python
+self.chain.set_inline_keyboard(
+    {
+        "One":   self.one,
+        "Two":   self.two,
+        "Three": self.three,
+        "Four":  self.four,
+        "Five":  self.five,
+    },
+    row_width=(3, 2)  # first row: 3 buttons, second row: 2
+)
 ```
 
-Useful for pagination, navigation, or menus.
+```
+╭──────────┬──────────┬──────────╮
+│   One    │   Two    │  Three   │
+├──────────┴──┬───────┴──────────┤
+│    Four     │       Five       │
+╰─────────────┴──────────────────╯
+```
 
-**Builder keyboard** — full control over layout via an `InlineKeyboard` object:
+When you need precise row layout or conditional buttons, use `InlineKeyboard` — a fluent builder that composes keyboards step by step.
 
 ```python
 self.chain.set_keyboard(
     InlineKeyboard()
-        .add_alert("Click Me!", "Hello!")
-        .add_link("YouTube", "https://youtube.com")
+        .add_callback("-", self.decrement, style="danger")
+        .add_callback("+", self.increment, style="success")
     .row()
-        .add_callback("« Back", self.go_back)
-        .add_callback("Next »", self.go_next)
+        .add_callback("↺ Reset", self.reset)
 )
 ```
 
-Prefer `InlineKeyboard` over `set_inline_keyboard` when you need precise layout control or conditional buttons via `when=` — avoiding scattered `if` checks in your code.
+```
+╭──────────┬──────────╮
+│    -     │    +     │
+├──────────┴──────────┤
+│       ↺ Reset       │
+╰─────────────────────╯
+```
+
+`InlineKeyboard` is built by chaining method calls. Just call `.row()` to start a new row.
+
+**Not just callback buttons**
+
+| **Method**            | **Description**                                                  |
+| --------------------- | ---------------------------------------------------------------- |
+| `add_callback(...)`   | Button that fires a callback function.                           |
+| `add_link(...)`       | Button that opens a URL.                                         |
+| `add_copy(...)`       | Button that copies text to the clipboard.                        |
+| `add_alert(...)`      | Button that shows a popup alert dialog.                          |
+| `add_notification(...)` | Button that shows a brief top-of-chat notification.            |
+| `add_static(...)`     | Decorative button with no action.                                |
+| `add_webapp(...)`     | Button that opens a Telegram Mini App.                           |
+| `add_suggest(...)`    | Button that simulates the user sending a message.                |
 
 ### Reply Keyboards
 
-Replace the user's system keyboard with custom buttons using a `ReplyKeyboard` object:
+Unlike inline keyboards, reply keyboards replace the user's system keyboard with buttons shown at the bottom of the chat. Tapping a button either sends its text as a regular message or triggers a system action, such as sharing a phone number or location.
 
 ```python
 self.chain.set_keyboard(
