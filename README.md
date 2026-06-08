@@ -357,7 +357,7 @@ telekit.Server(BOT_TOKEN).polling()
 - Jinja template engine
 
 <details>
-  <summary>Click to see what you can do with the DSL</summary>
+  <summary>🎆 Click to see what you can do with the DSL</summary>
   <table>
     <tr>
       <td><img src="./docs/images/telekit_example_7.jpg" alt="Telekit Example 7" width="300"></td>
@@ -370,7 +370,8 @@ telekit.Server(BOT_TOKEN).polling()
   </table>
 </details>
 
-You can find a [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md) and [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) in the repository.
+> [!TIP]
+> You can find a [full quiz example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md) and [DSL reference](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) in the repository.
 
 ### Traits
 
