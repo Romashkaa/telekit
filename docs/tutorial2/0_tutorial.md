@@ -11,25 +11,32 @@ This guide will help you quickly get familiar with the library and understand it
 - Getting started:
     - [Getting started](1_getting_started.md)
     - [Basic handler](2_basic_handler.md)
-    - [Triggers](3_triggers.md)
-        - [Command Parameters & Deep Linking](./command_trigger_parameters.md)
-        - [Text Templates](./text_trigger_parameters.md)
-        - [Func Parameters](./func_trigger_parameters.md)
-    - [Sender](5_senders.md)
-        - [Styles](6_styles.md)
-    - Chain
-        - [Inline Keyboard](7_inline_keyboards.md)
-            - [Inline Button Types](./7_2_inline_buttons.md)
-        - [Reply Keyboard](./7_3_reply_keyboard.md)
-            - [Reply Button Types](./7_4_reply_buttons.md)
-        - [Entries](8_entries.md)
-        - [Timeouts](./9_timeouts.md)
+- [Triggers](3_triggers.md)
+    - [Command Parameters & Deep Linking](./command_trigger_parameters.md)
+    - [Text Templates](./text_trigger_parameters.md)
+    - [Func Parameters](./func_trigger_parameters.md)
+- [Sender](5_senders.md)
+    - [Styles](6_styles.md)
+- Chain
+    - [Inline Keyboard](7_inline_keyboards.md)
+        - [Inline Button Types](./7_2_inline_buttons.md)
+    - [Reply Keyboard](./7_3_reply_keyboard.md)
+        - [Reply Button Types](./7_4_reply_buttons.md)
+    - [Entries](8_entries.md)
+    - [Timeouts](./9_timeouts.md)
+    - Chain Summary
+- Handler
     - [Handoff](./11_handoff.md)
     - [Traits](./10_traits.md)
         - [Creating Traits](./10_2_creating_traits.md)
-    - 
-- Building Bots with Telekit DSL:
+    - Handler Summary
+- Scheduler
+- Utils
+    - Environment Utils
+    - Inline Keyboard Utils
+- Debugging
+- Telekit DSL:
     - [Introduction](../tutorial/11_telekit_dsl.md)
     - [Learn Syntax](../tutorial/13_telekit_dsl_syntax.md)
-    - [DSL Examples](../examples/examples.md#telekit-dsl)
-- [Examples](../examples/examples.md)
+
+[Examples](../examples/examples.md) [Changelog](../../CHANGELOG.md)
