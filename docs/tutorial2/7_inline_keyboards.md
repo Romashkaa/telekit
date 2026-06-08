@@ -1,161 +1,197 @@
 # Inline Keyboards
 
-In Telekit, inline keyboards enable interactive buttons directly within messages: 
+Inline keyboards let you attach interactive buttons directly to bot messages.
+Depending on how much control you need, Telekit offers two approaches — a quick dict-based shorthand and a fluent builder with full layout control.
+
+## Simple Inline Keyboards
+
+The fastest way to add buttons to a message. Pass a plain `dict` where each key is the button label and each value is the callback to invoke when pressed.
+
+<details>
+<summary><code>chain.set_inline_keyboard()</code></summary>
 
 ```python
-import telekit
-
-class NameHandler(telekit.Handler):
-
-    @classmethod
-    def init_handler(cls) -> None:
-        cls.on.text("My name is {name}").invoke(cls.display_name)
-
-    def display_name(self, name: str) -> None:
-        self.chain.sender.set_title(f"Hello {name}!")
-        self.chain.sender.set_message("Your name has been set. You can change it below if you want")
-        self.chain.set_inline_keyboard(
-            {
-                "✏️ Change": self.change_name
-            }
-        )
-        self.chain.send()
-
-    def change_name(self):
-        self.chain.sender.set_title("⌨️ Enter your new name")
-        self.chain.sender.set_message("Oops, this feature will be available in the next section...")
-        self.chain.edit()
-
-telekit.Server(BOT_TOKEN).polling()
-```
-
-Explanation:  
-- The bot reacts to messages like `"My name is {name}"`.  
-- It greets the user using the received name.  
-- `self.chain.set_inline_keyboard` adds a "✏️ Change" button, which calls the `change_name` method when pressed.  
-- In the `change_name` method, we update the message title and message body.  
-- Using `self.chain.edit()`, we edit the previous bot message.  
-- Next, we would allow the user to input text, but that will be covered in the following section.
-
-There are two primary types of inline keyboards in Telekit:
-
-1. **Label-Callback** Setter
-2. **Label-Value** Decorator
-
-## Label-Callback Keyboard
-
-This type attaches buttons to a message, each linked to its own specific callback function.
-
-Supported callback types:  
-- `Callable[[], Any]` – a function or method without parameters.
-
-To add a Label-Callback keyboard, call `chain.set_inline_keyboard()` with a dictionary `{Label: Callback}`, optionally specifying `row_width`:
-
-```py
-from telekit.types import LinkButton, CopyTextButton
-
 self.chain.set_inline_keyboard(
-    {   
-        # When the user clicks this button, `change_name()` will be executed
-        "Change": change_name,
-        # When the user clicks this button, this lambda function will run
-        "Okay": lambda: print("User: Okay!"),
-        # When the user clicks this button, this method will be executed
-        "Reload": self.reload,
-        # Can even be a link (`str` or `LinkButton` object)
-        "GitHub": LinkButton("https://github.com/Romashkaa/telekit"),
-        # Or copy button
-        "Copy Btn": CopyTextButton("Text to copy"),
-        "Extended Callback Button": CallbackButton(
-            self.my_callback,               # Handler method to call on press
-            pass_args=["arg to pass"],      # Arguments forwarded to the callback
-            style=ButtonStyle.PRIMARY,      # Visual style of the button
-        )
-    }, row_width=(3, 2, 1)
+    {
+        "✏️ Change": self.change_name,
+        "❌ Delete": self.delete,
+    }
 )
 ```
-- Result
-```
-╭────────────┬──────────┬──────────╮
-│   Change   │   Okay   │  Reload  │
-├────────────┴────┬─────┴──────────┤
-│      GitHub     │    Copy Btn    │
-├─────────────────┴────────────────┤
-│     Extended Callback Button     │
-╰──────────────────────────────────╯
-```
 
-Explanation:  
-- **Key** – text displayed on the button.  
-- **Value** – callback executed when the button is pressed.  
-- **row_width** – maximum number of buttons per row.
-
-> [!CAUTION] 
-> Callback functions remain in memory until the user clicks a button or navigates away. To forcibly terminate waiting, see [Timeouts](9_timeouts.md).
-
-## Label-Value Keyboard
-
-This type also attaches buttons to a message but uses a single shared callback for all buttons. Each button passes a unique (or non-unique) **value** to this callback.
-
-The callback can accept any type.
-
-To use the `inline_keyboard` decorator, provide a dictionary `{Label: Value}` and optionally `row_width`:
+`row_width` controls how many buttons appear per row:
 
 ```python
-@self.chain.inline_keyboard({
-    "Red": (255, 0, 0),
-    "Green": (0, 255, 0),
-    "Blue": (0, 0, 255),
-}, row_width=3)
-def _(value: tuple[int, int, int]) -> None:
-    r, g, b = value
-    self.chain.set_text(f"You selected RGB color: ({r}, {g}, {b})")
-    self.chain.edit()
+self.chain.set_inline_keyboard(
+    {
+        "One":   self.one,
+        "Two":   self.two,
+        "Three": self.three,
+        "Four":  self.four,
+        "Five":  self.five,
+    },
+    row_width=(3, 2)  # first row: 3 buttons, second row: 2
+)
 ```
 
-Explanation:  
-- **Key** – text displayed on the button.  
-- **Value** – data passed to the callback when the button is clicked.  
-- **row_width** – maximum number of buttons per row.
+```
+╭──────────┬──────────┬──────────╮
+│   One    │   Two    │  Three   │
+├──────────┴──┬───────┴──────────┤
+│    Four     │       Five       │
+╰─────────────┴──────────────────╯
+```
 
-> [!CAUTION] 
-> Values remain stored in memory until the user clicks a button or switches commands. To forcibly end waiting, see [Timeouts](10_timeouts.md).
+**Value types accepted:**
 
-## Other Keyboards
+| **Value type**       | **Effect**                                 |
+| -------------------- | ------------------------------------------ |
+| `Callable`           | Called when the button is pressed.         |
+| `str` / `LinkButton` | Opens the URL in a browser.                |
+| `InlineButton`       | Subclasses of this allow assigning any available button behaviour — covered in the [next page](./7_2_inline_buttons.md). |
 
-While `(set_)inline_keyboard` focuses on **mapping actions** (calling different functions or passing static data), the `(set_)inline_choice` methods are specialized for **selecting from a set of options**.
+</details>
 
-- `set_inline_choice` – A method that takes an existing function and a collection of options. Ideal when your processing logic is already defined elsewhere – this is the most "Telekit-style" way to build selection menus.
-- `inline_choice` – A decorator that turns the following function into a handler for the selected value. 
+> [!CAUTION]
+> Callbacks remain in memory until the user clicks a button or navigates away. To avoid indefinite waiting, see [Timeouts](9_timeouts.md).
 
-```py
+## Builder Approach
+
+When you need precise row layout or conditional buttons, use `InlineKeyboard` — a fluent builder that composes keyboards step by step.
+It is more explicit, more readable, and handles complex layouts without counting `row_width` manually.
+
+<details>
+<summary><code>InlineKeyboard</code> class</summary>
+
+```python
+from telekit.types import InlineKeyboard
+```
+
+`InlineKeyboard` is built by chaining method calls. Call `.row()` to start a new row:
+
+```python
+InlineKeyboard()
+    .add_callback("-", self.decrement, style="danger")
+    .add_callback("+", self.increment, style="success")
+.row()
+    .add_callback("↺ Reset", self.reset)
+```
+
+```
+╭──────────┬──────────╮
+│    -     │    +     │
+├──────────┴──────────┤
+│       ↺ Reset       │
+╰─────────────────────╯
+```
+
+**Layout helpers**
+
+| **Method**       | **Description**                                              |
+| ---------------- | ------------------------------------------------------------ |
+| `row()`          | Finalize the current row and start a new one.                |
+| `column_start()` | Every subsequent button gets its own row (column mode).      |
+| `column_end()`   | Exit column mode and flush the current row.                  |
+
+**Button methods**
+
+| **Method**            | **Description**                                                  |
+| --------------------- | ---------------------------------------------------------------- |
+| `add_callback(...)`   | Button that fires a callback function.                           |
+| `add_link(...)`       | Button that opens a URL.                                         |
+| `add_copy(...)`       | Button that copies text to the clipboard.                        |
+| `add_alert(...)`      | Button that shows a popup alert dialog.                          |
+| `add_notification(...)` | Button that shows a brief top-of-chat notification.            |
+| `add_static(...)`     | Decorative button with no action.                                |
+| `add_webapp(...)`     | Button that opens a Telegram Mini App.                           |
+| `add_suggest(...)`    | Button that simulates the user sending a message.                |
+| `add_invoke(...)`     | Button that calls a named method on an arbitrary object.         |
+| `add(...)`            | Attach any raw `InlineButton` instance.                          |
+| `extend(...)`         | Add multiple buttons from a `dict` or `list`.                    |
+| `extend_rows(...)`    | Append one or more pre-built rows.                               |
+
+All button methods accept a `style` parameter: `"danger"` (red), `"success"` (green), or `"primary"` (blue).
+
+The `when=` parameter on any method conditionally includes the button:
+
+```python
+InlineKeyboard()
+    .add_callback("Edit", self.edit, when=self.user_is_admin)
+    .add_callback("View", self.view)
+```
+
+</details>
+
+<details>
+<summary><code>chain.set_keyboard()</code> method</summary>
+
+`set_keyboard()` is the universal method for attaching any keyboard to the current message. Pass it an `InlineKeyboard` instance:
+
+```python
+self.chain.set_keyboard(
+    InlineKeyboard()
+        .add_callback("-", self.decrement, style="danger")
+        .add_callback("+", self.increment, style="success")
+    .row()
+        .add_callback("↺ Reset", self.reset)
+)
+self.chain.edit()
+```
+</details>
+
+> [!NOTE]
+> `set_keyboard()` also accepts `ReplyKeyboard` — but reply keyboards are covered in a later section.
+
+
+## Choice Keyboards
+
+When every button leads to the same callback but with a different value — a product list, a color picker, a language selector — the choice API removes the boilerplate of wiring each button individually.
+
+<details>
+<summary><code>chain.set_inline_choice()</code> method</summary>
+
+Pass a callback and a `dict` of `{Label: Value}`. When the user taps a button, the value is passed directly to the callback:
+
+```python
 pages = {
     "💻 MacBook Pro": "Specs: M3 Chip, 16GB RAM, 512GB SSD. Price: $1999.",
-    "📱 iPhone 17": "Features: 48MP Camera. Price: $799.",
-    "🎧 AirPods Max": "High-fidelity audio with Active Noise Cancellation. Price: $549."
+    "📱 iPhone 17":   "Features: 48MP Camera. Price: $799.",
+    "🎧 AirPods Max": "High-fidelity audio with ANC. Price: $549.",
 }
+
 self.chain.set_inline_choice(self.display_page, pages)
 ```
 
+```python
+def display_page(self, description: str) -> None:
+    self.chain.sender.set_message(description)
+    self.chain.edit()
+```
+
+`choices` accepts a `dict[str, T]` or any `Iterable[T]`.
+
 > [!TIP]
-> See full [example](../examples/logging.md)
+> See full [example](../examples/logging.md).
 
-## Row Width
+</details>
 
-`row_width` controls the number of buttons displayed per row in inline keyboards.
+> [!CAUTION]
+> Values remain in memory until the user clicks or navigates away. See [Timeouts](9_timeouts.md).
 
-**Value types**:
-- `int` - all rows will have the same number of buttons.
-- `Iterable[int]` - allows specifying different numbers of buttons per row.
-    - Each number in the iterable defines the number of buttons in the corresponding row.
-    - If the total number of buttons exceeds the sum of the iterable, the remaining buttons are placed in additional rows using the last number in the iterable as the row width.
+## Suggested Replies
 
-## Suggested Inline Options
-
-You can provide suggested replies for the user to click instead of typing. This is useful for predefined input options.
+You can provide suggested replies for the user to tap instead of typing. Useful for guiding input with predefined options:
 
 ```python
-self.chain.set_entry_suggestions(["Suggestion 1", "Suggestion 2"])
+self.chain.set_entry_suggestions(["Option A", "Option B", "Option C"])
 ```
+
+## Want to go deeper?
+
+- Inline Buttons
+    - [Inline Button Types](./7_2_inline_buttons.md)
+- Reply Keyboard
+    - [Reply Keyboard](./7_3_reply_keyboard.md)
+    - [Reply Keyboard Buttons](./7_4_reply_buttons.md)
 
 [Next: Entries »](8_entries.md)
