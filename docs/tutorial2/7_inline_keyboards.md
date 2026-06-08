@@ -9,7 +9,8 @@ The fastest way to add buttons to a message. Pass a plain `dict` where each key 
 
 <details>
 <summary><code>chain.set_inline_keyboard()</code> <b>method</b></summary>
----
+
+### `chain.set_inline_keyboard()` method
 
 ```python
 self.chain.set_inline_keyboard(
@@ -53,7 +54,6 @@ self.chain.set_inline_keyboard(
 
 [See example...](../examples/risk_game.md)
 
----
 </details>
 
 > [!CAUTION]
@@ -66,6 +66,8 @@ It is more explicit, more readable, and handles complex layouts without counting
 
 <details>
 <summary><code>InlineKeyboard</code> <b>class</b></summary>
+
+### `InlineKeyboard` class
 
 ```python
 from telekit.types import InlineKeyboard
@@ -116,6 +118,8 @@ InlineKeyboard()
 
 All button methods accept a `style` parameter: `"danger"` (red), `"success"` (green), or `"primary"` (blue).
 
+#### How to conditionally include the buttons?
+
 The `when=` parameter on any method conditionally includes the button:
 
 ```python
@@ -128,6 +132,9 @@ InlineKeyboard()
 
 <details>
 <summary><code>chain.set_keyboard()</code> <b>method</b></summary>
+
+### `chain.set_keyboard()` method
+
 
 `set_keyboard()` is the universal method for attaching any keyboard to the current message. Pass it an `InlineKeyboard` instance:
 
@@ -144,7 +151,7 @@ self.chain.edit()
 </details>
 
 > [!NOTE]
-> `set_keyboard()` also accepts `ReplyKeyboard` — but reply keyboards are covered in a later section.
+> `set_keyboard()` also accepts `ReplyKeyboard` — but reply keyboards are covered in a [later section](./7_3_reply_keyboard.md).
 
 
 ## Choice Keyboards
@@ -153,6 +160,9 @@ When every button leads to the same callback but with a different value — a pr
 
 <details>
 <summary><code>chain.set_inline_choice()</code> <b>method</b></summary>
+
+### `chain.set_inline_choice()` method
+
 
 Pass a callback and a `dict` of `{Label: Value}`. When the user taps a button, the value is passed directly to the callback:
 
