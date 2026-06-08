@@ -52,9 +52,10 @@ self.chain.set_inline_keyboard(
 | `str`                | Opens the URL in a browser.                |
 | `InlineButton`       | Subclasses of this allow assigning any available button behaviour — covered in the [next page](./7_2_inline_buttons.md). |
 
-[See example...](../examples/risk_game.md)
-
 </details>
+
+> [!TIP]
+> See [example](../examples/risk_game.md)
 
 > [!CAUTION]
 > Callbacks remain in memory until the user clicks a button or navigates away. To avoid indefinite waiting, see [Timeouts](9_timeouts.md).
@@ -149,6 +150,9 @@ self.chain.set_keyboard(
 self.chain.edit()
 ```
 </details>
+
+> [!TIP]
+> See [example](../examples/counter.md)
 
 > [!NOTE]
 > `set_keyboard()` also accepts `ReplyKeyboard` — but reply keyboards are covered in a [later section](./7_3_reply_keyboard.md).
