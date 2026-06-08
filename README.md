@@ -131,7 +131,9 @@ self.chain.set_inline_keyboard(
 ╰─────────────┴──────────────────╯
 ```
 
-When you need precise row layout or conditional buttons, use `InlineKeyboard` — a fluent builder that composes keyboards step by step.
+**Need more control?**
+
+When you need precise row layout or conditional buttons, use `InlineKeyboard` — a fluent builder that composes keyboards step by step:
 
 ```python
 self.chain.set_keyboard(
@@ -151,7 +153,7 @@ self.chain.set_keyboard(
 ╰─────────────────────╯
 ```
 
-`InlineKeyboard` is built by chaining method calls. Just call `.row()` to start a new row.
+> `InlineKeyboard` is built by chaining method calls. Just call `.row()` to start a new row.
 
 **Not just callback buttons**
 
