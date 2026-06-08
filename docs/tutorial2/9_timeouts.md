@@ -56,4 +56,4 @@ def my_timeout():
 > [!NOTE]
 > If an entry or inline keyboard is active but no timeout is set, the bot will print a warning to the console — a reminder that the session may hang indefinitely. This behavior is controlled by `telekit.debug.Debug.timeout_warnings` and is disabled by default.
 
-[Traits](10_traits.md)
+[Next: Traits »](10_traits.md)

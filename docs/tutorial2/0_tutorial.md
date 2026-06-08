@@ -18,11 +18,9 @@ This guide will help you quickly get familiar with the library and understand it
     - [Sender](5_senders.md)
         - [Styles](6_styles.md)
     - Chain
-        - Inline Keyboard
-            - [Inline Keyboard](7_inline_keyboards.md)
+        - [Inline Keyboard](7_inline_keyboards.md)
             - [Inline Button Types](./7_2_inline_buttons.md)
-        - Reply Keyboard
-            - [Reply Keyboard](./7_3_reply_keyboard.md)
+        - [Reply Keyboard](./7_3_reply_keyboard.md)
             - [Reply Button Types](./7_4_reply_buttons.md)
         - [Entries](8_entries.md)
         - [Timeouts](./9_timeouts.md)

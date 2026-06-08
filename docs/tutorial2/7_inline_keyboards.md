@@ -8,7 +8,8 @@ Depending on how much control you need, Telekit offers two approaches — a quic
 The fastest way to add buttons to a message. Pass a plain `dict` where each key is the button label and each value is the callback to invoke when pressed.
 
 <details>
-<summary><code>chain.set_inline_keyboard()</code></summary>
+<summary><code>chain.set_inline_keyboard()</code> <b>method</b></summary>
+---
 
 ```python
 self.chain.set_inline_keyboard(
@@ -47,9 +48,12 @@ self.chain.set_inline_keyboard(
 | **Value type**       | **Effect**                                 |
 | -------------------- | ------------------------------------------ |
 | `Callable`           | Called when the button is pressed.         |
-| `str` / `LinkButton` | Opens the URL in a browser.                |
+| `str`                | Opens the URL in a browser.                |
 | `InlineButton`       | Subclasses of this allow assigning any available button behaviour — covered in the [next page](./7_2_inline_buttons.md). |
 
+[See example...](../examples/risk_game.md)
+
+---
 </details>
 
 > [!CAUTION]
@@ -61,7 +65,7 @@ When you need precise row layout or conditional buttons, use `InlineKeyboard` �
 It is more explicit, more readable, and handles complex layouts without counting `row_width` manually.
 
 <details>
-<summary><code>InlineKeyboard</code> class</summary>
+<summary><code>InlineKeyboard</code> <b>class</b></summary>
 
 ```python
 from telekit.types import InlineKeyboard
@@ -123,7 +127,7 @@ InlineKeyboard()
 </details>
 
 <details>
-<summary><code>chain.set_keyboard()</code> method</summary>
+<summary><code>chain.set_keyboard()</code> <b>method</b></summary>
 
 `set_keyboard()` is the universal method for attaching any keyboard to the current message. Pass it an `InlineKeyboard` instance:
 
@@ -148,7 +152,7 @@ self.chain.edit()
 When every button leads to the same callback but with a different value — a product list, a color picker, a language selector — the choice API removes the boilerplate of wiring each button individually.
 
 <details>
-<summary><code>chain.set_inline_choice()</code> method</summary>
+<summary><code>chain.set_inline_choice()</code> <b>method</b></summary>
 
 Pass a callback and a `dict` of `{Label: Value}`. When the user taps a button, the value is passed directly to the callback:
 

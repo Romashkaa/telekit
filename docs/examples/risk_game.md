@@ -1,5 +1,7 @@
 # Risk Game
 
+Interactive risk game
+
 ```py
 import telekit
 import random
