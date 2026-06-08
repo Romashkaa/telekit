@@ -24,6 +24,7 @@ This guide will help you quickly get familiar with the library and understand it
             - [Reply Button Types](./7_4_reply_buttons.md)
         - [Entries](8_entries.md)
         - [Timeouts](./9_timeouts.md)
+    - [Handoff](./11_handoff.md)
     - [Traits](./10_traits.md)
         - [Creating Traits](./10_2_creating_traits.md)
     - 

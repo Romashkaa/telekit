@@ -128,6 +128,15 @@ class BookingHandler(telekit.traits.CalendarPick, telekit.Handler):
         self.chain.edit()
 ```
 
+<details>
+<summary>(Click to see the approximate result)</summary>
+<table>
+<tr>
+<td><img src="https://github.com/Romashkaa/telekit/blob/main/docs/images/calendar.png?raw=true" alt="Example" width="350"></td>
+</tr>
+</table>
+</details>
+
 **Parameters**
 
 | **Param**        | **Type**               | **Description**                                                                                      |

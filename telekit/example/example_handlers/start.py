@@ -36,5 +36,4 @@ class StartHandler(telekit.Handler):
         def handle_response(handler: str):
             self.handoff(handler).handle()
         
-        self.chain.disable_timeout_warnings()
         self.chain.edit()

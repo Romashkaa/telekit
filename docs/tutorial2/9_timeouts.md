@@ -4,9 +4,9 @@ As mentioned in the [inline keyboards](./7_inline_keyboards.md#label-callback-ke
 
 To let your bot recognize inactivity and free up resources, use timeouts.
 
-### `set_default_timeout`
+### `set_default_timeout` method
 
-The simplest option is `set_default_timeout`. It automatically closes the session after the specified period of inactivity: appends a message to the current one and clears all active handlers.
+The simplest option is `chain.set_default_timeout`. It automatically closes the session after the specified period of inactivity: appends a message to the current one and clears all active handlers.
 
 ```py
 def update_count(self, value: int):
@@ -26,7 +26,7 @@ By default, the user will see `"Looks like things went quiet... See you next tim
 self.chain.set_default_timeout(60, message=Group("Session expired. Send ", Code("/start"), " to begin again."))
 ```
 
-### `set_timeout` and `@on_timeout`
+### `set_timeout` and `@on_timeout` methods
 
 If you need custom logic on timeout — use `set_timeout` or the `@chain.on_timeout` decorator:
 
@@ -56,4 +56,4 @@ def my_timeout():
 > [!NOTE]
 > If an entry or inline keyboard is active but no timeout is set, the bot will print a warning to the console — a reminder that the session may hang indefinitely. This behavior is controlled by `telekit.debug.Debug.timeout_warnings` and is disabled by default.
 
-[Next: Traits »](10_traits.md)
+[Next: Traits »](./11_handoff.md)
