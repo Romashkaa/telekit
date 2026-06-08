@@ -8,8 +8,6 @@ This is the primary way to navigate between handlers in Telekit.
 self.handoff(ProfileHandler).handle()
 ```
 
----
-
 ## How It Works
 
 When you call `handoff()`, Telekit creates a new instance of the target handler and passes it:
@@ -17,8 +15,6 @@ When you call `handoff()`, Telekit creates a new instance of the target handler 
 - the **previous bot message**, so the new handler can edit it seamlessly
 
 No state is lost, no new message is sent — the conversation continues as if the target handler had been invoked directly.
-
----
 
 ## Basic Usage
 
@@ -46,8 +42,6 @@ self.handoff(ProfileHandler).handle()   # by class
 self.handoff("ProfileHandler").handle() # by name — resolved from the handler registry
 ```
 
----
-
 ## Handoff as a Button Callback
 
 Since `handoff()` returns a handler instance, you can pass `.handle` directly as a button callback:
@@ -59,8 +53,6 @@ self.chain.set_inline_keyboard({
 ```
 
 When the user presses the button, `StartHandler.handle()` is called with the preserved chain context.
-
----
 
 ## Handoff from a Choice Keyboard
 
@@ -81,8 +73,6 @@ def handle_response(handler: str):
 self.chain.edit()
 ```
 
----
-
 ## `_on_handoff` Hook
 
 When a handler is reached via `handoff()`, its `_on_handoff()` method is called automatically. Override it to run setup logic that should only happen on handoff — not on direct invocation:
@@ -100,9 +90,7 @@ class ProfileHandler(telekit.Handler):
 ```
 
 > [!NOTE]
-> If you're building reusable "back" button logic, consider the [`TrackHandoffOrigin`](../traits/0_traits.md) trait — it handles `_on_handoff` tracking automatically.
-
----
+> If you're building reusable "back" button logic, consider the [`TrackHandoffOrigin`](./10_traits.md#trackhandofforigin) trait — it handles `_on_handoff` tracking automatically.
 
 ## Errors
 
@@ -117,4 +105,4 @@ self.handoff("not a handler")       # NameError
 self.handoff(42)                    # TypeError
 ```
 
-[Next: Traits](./10_traits.md)
+[Next: Traits »](./10_traits.md)
