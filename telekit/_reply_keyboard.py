@@ -68,7 +68,7 @@ class ReplyKeyboard:
             self._rows.extend(keyboard)
 
         self._current: list[tuple[str, ReplyButton]] = []
-        self._column_mode: bool = False
+        self._grid_width: int = 0
 
         self._resize_keyboard = resize_keyboard
         self._one_time_keyboard = one_time_keyboard
@@ -97,18 +97,63 @@ class ReplyKeyboard:
             self._current = []
         return self
 
-    def column_start(self) -> "ReplyKeyboard":
+    def grid(self, width: int = 1) -> "ReplyKeyboard":
         """
-        Enable column mode.
+        Enable grid mode: buttons added after this call will be
+        automatically split into rows of ``width`` buttons each.
 
-        Every button added after this call is automatically placed on its own
-        row, producing a single-column layout. Use :meth:`column_end` to leave
-        column mode.
+        Use together with :meth:`grid_end` to wrap a block of buttons.
+
+        :param width: Number of buttons per row. ``0`` disables grid mode
+            (no automatic row breaks).
+        :type width: int
+        :rtype: :class:`ReplyKeyboard`
 
         Example::
 
             ReplyKeyboard()
-                .column_start()
+                .grid(width=3)
+                    .add_text("1")
+                    .add_text("2")
+                    .add_text("3")
+                    .add_text("4")
+                    .add_text("5")
+                .grid_end()
+
+        This produces rows of [1, 2, 3], [4, 5].
+        """
+        if width < 0:
+            raise ValueError("width must be >= 0")
+        self._grid_width = width
+        self.row()
+        return self
+
+    def grid_end(self) -> "ReplyKeyboard":
+        """
+        Disable grid mode and finalize the current row.
+
+        Calls :meth:`row` automatically so the next buttons added
+        outside the grid block start on a fresh row.
+
+        :rtype: :class:`ReplyKeyboard`
+        """
+        self._grid_width = 0
+        self.row()
+        return self
+
+    def column(self) -> "ReplyKeyboard":
+        """
+        Enable column mode: every button added after this call
+        will automatically be placed on its own row.
+
+        Alias for :meth:`grid` with ``width=1``.
+
+        Use together with :meth:`column_end` to wrap a block of buttons.
+
+        Example::
+
+            ReplyKeyboard()
+                .column()
                     .add_text("First")
                     .add_text("Second")
                     .add_text("Third")
@@ -116,22 +161,27 @@ class ReplyKeyboard:
 
         :rtype: :class:`ReplyKeyboard`
         """
-        self._column_mode = True
-        self.row()
-        return self
+        return self.grid(1)
 
     def column_end(self) -> "ReplyKeyboard":
         """
         Disable column mode and finalize the current row.
 
+        Alias for :meth:`grid_end`.
+
         :rtype: :class:`ReplyKeyboard`
         """
-        self._column_mode = False
-        return self
+        return self.grid_end()
+
+    def _grid_count(self) -> int:
+        """
+        Returns the number of buttons currently in the unfinalized row.
+        """
+        return len(self._current)
 
     def _maybe_row(self) -> None:
-        """Flush the current row when column mode is active."""
-        if self._column_mode:
+        """Flush the current row when the grid width is reached."""
+        if self._grid_width and self._grid_count() >= self._grid_width:
             self.row()
 
     # ── Generic add ───────────────────────────────────────────────────────────
@@ -367,7 +417,7 @@ class ReplyKeyboard:
         self,
         buttons: dict[str, ReplyButton | None] | list[str],
         *,
-        column: bool = False,
+        width: int | bool = False,
         when: bool = True,
     ) -> "ReplyKeyboard":
         """
@@ -381,10 +431,14 @@ class ReplyKeyboard:
         :param buttons: Button definitions — either a ``dict`` of
             ``{label: ReplyButton | None}`` or a ``list[str]`` of labels.
         :type buttons: dict[str, ReplyButton or None] or list[str]
-        :param column: If ``True``, each button is placed on its own row,
-            identical to wrapping the block with :meth:`column_start` /
-            :meth:`column_end`. The previous column mode is restored afterwards.
-        :type column: bool
+        :param width: Controls how the added buttons are split into rows.
+            ``False`` / ``0`` places all buttons in a single row.
+            ``True`` / ``1`` places each button on its own row,
+            same as wrapping with :meth:`column` / :meth:`column_end`.
+            Any value ``n >= 2`` splits the buttons into rows of ``n`` buttons
+            each, same as :meth:`grid` / :meth:`grid_end`.
+            The previous grid width is restored after the call.
+        :type width: int | bool
         :param when: If ``False``, all buttons are skipped.
         :type when: bool
         :rtype: :class:`ReplyKeyboard`
@@ -393,20 +447,24 @@ class ReplyKeyboard:
 
             ReplyKeyboard()
                 .extend({"📱 Phone": ContactButton(), "📍 Location": LocationButton()})
-                .extend(["Quick reply A", "Quick reply B"], column=True)
+                .extend(["Quick reply A", "Quick reply B"], width=True)
         """
         if not when:
             return self
-        _saved_mode = self._column_mode
-        if column:
-            self.column_start()
+
+        _saved_width: int = self._grid_width
+        self.grid(int(width))
+
         if isinstance(buttons, dict):
             for text, button in buttons.items():
                 self.add(text, button)
         else:
             for text in buttons:
                 self.add(text)
-        self._column_mode = _saved_mode
+
+        # Restore directly: no need to call grid_end() separately,
+        # because the last add() already flushed _current via _maybe_row().
+        self._grid_width = _saved_width
         return self
 
     def extend_rows(

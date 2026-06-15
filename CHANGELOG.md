@@ -36,11 +36,13 @@ Fluent builder for Telegram inline keyboards. Supports all standard inline butto
 
 **Layout helpers**
 
-| **Method**       | **Description**                                                |
-|------------------|----------------------------------------------------------------|
-| `row(when=)`     | Finalize the current row and start a new one.                  |
-| `column_start()` | Enable column mode — every subsequent button gets its own row. |
-| `column_end()`   | Disable column mode and flush the current row.                 |
+| **Method**     | **Description** |
+| -------------- | --------------- |
+| `row()`        | Finalize the current row and start a new one. |
+| `column()`     | Every subsequent button gets its own row. Alias for `grid(1)`. |
+| `column_end()` | Exit column mode and flush the current row. Alias for `grid_end()`. |
+| `grid(width)`  | Every subsequent button is automatically split into rows of `width` buttons. |
+| `grid_end()`   | Exit grid mode and flush the current row. |
 
 **Button methods**
 
@@ -73,7 +75,7 @@ InlineKeyboard()
     .add_alert("Info", "This is an alert")
 .row()
     .add_callback("Click Me!", self.handle)
-.column_start()
+.column()
     .add_link("A", "https://example.com")
     .add_callback("B", self.handle_b)
 .column_end()
@@ -82,7 +84,7 @@ InlineKeyboard()
 
 ### `ReplyKeyboard`
 
-Fluent builder for Telegram reply keyboards. Mirrors the `InlineKeyboard` layout API (`row`, `column_start`, `column_end`, `extend`, `extend_rows`).
+Fluent builder for Telegram reply keyboards. Mirrors the `InlineKeyboard` layout API (`row`, `column`, `column_end`, `extend`, `extend_rows`).
 
 **Constructor parameters**
 
@@ -106,16 +108,6 @@ Fluent builder for Telegram reply keyboards. Mirrors the `InlineKeyboard` layout
 | `add_webapp(text, url, when=)` | Opens a Telegram Mini App. |
 | `add_request_user(text, request_id, user_is_bot, user_is_premium, when=)` | Lets the user pick a Telegram user; result returned as a service message. |
 | `add_request_chat(text, request_id, chat_is_channel, chat_is_forum, chat_has_username, chat_is_created, user_administrator_rights, bot_administrator_rights, bot_is_member, when=)` | Lets the user pick a chat; result returned as a service message. |
-
-**Layout helpers** — identical to `InlineKeyboard`
-
-| **Method** | **Description** |
-|---|---|
-| `row(when=)` | Finalize the current row and start a new one. |
-| `column_start()` | Enable column mode — every subsequent button gets its own row. |
-| `column_end()` | Disable column mode and flush the current row. |
-| `extend(buttons, column=, when=)` | Add multiple buttons from a `dict[str, ReplyButton \| None]` or `list[str]`. |
-| `extend_rows(*rows, when=)` | Append one or more pre-built `list[tuple[str, ReplyButton]]` rows. |
 
 ```python
 ReplyKeyboard(input_field_placeholder="Choose:", one_time_keyboard=True)

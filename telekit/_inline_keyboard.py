@@ -10,7 +10,7 @@ class InlineKeyboard:
             self._rows.extend(inline_keyboard)
 
         self._current: list[tuple[str, InlineButton]] = []
-        self._column_mode: bool = False
+        self._grid_width: int = 0
 
     def row(self, *, when: bool | int = True):
         """
@@ -26,38 +26,84 @@ class InlineKeyboard:
             self._current = []
         return self
     
-    def column_start(self):
+    def grid(self, width: int = 1):
+        """
+        Enable grid mode: buttons added after this call will be
+        automatically split into rows of ``width`` buttons each.
+
+        Use together with :meth:`grid_end` to wrap a block of buttons.
+
+        :param width: Number of buttons per row. ``0`` disables grid mode
+            (no automatic row breaks).
+        :type width: `int`
+
+        Example::
+
+            InlineKeyboard()
+                .grid(width=3)
+                .add_callback("1", self.on_pick, pass_args=(1,))
+                .add_callback("2", self.on_pick, pass_args=(2,))
+                .add_callback("3", self.on_pick, pass_args=(3,))
+                .add_callback("4", self.on_pick, pass_args=(4,))
+                .add_callback("5", self.on_pick, pass_args=(5,))
+                .grid_end()
+                .add_callback("« Back", self.handle)
+
+        This produces rows of [1, 2, 3], [4, 5], then "« Back" on its own row.
+        """
+        if width < 0:
+            raise ValueError("width must be >= 0")
+        self._grid_width = width
+        self.row()
+        return self
+
+    def grid_end(self):
+        """
+        Disable grid mode and finalize the current row.
+
+        Calls :meth:`row` automatically so the next buttons added
+        outside the grid block start on a fresh row.
+        """
+        self._grid_width = 0
+        self.row()
+        return self
+
+    def column(self):
         """
         Enable column mode: every button added after this call
         will automatically be placed on its own row.
+
+        Alias for :meth:`grid` with ``width=1``.
 
         Use together with :meth:`column_end` to wrap a block of buttons.
 
         Example::
 
             InlineKeyboard()
-                .column_start()
+                .column()
                 .add_callback("Option A", self.on_a)
                 .add_callback("Option B", self.on_b)
                 .add_callback("Option C", self.on_c)
                 .column_end()
         """
-        self._column_mode = True
-        self.row()
-        return self
+        return self.grid(1)
 
     def column_end(self):
         """
         Disable column mode and finalize the current row.
 
-        Calls :meth:`row` automatically so the next buttons added
-        outside the column block start on a fresh row.
+        Alias for :meth:`grid_end`.
         """
-        self._column_mode = False
-        return self
-    
+        return self.grid_end()
+
+    def _grid_count(self) -> int:
+        """
+        Returns the number of buttons currently in the unfinalized row.
+        """
+        return len(self._current)
+
     def _maybe_row(self):
-        if self._column_mode:
+        if self._grid_width and self._grid_count() >= self._grid_width:
             self.row()
 
     def _compile(self) -> list[list[tuple[str, InlineButton]]]:
@@ -476,7 +522,7 @@ class InlineKeyboard:
         self,
         buttons: dict[str, InlineButton | None] | list[str],
         *,
-        column: bool = False,
+        width: int | bool = False,
         when: bool | int = True,
     ) -> "InlineKeyboard":
         """
@@ -486,10 +532,14 @@ class InlineKeyboard:
             or a list of labels (each rendered as a :class:`StaticButton`).
         :type buttons: `dict[str, InlineButton | None] | list[str]`
 
-        :param column: If `True`, each button is placed on its own row,
-            same as wrapping with :meth:`column_start` / :meth:`column_end`.
-            The previous column mode is restored after the call.
-        :type column: `bool`
+        :param width: Controls how the added buttons are split into rows.
+            ``False`` / ``0`` places all buttons in a single row. 
+            ``True`` / ``1`` places each button on its own row,
+            same as wrapping with :meth:`column` / :meth:`column_end`.
+            Any value ``n >= 2`` splits the buttons into rows of ``n`` buttons
+            each, same as :meth:`grid` / :meth:`grid_end`.
+            The previous grid width is restored after the call.
+        :type width: `int | bool`
 
         :param when: If `False`, the buttons are not added.
         :type when: `bool`
@@ -497,23 +547,25 @@ class InlineKeyboard:
         Example::
 
             InlineKeyboard()
-                .extend({"Option A": btn_a, "Option B": btn_b}, column=True)
+                .extend({"Option A": btn_a, "Option B": btn_b}, width=1)
                 .add_callback("« Back", self.handle)
         """
         if not when:
             return self
-        _saved_mode: bool = self._column_mode
-        if column:
-            self.column_start()
+
+        _saved_width: int = self._grid_width
+        self.grid(int(width))
+
         if isinstance(buttons, dict):
             for text, button in buttons.items():
                 self.add(text, button)
         else:
             for text in buttons:
                 self.add(text, None)
-        # Restore directly: no need to call column_end() or self.column_start()
-        # because the last add() already flushed _current via _maybe_row()
-        self._column_mode = _saved_mode
+
+        # Restore directly: no need to call grid_end() separately,
+        # because the last add() already flushed _current via _maybe_row().
+        self._grid_width = _saved_width
         return self
     
     def extend_rows(self, *rows: list[tuple[str, InlineButton]], when: bool | int = True,) -> "InlineKeyboard":

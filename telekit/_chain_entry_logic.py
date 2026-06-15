@@ -256,7 +256,7 @@ class ChainEntryLogic(ChainBase):
                 self.sender.delete_message(message, True)
 
             if not message.photo:
-                return False  # only photos
+                return False # only photos
 
             if filter_message and not self._invoke_adaptive(filter_message, message, message.photo, include_message):
                 return False
@@ -352,10 +352,10 @@ class ChainEntryLogic(ChainBase):
                 self.sender.delete_message(message, True)
 
             if not message.document:
-                return False  # only documents
+                return False # only documents
 
             if message.content_type != "document":
-                return False  # only documents
+                return False # only documents
 
             if allowed_extensions:
                 file_name = Path(str(message.document.file_name))
@@ -617,7 +617,7 @@ class ChainEntryLogic(ChainBase):
 
             self._cancel_timeout_and_handlers()
             self._invoke_adaptive(func, message, location, include_message)
-            return True  # ok
+            return True # ok
 
         self._handler.set_entry_callback(callback)
 

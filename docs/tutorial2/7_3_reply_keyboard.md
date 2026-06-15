@@ -32,7 +32,7 @@ self.chain.send()
 
 ## Layout
 
-Layout works identically to `InlineKeyboard` — use `.row()` to start a new row, `.column_start()` / `.column_end()` for a vertical stack:
+Layout works identically to `InlineKeyboard` — use `.row()` to start a new row, `.column()` / `.column_end()` for a vertical stack.
 
 ```python
 ReplyKeyboard()

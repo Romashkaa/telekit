@@ -94,11 +94,13 @@ InlineKeyboard()
 
 **Layout helpers**
 
-| **Method**       | **Description**                                              |
-| ---------------- | ------------------------------------------------------------ |
-| `row()`          | Finalize the current row and start a new one.                |
-| `column_start()` | Every subsequent button gets its own row (column mode).      |
-| `column_end()`   | Exit column mode and flush the current row.                  |
+| **Method**     | **Description** |
+| -------------- | --------------- |
+| `row()`        | Finalize the current row and start a new one. |
+| `column()`     | Every subsequent button gets its own row. Alias for `grid(1)`. |
+| `column_end()` | Exit column mode and flush the current row. Alias for `grid_end()`. |
+| `grid(width)`  | Every subsequent button is automatically split into rows of `width` buttons. `width=0` disables auto row breaks. |
+| `grid_end()`   | Exit grid mode and flush the current row. |
 
 **Button methods**
 
