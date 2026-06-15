@@ -17,19 +17,31 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from typing import Any, Literal, Union
+import sys
+from typing import Any, Literal, TYPE_CHECKING, Union
 
 import telebot.formatting
 
+if TYPE_CHECKING: 
+    from string.templatelib import Template, Interpolation # pyright: ignore[reportMissingImports]
+
+_HAS_TEMPLATE_LIB = sys.version_info >= (3, 14)
+
+if _HAS_TEMPLATE_LIB:
+    from string.templatelib import Template as _Template # pyright: ignore[reportMissingImports]
+else:
+    _Template = None
+
 class TextEntity:
 
-    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str]=""):
+    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str, "Template"] = ""):
         self._content = content
         self._escape_strings = escape
         self._separator = sep
 
     def __add__(self, other):
-        if isinstance(other, (str, TextEntity)):
+        if isinstance(other, (str, TextEntity)) \
+        or (_HAS_TEMPLATE_LIB and isinstance(other, _Template)): # pyright: ignore[reportArgumentType]
             return Group(self, other)
         raise TypeError(f"Cannot add {type(other)} to Style")
 
@@ -70,11 +82,47 @@ class TextEntity:
             self._render_item(item, parse_mode) for item in self._content
         )
     
-    def _render_item(self, item: Union[str, "TextEntity"], parse_mode: Literal["html", "markdown"] | None) -> str:
+    def _render_item(self, item: Union[str, "TextEntity", "Template"], parse_mode: Literal["html", "markdown"] | None) -> str:
+        if _HAS_TEMPLATE_LIB and isinstance(item, _Template): # pyright: ignore[reportArgumentType]
+            return self._render_template(item, parse_mode)    # pyright: ignore[reportAttributeAccessIssue]
         if isinstance(item, TextEntity):
             return item.render(parse_mode)
-        else:
-            return self._maybe_escape(item, parse_mode)
+        return self._maybe_escape(item, parse_mode)
+    
+    def _render_template(self, template: "Template", parse_mode: Literal["html", "markdown"] | None) -> str:
+        """
+        Unwraps a Template (t-string) into a Group: static text chunks
+        go through normal escaping, while interpolations are either
+        rendered as nested TextEntity objects or escaped as values.
+        """
+        parts: list[Any] = []
+
+        for piece in template:
+            if isinstance(piece, str):
+                # static text between {...}
+                parts.append(piece)
+            else:
+                # Interpolation
+                value = piece.value
+
+                if isinstance(value, TextEntity) or (_HAS_TEMPLATE_LIB and isinstance(value, _Template)): # pyright: ignore[reportArgumentType]
+                    parts.append(value)
+                else:
+                    # apply !r / !s / !a conversion if specified
+                    if piece.conversion == "r":
+                        value = repr(value)
+                    elif piece.conversion == "s":
+                        value = str(value)
+                    elif piece.conversion == "a":
+                        value = ascii(value)
+
+                    # apply format_spec if specified
+                    if piece.format_spec:
+                        value = format(value, piece.format_spec)
+
+                    parts.append(value)
+
+        return Group(*parts, escape=self._escape_strings).render(parse_mode)
     
     def _maybe_escape(self, item: Any, parse_mode: Literal["html", "markdown"] | None) -> str:
         if self._escape_strings:
@@ -150,6 +198,8 @@ class EasyTextEntityWithPostRender(EasyTextEntity):
     def _post_render(self, rendered: str) -> str:
         return rendered
     
+    # + _render_markdown, _render_html, _render_none
+    
 class StaticTextEntity(TextEntity):
     def render_markdown(self) -> str:
         content: str = self._render_content("markdown")
@@ -171,7 +221,7 @@ class StaticTextEntity(TextEntity):
 # Grouping
 
 class Group(TextEntity):
-    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         super().__init__(*content, escape=escape, sep=sep)
 
 # Debugger

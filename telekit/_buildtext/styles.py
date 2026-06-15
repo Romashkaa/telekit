@@ -16,8 +16,11 @@
 # You should have received a copy of the GNU General Public License 
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
-from typing import Union, Literal
+from typing import Union, Literal, TYPE_CHECKING, Union
 from urllib.parse import quote
+
+if TYPE_CHECKING: # Union[str, "TextEntity", "Template"]
+    from string.templatelib import Template # pyright: ignore[reportMissingImports]
 
 import telebot.formatting
 
@@ -228,7 +231,7 @@ class Language(EasyTextEntity):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, lang: str, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, lang: str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         self._language: str = lang
         super().__init__(*content, escape=escape, sep=sep)
 
@@ -267,7 +270,7 @@ class Python(Language):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         super().__init__(*content, lang="python", escape=escape, sep=sep)
 
 
@@ -337,7 +340,7 @@ class Quote(EasyTextEntityWithPostRender):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, expandable: bool = False, end: str = "\n", escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, expandable: bool = False, end: str = "\n", escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         self._expandable: bool = expandable
         self._end: str = end
         super().__init__(*content, escape=escape, sep=sep)
@@ -374,7 +377,7 @@ class Escape(TextEntity):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, sep: Union[str, "TextEntity", "Template"] = ""):
         super().__init__(*content, escape=True, sep=sep)
 
 
@@ -399,7 +402,7 @@ class Raw(TextEntity):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
     
-    def __init__(self, *content, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, sep: Union[str, "TextEntity", "Template"] = ""):
         super().__init__(*content, escape=False, sep=sep)
     
 
@@ -439,7 +442,7 @@ class Link(EasyTextEntity):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, url: str, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, url: str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         self._url: str = url
         super().__init__(*content, escape=escape, sep=sep)
 
@@ -481,7 +484,7 @@ class Mention(Link):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, user_id: int, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, user_id: int, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         url: str = self.gen_link(user_id)
         super().__init__(*content, url=url, escape=escape, sep=sep)
 
@@ -517,7 +520,7 @@ class UserLink(Link):
 
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
-    def __init__(self, *content, username: str, text: str | None = None, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, username: str, text: str | None = None, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         url: str = telekit.utils.make_user_link(username, text)
 
         super().__init__(*content, url=url, escape=escape, sep=sep)
@@ -550,7 +553,7 @@ class BotLink(Link):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
     
-    def __init__(self, *content, username: str, start: str | None = None, escape: bool = True, sep: Union["TextEntity", str] = ""):
+    def __init__(self, *content, username: str, start: str | None = None, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         url: str = telekit.utils.make_bot_link(username, start)
 
         super().__init__(*content, url=url, escape=escape, sep=sep)
@@ -684,7 +687,7 @@ class Stack(TextEntity):
         CHECK = "✓ "
         CROSS = "✕ "
 
-    def __init__(self, *content, start: str = "{{index}}. ", sep: Union["TextEntity", str] = "\n", end: Union["TextEntity", str] = "", escape: bool = True):
+    def __init__(self, *content, start: str = "{{index}}. ", sep: Union[str, "TextEntity", "Template"] = "\n", end: Union[str, "TextEntity", "Template"] = "", escape: bool = True):
         self._start = start
         self._end = end
 

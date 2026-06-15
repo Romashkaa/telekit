@@ -43,7 +43,7 @@ class TextDocumentHandler(telekit.traits.TrackHandoffOrigin, telekit.Handler):
             ),
             f"• Encoding {document.encoding!r}",
             f"• Length {len(document.text)}",
-            f"• Size {document.format_size}",
+            f"• Size {document.formatted_size}",
             sep="\n"
         )
         self.chain.set_inline_keyboard(

@@ -17,9 +17,13 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
 
-from typing import Any, Literal, NoReturn
+from typing import Any, Literal, NoReturn, TYPE_CHECKING, Union
 import textwrap
 import io
+
+if TYPE_CHECKING:
+    from string.templatelib import Template # pyright: ignore[reportMissingImports]
+
 
 from telebot import TeleBot
 from telebot.types import (
@@ -1636,7 +1640,7 @@ class Sender(BaseSender):
         self._reset_plain()
         super().remove_text()
 
-    def set_text(self, *text: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""): # pyright: ignore[reportIncompatibleMethodOverride]
+    def set_text(self, *text: Union[str, "TextEntity", "Template"], escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""): # pyright: ignore[reportIncompatibleMethodOverride]
         """
         Set the message as plain text, replacing any previously set title or message content.
 
@@ -1657,7 +1661,7 @@ class Sender(BaseSender):
         if text:
             self._text = Group(*text, escape=escape, sep=sep)
 
-    def set_title(self, *title: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""):
+    def set_title(self, *title: Union[str, "TextEntity", "Template"], escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         """
         Set the title of the message. Clears any previously set plain text content.
 
@@ -1673,7 +1677,7 @@ class Sender(BaseSender):
         if title:
             self._title = Bold(*title, escape=escape, sep=sep)
 
-    def set_message(self, *message: str | TextEntity, escape: bool = True, sep: str | TextEntity = ""):
+    def set_message(self, *message: Union[str, "TextEntity", "Template"], escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
         """
         Set the main message body for the alert. Clears any previously set plain text content.
 
@@ -1689,7 +1693,7 @@ class Sender(BaseSender):
         if message:
             self._message = Group(*message, escape=escape, sep=sep)
 
-    def append(self, *text: str | TextEntity, escape: bool = True, sep: str | TextEntity =""):
+    def append(self, *text: Union[str, "TextEntity", "Template"], escape: bool = True, sep: Union[str, "TextEntity", "Template"] =""):
         """
         Append text to the end of the current message without replacing existing content.
 
