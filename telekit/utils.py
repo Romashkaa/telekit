@@ -344,6 +344,17 @@ def make_bot_link(botname: str, start: str | None = None) -> str:
     encoded_start = quote(start, safe="")
     return f"https://t.me/{botname}?start={encoded_start}"
 
+def make_mention(user_id: int | str) -> str:
+    """
+    Creates a Telegram mention link by user ID.
+
+    Examples::
+
+        make_mention(123456789)
+        >>> 'tg://user?id=123456789'
+    """
+    return f"tg://user?id={user_id}"
+
 def make_user_link(username: str, text: str | None = None) -> str:
     """Return a t.me link to a user.
 

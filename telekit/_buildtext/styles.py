@@ -484,13 +484,9 @@ class Mention(Link):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, user_id: int, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
-        url: str = self.gen_link(user_id)
+    def __init__(self, *content, user_id: int | str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
+        url: str = telekit.utils.make_mention(user_id)
         super().__init__(*content, url=url, escape=escape, sep=sep)
-
-    @staticmethod
-    def gen_link(user_id: int) -> str:
-        return f"tg://user?id={user_id}"
     
 
 class UserLink(Link):

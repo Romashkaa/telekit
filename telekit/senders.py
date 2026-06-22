@@ -1208,9 +1208,28 @@ class BaseSender:
         try:
             configs = self._get_base_params()
             configs["parse_mode"] = "HTML"
-            return self.bot.send_message(text=f"<b>{Escape(title).html}</b>\n\n<i>{Escape(message).html}.</i>", **configs)
+            return self.bot.send_message(text=f"{Bold(title).html}\n\n{Escape(message).html}", **configs)
         except Exception as exception:
             library.warning(f"Failed to send `error` message: {exception}")
+            return None
+
+    def send_message(self, title: str, message: str) -> Message | None:
+        """
+        Sends a custom message with a title and detailed message.
+
+        Args:
+            title (`str` | `TextEntity`): The title of the message.
+            message (`str` | `TextEntity`): The message.
+
+        Returns:
+            Message | None: The sent message or None if sending failed.
+        """
+        try:
+            configs = self._get_base_params()
+            configs["parse_mode"] = "HTML"
+            return self.bot.send_message(text=f"{Bold(title).html}\n\n{Escape(message).html}", **configs)
+        except Exception as exception:
+            library.warning(f"Failed to send message: {exception}")
             return None
     
     def try_send(self) -> tuple[Message | None, Exception | None]:

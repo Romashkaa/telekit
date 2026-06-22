@@ -167,7 +167,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.
@@ -210,7 +210,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.
@@ -222,6 +222,128 @@ class InlineKeyboard:
         if not when:
             return self
         self._current.append((text, LinkButton(url, style=style, **kwargs)))
+        self._maybe_row()
+        return self
+
+    def add_contact(
+        self,
+        text: str,
+        user_id: str | int,
+        *,
+        style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
+        when: bool | int = True,
+        **kwargs
+    ):
+        """
+        Adds a button that mentions a Telegram user by their ID.
+
+        The button generates a ``tg://user?id=<user_id>`` link via
+        :class:`~telekit.types.ContactButton`, allowing you to mention a user
+        without knowing their username.
+
+        :param text: Label displayed on the button.
+        :type text: :class:`str`
+        :param user_id: Telegram user ID to mention.
+        :type user_id: :class:`str` | :class:`int`
+        :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
+            enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
+            ``"primary"`` (blue). Defaults to the client-specific style if omitted.
+        :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
+        :param when: If ``False`` (or any falsy value), the button is skipped and not added
+            to the keyboard. Useful for conditional layouts.
+        :type when: :class:`bool` | :class:`int`
+        :param kwargs: Additional keyword arguments forwarded to
+            :class:`~telekit.types.InlineKeyboardButton`.
+        :returns: The current builder instance, for method chaining.
+        :rtype: :class:`Self`
+        """
+        if not when:
+            return self
+        
+        self._current.append((text, ContactButton(user_id, style=style, **kwargs)))
+        self._maybe_row()
+        return self
+
+    def add_user_link(
+        self,
+        text: str,
+        username: str,
+        message: str | None = None,
+        *,
+        style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
+        when: bool | int = True,
+        **kwargs
+    ):
+        """
+        Adds a button that opens a Telegram user profile by username.
+
+        The button generates a ``https://t.me/<username>`` link via
+        :class:`~telekit.types.UserLinkButton`. Optionally pre-fills
+        the chat input with ``message``.
+
+        :param text: Label displayed on the button.
+        :type text: :class:`str`
+        :param username: Telegram username, with or without a leading ``@``.
+        :type username: :class:`str`
+        :param message: Optional message text to pre-fill in the chat input.
+        :type message: :class:`str` | ``None``
+        :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
+            enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
+            ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+        :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
+        :param when: If ``False`` (or any falsy value), the button is skipped and not added
+            to the keyboard. Useful for conditional layouts.
+        :type when: :class:`bool` | :class:`int`
+        :param kwargs: Additional keyword arguments forwarded to
+            :class:`~telekit.types.InlineKeyboardButton`.
+        :returns: The current builder instance, for method chaining.
+        :rtype: :class:`Self`
+        """
+        if not when:
+            return self
+        self._current.append((text, UserLinkButton(username, message, style=style, **kwargs)))
+        self._maybe_row()
+        return self
+
+    def add_bot_link(
+            self,
+            text: str,
+            botname: str,
+            start: str | None = None,
+            *,
+            style: Literal["danger", "success", "primary"] | None | ButtonStyle = None,
+            when: bool | int = True,
+            **kwargs
+        ):
+        """
+        Adds a button that opens a Telegram bot by username.
+
+        The button generates a ``https://t.me/<botname>`` link via
+        :class:`~telekit.types.BotLinkButton`. Optionally appends
+        a deep-link payload via ``?start=``.
+
+        :param text: Label displayed on the button.
+        :type text: :class:`str`
+        :param botname: Bot username, with or without a leading ``@``.
+        :type botname: :class:`str`
+        :param start: Optional deep-link payload passed as ``?start=``.
+            Useful for referral links or onboarding flows.
+        :type start: :class:`str` | ``None``
+        :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
+            enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
+            ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+        :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
+        :param when: If ``False`` (or any falsy value), the button is skipped and not added
+            to the keyboard. Useful for conditional layouts.
+        :type when: :class:`bool` | :class:`int`
+        :param kwargs: Additional keyword arguments forwarded to
+            :class:`~telekit.types.InlineKeyboardButton`.
+        :returns: The current builder instance, for method chaining.
+        :rtype: :class:`Self`
+        """
+        if not when:
+            return self
+        self._current.append((text, BotLinkButton(botname, start, style=style, **kwargs)))
         self._maybe_row()
         return self
 
@@ -246,7 +368,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.
@@ -283,7 +405,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param strict: If `True`, raises an error when the suggestion exceeds Telegram's 64-byte limit.
@@ -323,7 +445,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param strict: If `True`, raises an error when the text exceeds Telegram's 256-character limit.
@@ -358,7 +480,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.
@@ -398,7 +520,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.
@@ -438,7 +560,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.
@@ -495,7 +617,7 @@ class InlineKeyboard:
         :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
         :type style: `str`
 
         :param when: If `False`, the button is not added.

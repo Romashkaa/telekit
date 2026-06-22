@@ -22,6 +22,9 @@ from ._inline_buttons import (
     StaticButton,
 
     LinkButton,
+    ContactButton,
+    UserLinkButton,
+    BotLinkButton,
     WebAppButton,
     SuggestButton,
     CopyTextButton,
@@ -41,6 +44,9 @@ __all__ = [
     "StaticButton",
 
     "LinkButton", 
+    "ContactButton",
+    "UserLinkButton",
+    "BotLinkButton",
     "WebAppButton", 
     "SuggestButton",
     "CopyTextButton",

@@ -20,12 +20,12 @@
 from typing import Any, Callable
 from enum import Enum
 
-# Third-party packages
 import telebot.types
 from telebot.types import InlineKeyboardButton, CallbackQuery
 from telebot import TeleBot
-from ._callback_query_handler import CallbackQueryHandler
 
+import telekit
+from ._callback_query_handler import CallbackQueryHandler
 from ._state import TelekitState
 
 __all__ = [
@@ -33,6 +33,9 @@ __all__ = [
 
     "StaticButton",
     "LinkButton", 
+    "ContactButton",
+    "UserLinkButton",
+    "BotLinkButton",
     "WebAppButton", 
     "SuggestButton",
     "CopyTextButton",
@@ -57,6 +60,9 @@ class InlineButton:
     """
     Base class for: 
     - `LinkButton`
+        - `ContactButton`
+        - `UserLinkButton`
+        - `BotLinkButton`
     - `WebAppButton`
     - `SuggestButton`
     - `CopyTextButton`
@@ -79,6 +85,9 @@ class InlineButton:
     
     Static: type["StaticButton"]
     Link: type["LinkButton"]
+    Contact: type["ContactButton"]
+    UserLink: type["UserLinkButton"]
+    BotLink: type["BotLinkButton"]
     WebApp: type["WebAppButton"]
     Suggest: type["SuggestButton"]
     CopyText: type["CopyTextButton"]
@@ -175,7 +184,78 @@ class LinkButton(InlineButton):
             style=self._style,
             **self._kwargs
         )
-    
+
+class ContactButton(LinkButton):
+    """
+    Inline keyboard button that mentions a user by their Telegram ID.
+
+    Generates a ``tg://user?id=<user_id>`` link via :func:`telekit.utils.make_mention`,
+    allowing you to mention a user without knowing their username —
+    subject to their privacy settings.
+
+    :param user_id: Telegram user ID to mention.
+    :type user_id: :class:`str` | :class:`int`
+    :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
+        enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
+        ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+    :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
+    :param kwargs: Additional keyword arguments forwarded to
+        :class:`~telekit.types.InlineKeyboardButton`.
+    """
+    def __init__(self, user_id: str | int, *, style: str | None | ButtonStyle = None, **kwargs):
+        self._url = telekit.utils.make_mention(user_id)
+            
+        self._style = self._normalize_style(style)
+        self._kwargs = kwargs
+
+class UserLinkButton(LinkButton):
+    """
+    Inline keyboard button that opens a Telegram profile by username.
+
+    Generates a ``https://t.me/<username>`` link via :func:`telekit.utils.make_user_link`.
+    Optionally pre-fills the message input with ``text``.
+
+    :param username: Telegram username, with or without a leading ``@``.
+    :type username: :class:`str`
+    :param text: Optional message text to pre-fill in the chat input.
+    :type text: :class:`str` | ``None``
+    :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
+        enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
+        ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+    :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
+    :param kwargs: Additional keyword arguments forwarded to
+        :class:`~telekit.types.InlineKeyboardButton`.
+    """
+    def __init__(self, username: str, text: str | None = None, *, style: str | None | ButtonStyle = None, **kwargs):
+        self._url = telekit.utils.make_user_link(username, text)
+            
+        self._style = self._normalize_style(style)
+        self._kwargs = kwargs
+
+class BotLinkButton(LinkButton):
+    """
+    Inline keyboard button that opens a Telegram bot by username.
+
+    Generates a ``https://t.me/<botname>`` link via :func:`telekit.utils.make_bot_link`.
+    Optionally appends a deep-link payload via ``?start=``.
+
+    :param botname: Bot username, with or without a leading ``@``.
+    :type botname: :class:`str`
+    :param start: Optional deep-link payload passed as ``?start=``.
+    :type start: :class:`str` | ``None``
+    :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
+        enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
+        ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+    :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
+    :param kwargs: Additional keyword arguments forwarded to
+        :class:`~telekit.types.InlineKeyboardButton`.
+    """
+    def __init__(self, botname: str, start: str | None = None, *, style: str | None | ButtonStyle = None, **kwargs):
+        self._url = telekit.utils.make_bot_link(botname, start)
+            
+        self._style = self._normalize_style(style)
+        self._kwargs = kwargs
+
 class WebAppButton(InlineButton):
     """
     This object represents an inline keyboard button that describes a Web App.
@@ -712,6 +792,9 @@ class InvokeButton(CallbackButton):
         )
     
 InlineButton.Link = LinkButton
+InlineButton.Contact = ContactButton
+InlineButton.UserLink = UserLinkButton
+InlineButton.BotLink = BotLinkButton
 InlineButton.Static = StaticButton
 InlineButton.WebApp = WebAppButton
 InlineButton.Suggest = SuggestButton
