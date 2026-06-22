@@ -1208,7 +1208,7 @@ class BaseSender:
         try:
             configs = self._get_base_params()
             configs["parse_mode"] = "HTML"
-            return self.bot.send_message(text=f"<b>{Escape(title)}</b>\n\n<i>{Escape(message)}.</i>", **configs)
+            return self.bot.send_message(text=f"<b>{Escape(title).html}</b>\n\n<i>{Escape(message).html}.</i>", **configs)
         except Exception as exception:
             library.warning(f"Failed to send `error` message: {exception}")
             return None
