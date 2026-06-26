@@ -322,8 +322,20 @@ def compose_keyboard(
 # Link Generating
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-def make_bot_link(botname: str, start: str | None = None) -> str:
-    """Return a t.me link to a bot.
+def make_mention(user_id: int | str) -> str:
+    """
+    Creates a Telegram mention link by user ID.
+
+    Examples::
+
+        make_mention(123456789)
+        >>> 'tg://user?id=123456789'
+    """
+    return f"tg://user?id={user_id}"
+
+def make_bot_link(botname: str, start: str | None = None, escape: bool = True) -> str:
+    """
+    Return a t.me link to a bot.
 
     >>> make_bot_link("UserNameOfBot")
     "https://t.me/UserNameOfBot"
@@ -341,22 +353,12 @@ def make_bot_link(botname: str, start: str | None = None) -> str:
     botname = botname.lstrip("@")
     if start is None:
         return f"https://t.me/{botname}"
-    encoded_start = quote(start, safe="")
+    encoded_start = quote(start, safe="") if escape else start
     return f"https://t.me/{botname}?start={encoded_start}"
 
-def make_mention(user_id: int | str) -> str:
+def make_user_link(username: str, text: str | None = None, escape: bool = True) -> str:
     """
-    Creates a Telegram mention link by user ID.
-
-    Examples::
-
-        make_mention(123456789)
-        >>> 'tg://user?id=123456789'
-    """
-    return f"tg://user?id={user_id}"
-
-def make_user_link(username: str, text: str | None = None) -> str:
-    """Return a t.me link to a user.
+    Return a t.me link to a user.
 
     >>> make_user_link("UserName")
     "https://t.me/UserName"
@@ -374,7 +376,7 @@ def make_user_link(username: str, text: str | None = None) -> str:
     username = username.lstrip("@")
     if text is None:
         return f"https://t.me/{username}"
-    encoded_text = quote(text, safe="")
+    encoded_text = quote(text, safe="") if escape else text
     return f"https://t.me/{username}?text={encoded_text}"
 
 def make_qrcode(
@@ -395,7 +397,8 @@ def make_qrcode(
     caption_font_size: int | None = None,
     caption_font_color: str | None = None,
 ) -> str:
-    """Return a QuickChart URL that renders a QR code.
+    """
+    Return a QuickChart URL that renders a QR code.
 
     >>> make_qrcode("https://example.com")
     'https://quickchart.io/qr?text=https%3A%2F%2Fexample.com'
@@ -438,9 +441,9 @@ def make_qrcode(
     if margin is not None: 
         params["margin"] = margin
     if dark is not None: 
-        params["dark"] = dark
+        params["dark"] = dark.lstrip("#")
     if light is not None: 
-        params["light"] = light
+        params["light"] = light.lstrip("#")
     if ec_level is not None: 
         params["ecLevel"] = ec_level
     if format is not None: 

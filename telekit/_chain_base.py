@@ -18,7 +18,6 @@
 # 
 
 # Standard library
-import inspect
 from typing import Callable
 
 # Third-party packages

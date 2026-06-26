@@ -166,7 +166,7 @@ class LinkButton(InlineButton):
     :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
               `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
               You can also pass these as string values: "danger", "success", "primary". 
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -197,16 +197,17 @@ class ContactButton(LinkButton):
     :type user_id: :class:`str` | :class:`int`
     :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
         enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
-        ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+        ``"primary"`` (blue). Defaults to the client-specific style if omitted.
     :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
     :param kwargs: Additional keyword arguments forwarded to
         :class:`~telekit.types.InlineKeyboardButton`.
     """
     def __init__(self, user_id: str | int, *, style: str | None | ButtonStyle = None, **kwargs):
-        self._url = telekit.utils.make_mention(user_id)
-            
-        self._style = self._normalize_style(style)
-        self._kwargs = kwargs
+        super().__init__(
+            url=telekit.utils.make_mention(user_id),
+            style=style,
+            **kwargs
+        )
 
 class UserLinkButton(LinkButton):
     """
@@ -221,16 +222,17 @@ class UserLinkButton(LinkButton):
     :type text: :class:`str` | ``None``
     :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
         enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
-        ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+        ``"primary"`` (blue). Defaults to the client-specific style if omitted.
     :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
     :param kwargs: Additional keyword arguments forwarded to
         :class:`~telekit.types.InlineKeyboardButton`.
     """
     def __init__(self, username: str, text: str | None = None, *, style: str | None | ButtonStyle = None, **kwargs):
-        self._url = telekit.utils.make_user_link(username, text)
-            
-        self._style = self._normalize_style(style)
-        self._kwargs = kwargs
+        super().__init__(
+            url=telekit.utils.make_user_link(username, text),
+            style=style,
+            **kwargs
+        )
 
 class BotLinkButton(LinkButton):
     """
@@ -245,16 +247,17 @@ class BotLinkButton(LinkButton):
     :type start: :class:`str` | ``None``
     :param style: Visual style of the button. Accepts a :class:`~telekit.types.ButtonStyle`
         enum value or its string equivalent: ``"danger"`` (red), ``"success"`` (green),
-        ``"primary"`` (blue). Defaults to the app-specific style if omitted.
+        ``"primary"`` (blue). Defaults to the client-specific style if omitted.
     :type style: :class:`~telekit.types.ButtonStyle` | :class:`str` | ``None``
     :param kwargs: Additional keyword arguments forwarded to
         :class:`~telekit.types.InlineKeyboardButton`.
     """
     def __init__(self, botname: str, start: str | None = None, *, style: str | None | ButtonStyle = None, **kwargs):
-        self._url = telekit.utils.make_bot_link(botname, start)
-            
-        self._style = self._normalize_style(style)
-        self._kwargs = kwargs
+        super().__init__(
+            url=telekit.utils.make_bot_link(botname, start),
+            style=style,
+            **kwargs
+        )
 
 class WebAppButton(InlineButton):
     """
@@ -266,7 +269,7 @@ class WebAppButton(InlineButton):
     :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
               `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
               You can also pass these as string values: "danger", "success", "primary". 
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -295,7 +298,7 @@ class CopyTextButton(InlineButton):
     :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
               `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
               You can also pass these as string values: "danger", "success", "primary". 
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -335,7 +338,7 @@ class SuggestButton(InlineButton):
     :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
               `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
               You can also pass these as string values: "danger", "success", "primary". 
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -388,7 +391,7 @@ class CallbackButton(InlineButton):
     :param style: Style of the button. Must be one of `telekit.types.ButtonStyle.DANGER` (red), 
               `*.SUCCESS` (green) or `*.PRIMARY` (blue). 
               You can also pass these as string values: "danger", "success", "primary". 
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -581,7 +584,7 @@ class AlertButton(AnswerButton):
     :param style: Style of the button. Must be one of `ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str | ButtonStyle | None`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -631,7 +634,7 @@ class NotificationButton(AnswerButton):
     :param style: Style of the button. Must be one of `ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str | ButtonStyle | None`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.
@@ -696,7 +699,7 @@ class InvokeButton(CallbackButton):
     :param style: Style of the button. Must be one of `ButtonStyle.DANGER` (red),
               `*.SUCCESS` (green) or `*.PRIMARY` (blue).
               You can also pass these as string values: "danger", "success", "primary".
-              If omitted, an app-specific default style is used.
+              If omitted, an client-specific default style is used.
     :type style: `str | ButtonStyle | None`
 
     :param kwargs: Additional keyword arguments passed directly to `InlineKeyboardButton`.

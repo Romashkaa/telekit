@@ -27,8 +27,9 @@ library = logger.library
 from ._chain import Chain
 from ._callback_query_handler import CallbackQueryHandler
 from ._user import User
+from .chat import Chat
 from ._on import On
-from . import senders
+from .debug import Debug
 
 class Handler:
     
@@ -40,6 +41,7 @@ class Handler:
 
     # Instance Attributes
     user: User
+    chat: Chat
     chain: Chain
     message: Message
 
@@ -74,6 +76,12 @@ class Handler:
             handler.on = On(handler, bot)
             handler.init_handler()
 
+            if handler.__name__.startswith("_"):
+                continue
+
+            if handler.__name__ in cls.handlers_dict and Debug.duplicate_handler_warnings:
+                library.warning("Multiple handlers are named 'StartHandler'. Only the last registered handler is available through Handler.handlers_dict.")
+
             cls.handlers_dict[handler.__name__] = handler
     
     @classmethod
@@ -99,6 +107,7 @@ class Handler:
     def __init__(self, message: Message):
         self.message: Message = message
         self.user = User(self.message)
+        self.chat = Chat(self.message.chat.id, self.message.message_thread_id)
         self.new_chain()
 
     def handle(self) -> Any:

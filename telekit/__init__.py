@@ -30,6 +30,7 @@ from ._user import User
 from ._telekit_dsl.telekit_dsl import TelekitDSL
 from ._telekit_dsl.mixin import DSLHandler, InstanceDSLHandler
 from ._logger import enable_file_logging
+from .chat import Chat
 
 from . import senders
 from . import types
@@ -41,6 +42,7 @@ from . import utils
 from . import traits
 from . import debug
 from . import scheduler
+from . import chat
 
 Styles = styles.Styles
 
@@ -56,11 +58,13 @@ __all__ = [
     "inline_buttons",
     "dices",
     "scheduler",
+    "chat",
 
     "Styles",
     "User",
 
-    "Server", 
+    "Server",
+    "Chat",
     "Chain", 
     "Trait",
     "Handler", 

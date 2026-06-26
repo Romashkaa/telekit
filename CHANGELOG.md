@@ -12,3 +12,11 @@
   - `add_contact` — adds a `ContactButton`.
   - `add_user_link` — adds a `UserLinkButton`.
   - `add_bot_link` — adds a `BotLinkButton`.
+
+### v2.5.0`b2`
+- Added the `escape` parameter to `telekit.utils.*`:
+  - `make_user_link`
+  - `make_bot_link`
+- `Handler.handlers_dict` now excludes private handlers (classes whose names start with `_`).
+- Added `Debug.duplicate_handler_warnings` to warn about duplicate handler names during initialization.
+- Added `Handler.chat` object (BETA)
