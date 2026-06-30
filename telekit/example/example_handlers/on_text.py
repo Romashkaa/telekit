@@ -1,6 +1,7 @@
 import telekit
 
 from telekit.styles import *
+from telekit.types import TextBuilder
 
 class OnTextHandler(telekit.Handler):
 
@@ -16,7 +17,14 @@ class OnTextHandler(telekit.Handler):
         cls.on.text().invoke(cls.handle)
 
         cls.on.command("on_text").invoke(cls.handle)
-            
+
+    EXAMPLES = [
+        "Name: John. Age: 25",
+        "My name is Alice and I am 30 years old",
+        "My name is Romashka",
+        "I'm 18 years old"
+    ]
+    
     # ------------------------------------------
     # Handling Logic
     # ------------------------------------------
@@ -37,23 +45,20 @@ class OnTextHandler(telekit.Handler):
     # command
 
     def handle(self):
-        self.chain.sender.set_title(f"🦻 On Text Handler")
-        self.chain.sender.set_message(
-            "Try sending any of these example phrases to see the handler in action:\n\n"
+        reply = TextBuilder()
 
-            "- ", Code('Name: John. Age: 25'), "\n"
-            "- ", Code('My name is Alice and I am 30 years old'), "\n"
-            "- ", Code('My name is Romashka'), "\n"
-            "- ", Code('I\'m 18 years old'), "\n\n"
+        reply.add_bold("💡 Try sending any of these example phrases to see the", Code("on.text"), "in action:", sep=" ")
+        reply.spacer()
+        for example in self.EXAMPLES:
+            reply.add("-", Code(example), sep=" ")
+            reply.newln()
+        reply.newln()
+        reply.add("The bot will respond according to the information you provide")
 
-            "The bot will respond according to the information you provide."
-        )
+        self.chain.sender.set_text(reply)
         self.chain.set_entry_suggestions(
             {
-                "Test 1": "Name: John. Age: 25",
-                "2": "My name is Alice and I am 30 years old",
-                "3": "My name is Romashka",
-                "4": "I'm 18 years old"
+                str(i + 1): example for i, example in enumerate(self.EXAMPLES)
             }, row_width=4
         )
         self.chain.edit()
