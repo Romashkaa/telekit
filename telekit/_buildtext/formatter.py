@@ -33,17 +33,36 @@ else:
     _Template = None
 
 class TextEntity:
-
-    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str, "Template"] = ""):
+    def __init__(self, *content, escape: bool = True, sep: Union["TextEntity", str, "Template"] = "", enabled: bool | Any = True):
         self._content = content
         self._escape_strings = escape
         self._separator = sep
+        self._enabled = enabled
 
     def __add__(self, other):
         if isinstance(other, (str, TextEntity)) \
         or (_HAS_TEMPLATE_LIB and isinstance(other, _Template)): # pyright: ignore[reportArgumentType]
             return Group(self, other)
-        raise TypeError(f"Cannot add {type(other)} to Style")
+        raise TypeError(f"Cannot add {type(other)} to TextEntity")
+
+    def __radd__(self, other):
+        if isinstance(other, str):
+            return Group(other, self)
+        if isinstance(other, TextEntity) \
+        or (_HAS_TEMPLATE_LIB and isinstance(other, _Template)): # pyright: ignore[reportArgumentType]
+            return Group(other, self)
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.render_html())
+
+    def __mul__(self, n: int):
+        if not isinstance(n, int):
+            return NotImplemented
+        return Group(*([self] * n))
+
+    def __rmul__(self, n: int):
+        return self.__mul__(n)
 
     @property
     def markdown(self) -> str:
@@ -81,7 +100,7 @@ class TextEntity:
         return sep.join(
             self._render_item(item, parse_mode) for item in self._content
         )
-    
+
     def _render_item(self, item: Union[str, "TextEntity", "Template"], parse_mode: Literal["html", "markdown"] | None) -> str:
         if _HAS_TEMPLATE_LIB and isinstance(item, _Template): # pyright: ignore[reportArgumentType]
             return self._render_template(item, parse_mode)    # pyright: ignore[reportAttributeAccessIssue]
@@ -164,13 +183,22 @@ class TextEntity:
             
 class EasyTextEntity(TextEntity):
     def render_markdown(self) -> str:
-        return self._render_markdown(self._render_content("markdown"))
+        content = self._render_content("markdown")
+        if not self._enabled:
+            return content
+        return self._render_markdown(content)
 
     def render_html(self) -> str:
-        return self._render_html(self._render_content("html"))
+        content = self._render_content("html")
+        if not self._enabled:
+            return content
+        return self._render_html(content)
     
     def render_none(self) -> str:
-        return self._render_none(self._render_content(None))
+        content = self._render_content(None)
+        if not self._enabled:
+            return content
+        return self._render_none(content)
     
     # redefine
 
@@ -185,32 +213,38 @@ class EasyTextEntity(TextEntity):
     
 class EasyTextEntityWithPostRender(EasyTextEntity):
     def render_markdown(self) -> str:
-        return self._post_render(self._render_markdown(self._render_content("markdown")))
+        return self._post_render(super().render_markdown())
 
     def render_html(self) -> str:
-        return self._post_render(self._render_html(self._render_content("html")))
+        return self._post_render(super().render_html())
     
     def render_none(self) -> str:
-        return self._post_render(self._render_none(self._render_content(None)))
+        return self._post_render(super().render_none())
     
     # redefine
 
     def _post_render(self, rendered: str) -> str:
         return rendered
     
-    # + _render_markdown, _render_html, _render_none
+    # + redefine: _render_markdown, _render_html, _render_none
     
 class StaticTextEntity(TextEntity):
     def render_markdown(self) -> str:
         content: str = self._render_content("markdown")
+        if not self._enabled:
+            return content
         return self._render_any(content)
 
     def render_html(self) -> str:
         content: str = self._render_content("html")
+        if not self._enabled:
+            return content
         return self._render_any(content)
     
     def render_none(self) -> str:
         content: str = self._render_content(None)
+        if not self._enabled:
+            return content
         return self._render_any(content)
     
     # redefine
@@ -221,8 +255,8 @@ class StaticTextEntity(TextEntity):
 # Grouping
 
 class Group(TextEntity):
-    def __init__(self, *content, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
-        super().__init__(*content, escape=escape, sep=sep)
+    def __init__(self, *content, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
+        super().__init__(*content, escape=escape, sep=sep, enabled=enabled)
 
 # Debugger
 

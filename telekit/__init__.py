@@ -24,6 +24,7 @@ from ._callback_query_handler import CallbackQueryHandler
 from .server import Server, example
 from ._inline_keyboard import InlineKeyboard
 from ._reply_keyboard import ReplyKeyboard
+from ._text_builder import TextBuilder
 from ._snapvault import Vault
 from ._chapters import chapters
 from ._user import User
@@ -43,6 +44,7 @@ from . import traits
 from . import debug
 from . import scheduler
 from . import chat
+from . import html_text
 
 Styles = styles.Styles
 
@@ -59,6 +61,7 @@ __all__ = [
     "dices",
     "scheduler",
     "chat",
+    "html_text",
 
     "Styles",
     "User",
@@ -72,6 +75,7 @@ __all__ = [
 
     "InlineKeyboard",
     "ReplyKeyboard",
+    "TextBuilder",
 
     "TelekitDSL",
     "DSLHandler",

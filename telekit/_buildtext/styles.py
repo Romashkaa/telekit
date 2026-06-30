@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License 
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
-from typing import Union, Literal, TYPE_CHECKING, Union
+from typing import Union, Literal, TYPE_CHECKING, Union, Any
 from urllib.parse import quote
 
 if TYPE_CHECKING: # Union[str, "TextEntity", "Template"]
@@ -30,7 +30,6 @@ from .formatter import TextEntity, EasyTextEntity, StaticTextEntity, EasyTextEnt
 
 
 class Bold(EasyTextEntity):
-
     """
     Applies **bold formatting** to the provided content.
 
@@ -45,6 +44,8 @@ class Bold(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without bold formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -52,6 +53,8 @@ class Bold(EasyTextEntity):
         Bold("Hello").markdown  # "*Hello*"
 
         Bold("Hello", "World", sep=" ").html  # "<b>Hello World</b>"
+
+        Bold("title", enabled=is_important).html  # "title" if not is_important
 
         sender.set_text(Bold("Hello!"))
 
@@ -66,7 +69,6 @@ class Bold(EasyTextEntity):
 
 
 class Italic(EasyTextEntity):
-
     """
     Applies *italic formatting* to the provided content.
 
@@ -81,6 +83,8 @@ class Italic(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without italic formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -114,6 +118,8 @@ class Underline(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without underline formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -147,6 +153,8 @@ class Strikethrough(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without strikethrough formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -182,6 +190,8 @@ class Code(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without code formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -198,7 +208,7 @@ class Code(EasyTextEntity):
 
     def _render_html(self, content: str) -> str:
         return f"<code>{content}</code>"
-    
+
 
 class Language(EasyTextEntity):
     """
@@ -217,6 +227,8 @@ class Language(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without code block formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -231,9 +243,9 @@ class Language(EasyTextEntity):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, lang: str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
+    def __init__(self, *content, lang: str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
         self._language: str = lang
-        super().__init__(*content, escape=escape, sep=sep)
+        super().__init__(*content, escape=escape, sep=sep, enabled=enabled)
 
     def _render_markdown(self, content: str) -> str:
         return telebot.formatting.mcode(content, language=self._language, escape=False)
@@ -259,6 +271,8 @@ class Python(Language):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without code block formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -270,8 +284,8 @@ class Python(Language):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
-        super().__init__(*content, lang="python", escape=escape, sep=sep)
+    def __init__(self, *content, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
+        super().__init__(*content, lang="python", escape=escape, sep=sep, enabled=enabled)
 
 
 class Spoiler(EasyTextEntity):
@@ -289,6 +303,8 @@ class Spoiler(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without spoiler formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -304,7 +320,6 @@ class Spoiler(EasyTextEntity):
         return telebot.formatting.mspoiler(content, escape=False)
 
     def _render_html(self, content: str) -> str:
-        # or '<span class="tg-spoiler">', '</span>'
         return f'<tg-spoiler>{content}</tg-spoiler>'
 
 
@@ -326,6 +341,8 @@ class Quote(EasyTextEntityWithPostRender):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without quote formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -340,17 +357,17 @@ class Quote(EasyTextEntityWithPostRender):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, expandable: bool = False, end: str = "\n", escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
+    def __init__(self, *content, expandable: bool = False, end: str = "\n", escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
         self._expandable: bool = expandable
         self._end: str = end
-        super().__init__(*content, escape=escape, sep=sep)
+        super().__init__(*content, escape=escape, sep=sep, enabled=enabled)
 
     def _render_markdown(self, content: str) -> str:
         return telebot.formatting.mcite(content, escape=False, expandable=self._expandable)
 
     def _render_html(self, content: str) -> str:
         return telebot.formatting.hcite(content, escape=False, expandable=self._expandable)
-    
+
     def _post_render(self, rendered: str) -> str:
         return rendered + self._end if self._end else rendered
 
@@ -401,10 +418,10 @@ class Raw(TextEntity):
 
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
-    
+
     def __init__(self, *content, sep: Union[str, "TextEntity", "Template"] = ""):
         super().__init__(*content, escape=False, sep=sep)
-    
+
 
 class Link(EasyTextEntity):
     """
@@ -425,6 +442,8 @@ class Link(EasyTextEntity):
 
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without link formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -434,7 +453,7 @@ class Link(EasyTextEntity):
         >>> Link("Open site", url="https://example.com").markdown
         "[Open site](https://example.com)"
 
-        >>> Link("Open site", url="https://example.com").none  
+        >>> Link("Open site", url="https://example.com").none
         "Open site (https://example.com)"
 
         sender.set_text(Link(Bold("Telekit on GitHub"), url="https://github.com/Romashkaa/telekit"))
@@ -442,19 +461,19 @@ class Link(EasyTextEntity):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, url: str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
+    def __init__(self, *content, url: str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
         self._url: str = url
-        super().__init__(*content, escape=escape, sep=sep)
+        super().__init__(*content, escape=escape, sep=sep, enabled=enabled)
 
     def _render_markdown(self, content: str) -> str:
         return f"[{content}]({self._url})"
 
     def _render_html(self, content: str) -> str:
         return f'<a href="{self._url}">{content}</a>'
-    
+
     def _render_none(self, content: str) -> str:
         return f"{content} ({self._url})"
-    
+
 
 class Mention(Link):
     """
@@ -470,6 +489,8 @@ class Mention(Link):
         Defaults to ``True``.
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without mention link formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -484,10 +505,10 @@ class Mention(Link):
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
-    def __init__(self, *content, user_id: int | str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
+    def __init__(self, *content, user_id: int | str, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
         url: str = telekit.utils.make_mention(user_id)
-        super().__init__(*content, url=url, escape=escape, sep=sep)
-    
+        super().__init__(*content, url=url, escape=escape, sep=sep, enabled=enabled)
+
 
 class UserLink(Link):
     """
@@ -505,6 +526,8 @@ class UserLink(Link):
         Defaults to ``True``.
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without user link formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -516,10 +539,10 @@ class UserLink(Link):
 
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
-    def __init__(self, *content, username: str, text: str | None = None, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
-        url: str = telekit.utils.make_user_link(username, text)
 
-        super().__init__(*content, url=url, escape=escape, sep=sep)
+    def __init__(self, *content, username: str, text: str | None = None, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
+        url: str = telekit.utils.make_user_link(username, text)
+        super().__init__(*content, url=url, escape=escape, sep=sep, enabled=enabled)
 
 
 class BotLink(Link):
@@ -537,6 +560,8 @@ class BotLink(Link):
         Defaults to ``True``.
     :param sep: Separator inserted between multiple content elements.
         Defaults to ``""``.
+    :param enabled: If falsy, renders content without bot link formatting.
+        Defaults to ``True``.
 
     Examples::
 
@@ -548,11 +573,11 @@ class BotLink(Link):
 
     `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
-    
-    def __init__(self, *content, username: str, start: str | None = None, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = ""):
-        url: str = telekit.utils.make_bot_link(username, start)
 
-        super().__init__(*content, url=url, escape=escape, sep=sep)
+    def __init__(self, *content, username: str, start: str | None = None, escape: bool = True, sep: Union[str, "TextEntity", "Template"] = "", enabled: bool | Any = True):
+        url: str = telekit.utils.make_bot_link(username, start)
+        super().__init__(*content, url=url, escape=escape, sep=sep, enabled=enabled)
+
 
 class EncodeURL(StaticTextEntity):
     """
@@ -573,7 +598,8 @@ class EncodeURL(StaticTextEntity):
 
     def _render_any(self, content: str) -> str:
         return quote(content, safe="")
-    
+
+
 class Stack(TextEntity):
     """
     Renders a list of items as a formatted stack with a customizable prefix per line.
@@ -589,20 +615,16 @@ class Stack(TextEntity):
         Example::
 
             >>> Stack("A", "B", start="- {{index}}. ").html
-            ```
             \"""
             - 1. A
             - 2. B
             \"""
-            ```
 
             >>> Stack("A", "B", start=Stack.Markers.DOT).html
-            ```
             \"""
             • A
             • B
             \"""
-            ```
 
     :param sep: Separator appended at the end of each item except the last.
         Defaults to ``"\\n"``.
@@ -610,13 +632,11 @@ class Stack(TextEntity):
         Example::
 
             >>> Stack("A", "B", "C", sep=";\\n").html
-            ```
             \"""
             1. A;
             2. B;
             3. C
             \"""
-            ```
 
     :param end: Appended after the last item, e.g. a closing punctuation mark.
         Defaults to ``""``.
@@ -624,42 +644,36 @@ class Stack(TextEntity):
         Example::
 
             >>> Stack("A", "B", end=".").none
-            ```
             \"""
             1. A
             2. B.
             \"""
-            ```
 
     :param escape: Whether to escape HTML/Markdown special characters in plain string content.
+        Defaults to ``True``.
+    :param enabled: If falsy, renders content without stack formatting.
         Defaults to ``True``.
 
     Examples::
 
         Stack("Buy milk", "Walk the dog", "Read a book").html
-        ```
         \"""
         1. Buy milk
         2. Walk the dog
         3. Read a book
         \"""
-        ```
 
         Stack("Buy milk", "Walk the dog", start=Stack.Markers.CHECK).html
-        ```
         \"""
         ✓ Buy milk
         ✓ Walk the dog
         \"""
-        ```
 
         Stack("Step one", "Step two", sep=";\\n", end=".").html
-        ```
         \"""
         1. Step one;
         2. Step two.
         \"""
-        ```
 
         sender.set_text(Stack("Item 1", "Item 2", "Item 3"))
 
@@ -683,13 +697,18 @@ class Stack(TextEntity):
         CHECK = "✓ "
         CROSS = "✕ "
 
-    def __init__(self, *content, start: str = "{{index}}. ", sep: Union[str, "TextEntity", "Template"] = "\n", end: Union[str, "TextEntity", "Template"] = "", escape: bool = True):
+    def __init__(self, *content, start: str = "{{index}}. ", sep: Union[str, "TextEntity", "Template"] = "\n", end: Union[str, "TextEntity", "Template"] = "", escape: bool = True, enabled: bool | Any = True):
         self._start = start
         self._end = end
-
-        super().__init__(*content, escape=escape, sep=sep)
+        super().__init__(*content, escape=escape, sep=sep, enabled=enabled)
 
     def _render_content(self, parse_mode: None | Literal['html'] | Literal['markdown']) -> str:
+        if not self._enabled:
+            # render content without stack formatting
+            end: str = self._render_item(self._end, parse_mode)
+            content = super()._render_content(parse_mode)
+            return f"\n{content}{end}\n"
+        
         stack: list[str] = []
 
         for index, item in enumerate(self._content, start=1):
@@ -703,11 +722,13 @@ class Stack(TextEntity):
 
         sep: str = self._render_item(self._separator, parse_mode)
         end: str = self._render_item(self._end, parse_mode)
+        
+        content: str = sep.join(stack)
 
-        return "\n" + sep.join(stack) + end + "\n"
+        return f"\n{content}{end}\n"
+
 
 class Styles:
-
     """
     Namespace for message formatting styles:
 
@@ -718,8 +739,8 @@ class Styles:
 
     Pass it as a style object to the `sender`:
     >>> sender.set_text(Styles.Bold("Hello"))
-    
-    [Documentation](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md) · on GitHub
+
+    `Documentation <https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md>`_ · on GitHub
     """
 
     Bold: type[TextEntity] = Bold
@@ -737,6 +758,3 @@ class Styles:
     UserLink: type[TextEntity] = UserLink
     BotLink: type[TextEntity] = BotLink
     Group: type[TextEntity] = Group
-
-
-    

@@ -449,6 +449,8 @@ class CallbackButton(InlineButton):
                     self._answer_text,
                     self._answer_as_alert
                 )
+            else:
+                InlineButton._bot.answer_callback_query(call.id)                
 
         def __call__(self, call: CallbackQuery):
             self._invoke_chain_callback()

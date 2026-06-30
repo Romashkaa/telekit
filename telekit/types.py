@@ -28,28 +28,11 @@ from ._user import User
 from .dices import *
 
 from ._inline_keyboard import InlineKeyboard
-from ._inline_buttons import (
-    ButtonStyle,
-    InlineButton, 
-    LinkButton, WebAppButton, 
-    CopyTextButton, SuggestButton, 
-    CallbackButton, 
-    AlertButton,
-    NotificationButton,
-    InvokeButton,
-    StaticButton,
-)
+from ._inline_buttons import *
 from ._reply_keyboard import ReplyKeyboard
-from .reply_buttons import (
-    ReplyButton,
-    TextButton,
-    ContactButton,
-    LocationButton,
-    PollButton,
-    WebAppReplyButton,
-    RequestUserButton,
-    RequestChatButton,
-)
+from .reply_buttons import *
+from ._text_builder import TextBuilder
+from .styles import *
 
 
 from .styles import Styles, TextEntity, StaticTextEntity, EasyTextEntity
@@ -92,6 +75,7 @@ __all__ = [
     "TextEntity",
     "StaticTextEntity",
     "EasyTextEntity",
+    "TextBuilder",
     
     # Enums
     "ChatAction",
@@ -229,3 +213,24 @@ class TextDocument:
     @property
     def size(self) -> int | None:
         return self.document.file_size
+
+class Markers:
+    LINE = "-"
+    DOT = "•"
+    TRIANGLE = "‣"
+    TRIANGLE_BIG = "▸"
+    TRIANGLE_OUTLINE = "›"
+    ARROW = "→"
+    ARROW_R = ARROW
+    ARROW_L = "←"
+    ARROW_D = "↓"
+    ARROW_U = "↑"
+    FINGER = "☞"
+    BACK = "«"
+    NEXT = "»"
+    STAR = "★"
+    STAR_OUTLINE = "☆"
+    CHECK = "✓"
+    CROSS = "✕"
+    RESTART = "↺"
+    QUESTION = "？"

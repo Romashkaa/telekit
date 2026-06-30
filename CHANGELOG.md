@@ -20,3 +20,15 @@
 - `Handler.handlers_dict` now excludes private handlers (classes whose names start with `_`).
 - Added `Debug.duplicate_handler_warnings` to warn about duplicate handler names during initialization.
 - Added `Handler.chat` object (BETA)
+
+### v2.5.0`b3`
+- Added `utils.Markers` class
+- Added `HTMLText` class for handling Telegram HTML strings with tag-aware indexing and slicing.
+- Added `PaginatedText` trait for displaying long HTML text in a paginated format, supporting navigation and smart splitting.
+- Added `__radd__` to `TextEntity`: `"Regular" + Bold(" and Bold")`
+- Added `__mul__` to `TextEntity`: `Bold("Text") * 3`
+- Added `enabled=` parameter to `TextEntity`: `Bold("bold text", enabled=is_text_bold)`
+- Added `TextBuilder` class – a fluent message composition API mirroring `InlineKeyboard`'s builder pattern
+- Added styles to `telekit.types`
+- Added `utils.CyclicList`
+- Fixed `_answer_callback_query` to always call `bot.answer_callback_query()`, even without a popup text

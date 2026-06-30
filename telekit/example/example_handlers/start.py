@@ -31,7 +31,10 @@ class StartHandler(telekit.Handler):
                 
                 "🖼️ QR Editor":               "QRHandler",
                 "📆 Calendar":          "CalendarHandler",
-            }, row_width=[3, 1, 3, 2]
+
+                "📜 Article":            "ArticleHandler",
+                "🛠️ Style":              "StyleHandler",
+            }, row_width=[3, 1, 3, 2, 2]
         )
         def handle_response(handler: str):
             self.handoff(handler).handle()

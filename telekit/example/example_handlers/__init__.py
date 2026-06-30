@@ -14,4 +14,6 @@ from . import (
     text_document,
     qr,
     calendar,
+    article,
+    style,
 )

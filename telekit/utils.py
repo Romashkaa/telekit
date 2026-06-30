@@ -5,6 +5,8 @@ from pathlib import Path
 from urllib.parse import urlencode, quote
 from typing import Literal, Any, Iterable
 
+from .html_text import HTMLText
+
 ROOT_DIR = Path(__file__).resolve().parent  # telekit/
 
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -467,6 +469,26 @@ def make_qrcode(
 
     return "https://quickchart.io/qr?" + urlencode(params, quote_via=quote)
 
+    
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Tools
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+
+class CyclicList:
+    def __init__(self, *items):
+        self._items = list(items)
+
+    def __getitem__(self, index: int):
+        return self._items[index % len(self._items)]
+
+    def __len__(self):
+        return len(self._items) # float("inf")   ;)
+
+    def __repr__(self):
+        return f"CyclicList({self._items})"
+
+    
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 # Markdown Sanitizing
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
