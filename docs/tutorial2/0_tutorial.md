@@ -30,6 +30,8 @@ This guide will help you quickly get familiar with the library and understand it
     - [Handoff](./11_handoff.md)
     - [Traits](./10_traits.md)
         - [Creating Traits](./10_2_creating_traits.md)
+    - User
+    - Chat
     - Handler Summary
 - Scheduler
 - Utils

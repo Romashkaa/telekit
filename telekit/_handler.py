@@ -107,7 +107,7 @@ class Handler:
     def __init__(self, message: Message):
         self.message: Message = message
         self.user = User(self.message)
-        self.chat = Chat(self.message.chat.id, self.message.message_thread_id)
+        self.chat = Chat(self.message.chat.id, self.message.message_thread_id, self.message)
         self.new_chain()
 
     def handle(self) -> Any:
