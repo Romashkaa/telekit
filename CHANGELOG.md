@@ -32,3 +32,6 @@
 - Added styles to `telekit.types`
 - Added `utils.CyclicList`
 - Fixed `_answer_callback_query` to always call `bot.answer_callback_query()`, even without a popup text
+
+### v2.5.0`rc2`
+- Refactor `CalendarPick` trait to use `set_keyboard`

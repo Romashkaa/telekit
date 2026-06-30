@@ -49,8 +49,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 import telekit
-from telekit.inline_buttons import StaticButton
-from telekit.utils import compose_keyboard
+from telekit.types import InlineKeyboard
 
 __all__ = ["CalendarPick"]
 
@@ -69,38 +68,6 @@ _CAL = calendar.Calendar(firstweekday=0)
 
 # Number of years shown per page in the decade picker.
 _DECADE_SIZE = 10
-
-
-# ---------------------------------------------------------------------------
-# Navigation sentinels
-# ---------------------------------------------------------------------------
-
-class _ToMonth:
-    """Carries a ``(year, month)`` destination for a nav-button press."""
-
-    __slots__ = ("year", "month")
-
-    def __init__(self, year: int, month: int) -> None:
-        self.year  = year
-        self.month = month
-
-
-class _ToYear:
-    """Carries a ``year`` destination for a nav-button press in the year picker."""
-
-    __slots__ = ("year",)
-
-    def __init__(self, year: int) -> None:
-        self.year = year
-
-
-class _ToDecadePage:
-    """Carries the first year of a decade page for the decade picker."""
-
-    __slots__ = ("first_year",)
-
-    def __init__(self, first_year: int) -> None:
-        self.first_year = first_year
 
 
 # ---------------------------------------------------------------------------
@@ -311,33 +278,64 @@ class CalendarPick(telekit.Trait):
 
         # locked_month overrides everything — jump straight to day picker.
         if locked_month:
-            self._month_view(*locked_month, ctx=ctx)
+            self.__calendar_pick_month_view(*locked_month, ctx=ctx)
             return
 
         # locked_year — open that year's month grid.
         if locked_year is not None:
-            self._year_view(ctx.clamp_year(locked_year), ctx=ctx)
+            self.__calendar_pick_year_view(ctx.clamp_year(locked_year), ctx=ctx)
             return
 
         # Explicit month initial.
         if isinstance(initial, datetime.date):
-            self._month_view(ctx.clamp_year(initial.year), initial.month, ctx=ctx)
+            self.__calendar_pick_month_view(ctx.clamp_year(initial.year), initial.month, ctx=ctx)
             return
 
         # Explicit year initial — show month grid.
         if isinstance(initial, int):
-            self._year_view(ctx.clamp_year(initial), ctx=ctx)
+            self.__calendar_pick_year_view(ctx.clamp_year(initial), ctx=ctx)
             return
 
         # Default: current month.
         today = datetime.date.today()
-        self._month_view(ctx.clamp_year(today.year), today.month, ctx=ctx)
+        self.__calendar_pick_month_view(ctx.clamp_year(today.year), today.month, ctx=ctx)
+
+    # -----------------------------------------------------------------------
+    # Navigation guards
+    # -----------------------------------------------------------------------
+    #
+    # These re-check constraints at press time (defense in depth) before
+    # delegating to the corresponding *_view renderer — mirroring what the
+    # old centralised `_choice` dispatcher used to do.
+
+    def __calendar_pick_pick(self, date: datetime.date, *, ctx: _Ctx) -> None:
+        """Fire the user-supplied callback for *date*, if still allowed."""
+        if not ctx.date_allowed(date):
+            return
+        try:
+            ctx.on_date(date)
+        except Exception:
+            pass
+
+    def __calendar_pick_goto_month(self, year: int, month: int, *, ctx: _Ctx) -> None:
+        """Navigate to the day picker for *(year, month)*, if allowed."""
+        if ctx.month_allowed(year, month):
+            self.__calendar_pick_month_view(year, month, ctx=ctx)
+
+    def __calendar_pick_goto_year(self, year: int, *, ctx: _Ctx) -> None:
+        """Navigate to the month picker for *year*, if allowed."""
+        if ctx.year_allowed(year):
+            self.__calendar_pick_year_view(year, ctx=ctx)
+
+    def __calendar_pick_goto_decade(self, first_year: int, *, ctx: _Ctx) -> None:
+        """Navigate to the decade page starting at *first_year*."""
+        self.__calendar_pick_decade_view(first_year, ctx=ctx)
 
     # -----------------------------------------------------------------------
     # Month view  (day picker)
     # -----------------------------------------------------------------------
 
-    def _month_view(self, year: int, month: int, *, ctx: _Ctx) -> None:
+    def __calendar_pick_month_view(self, year: int, month: int, *, ctx: _Ctx) -> None:
         """
         Render the day-picker grid for *(year, month)*.
 
@@ -358,50 +356,56 @@ class CalendarPick(telekit.Trait):
         today  = datetime.date.today()
         locked = ctx.locked_month is not None
 
+        kb = InlineKeyboard()
+
         # -- Header: two separate buttons for month and year -----------------
         # Month button opens the year-view (month selector) unless fully locked.
         # Year button opens the decade picker unless year navigation is locked.
         month_label = _MONTHS[month - 1].upper()
         year_label  = str(year)
 
+        kb.row()
         if locked:
-            # Both headers are static — no navigation available at all.
-            header = {
-                month_label: StaticButton(),
-                year_label:  StaticButton(),
-            }
+            kb.add_static(month_label)
+            kb.add_static(year_label)
         else:
-            month_btn_value = _ToYear(year)
-            year_btn_value  = (
-                _ToDecadePage(_decade_start(year))
-                if ctx.locked_year is None
-                else StaticButton()
+            kb.add_callback(
+                month_label, self.__calendar_pick_goto_year,
+                pass_args=(year,), pass_kwargs={"ctx": ctx},
             )
-            header = {
-                month_label: month_btn_value,
-                year_label:  year_btn_value,
-            }
+            if ctx.locked_year is None:
+                kb.add_callback(
+                    year_label, self.__calendar_pick_goto_decade,
+                    pass_args=(_decade_start(year),), pass_kwargs={"ctx": ctx},
+                )
+            else:
+                kb.add_static(year_label)
 
         # -- Weekday labels row ----------------------------------------------
-        wd_row = {label: StaticButton() for label in _WEEKDAYS}
+        kb.row()
+        for label in _WEEKDAYS:
+            kb.add_static(label)
 
         # -- Day grid --------------------------------------------------------
-        grid:   dict[str, object] = {}
+        kb.grid(7)
         blanks = 0
-
         for week in _CAL.monthdayscalendar(year, month):
             for day in week:
                 if day == 0:
                     blanks += 1
-                    grid[_BLANK * blanks] = StaticButton()
+                    kb.add_static(_BLANK * blanks)
                 else:
-                    date  = datetime.date(year, month, day)
-                    label = f"·{day}·" if date == today else str(day)
-                    grid[label] = date
+                    date = datetime.date(year, month, day)
+                    is_today: bool = date == today
+                    label: str = f"·{day}·" if is_today else str(day)
+                    kb.add_callback(
+                        label, self.__calendar_pick_pick,
+                        pass_args=(date,), pass_kwargs={"ctx": ctx},
+                        style="danger" if is_today else None
+                    )
+        kb.grid_end()
 
         # -- Navigation row --------------------------------------------------
-        nav: dict[str, object] = {}
-
         if not locked:
             prev_y, prev_m = _shift(year, month, -1)
             next_y, next_m = _shift(year, month, +1)
@@ -416,42 +420,35 @@ class CalendarPick(telekit.Trait):
                 prev_label = "«"
                 next_label = "»"
 
-            nav[prev_label] = _ToMonth(prev_y, prev_m) if can_prev else StaticButton()
+            kb.row()
+
+            if can_prev:
+                kb.add_callback(
+                    prev_label, self.__calendar_pick_goto_month,
+                    pass_args=(prev_y, prev_m), pass_kwargs={"ctx": ctx},
+                )
+            else:
+                kb.add_static(prev_label)
 
             # Centre button: absent on the current month; otherwise leads to it.
             is_current_month = (year == today.year and month == today.month)
             if not is_current_month:
-                can_goto_current = ctx.month_allowed(today.year, today.month)
-                nav["This month"] = (
-                    _ToMonth(today.year, today.month) if can_goto_current
-                    else StaticButton()
+                if ctx.month_allowed(today.year, today.month):
+                    kb.add_callback(
+                        "This month", self.__calendar_pick_goto_month,
+                        pass_args=(today.year, today.month),
+                        pass_kwargs={"ctx": ctx},
+                    )
+                else:
+                    kb.add_static("This month")
+
+            if can_next:
+                kb.add_callback(
+                    next_label, self.__calendar_pick_goto_month,
+                    pass_args=(next_y, next_m), pass_kwargs={"ctx": ctx},
                 )
-
-            nav[next_label] = _ToMonth(next_y, next_m) if can_next else StaticButton()
-
-        # -- Inline choice handler -------------------------------------------
-
-        def _choice(value: object) -> None:
-            """
-            Dispatch a button tap to the appropriate action.
-
-            :param value: Payload attached to the tapped button.
-            """
-            if isinstance(value, datetime.date):
-                if not ctx.date_allowed(value):
-                    return
-                try:
-                    ctx.on_date(value)
-                except Exception:
-                    pass
-            elif isinstance(value, _ToMonth):
-                if ctx.month_allowed(value.year, value.month):
-                    self._month_view(value.year, value.month, ctx=ctx)
-            elif isinstance(value, _ToYear):
-                if ctx.year_allowed(value.year):
-                    self._year_view(value.year, ctx=ctx)
-            elif isinstance(value, _ToDecadePage):
-                self._decade_view(value.first_year, ctx=ctx)
+            else:
+                kb.add_static(next_label)
 
         # -- Text-entry handler ----------------------------------------------
 
@@ -490,7 +487,7 @@ class CalendarPick(telekit.Trait):
             if mo is not None:
                 if not ctx.month_allowed(y, mo):
                     return
-                self._month_view(y, mo, ctx=ctx)
+                self.__calendar_pick_month_view(y, mo, ctx=ctx)
                 return
 
             # Year typed — navigate if year nav is available.
@@ -498,21 +495,11 @@ class CalendarPick(telekit.Trait):
                 return
             if not ctx.year_allowed(y):
                 return
-            self._year_view(ctx.clamp_year(y), ctx=ctx)
+            self.__calendar_pick_year_view(ctx.clamp_year(y), ctx=ctx)
 
         # -- Compose & render ------------------------------------------------
 
-        groups = [header, wd_row, grid]
-        widths = [2, 7, 7]
-
-        if nav:
-            groups.append(nav)
-            widths.append(len(nav))     # 2 (no centre) or 3 (with centre)
-
-        self.chain.set_inline_choice(
-            _choice,
-            *compose_keyboard(*groups, widths=tuple(widths)),
-        )
+        self.chain.set_keyboard(kb)
         self.chain.set_entry_text(_entry, delete_user_response=True)
         self.chain.edit()
 
@@ -520,7 +507,7 @@ class CalendarPick(telekit.Trait):
     # Year view  (month selector for a given year)
     # -----------------------------------------------------------------------
 
-    def _year_view(self, year: int, *, ctx: _Ctx) -> None:
+    def __calendar_pick_year_view(self, year: int, *, ctx: _Ctx) -> None:
         """
         Render the month-selector grid for *year*.
 
@@ -539,27 +526,37 @@ class CalendarPick(telekit.Trait):
         """
         today = datetime.date.today()
 
+        kb = InlineKeyboard()
+
         # -- Header: year button opens decade picker if year nav is free -----
+        kb.row()
         if ctx.locked_year is not None:
-            year_header = {str(year): StaticButton()}
+            kb.add_static(str(year))
         else:
-            year_header = {str(year): _ToDecadePage(_decade_start(year))}
+            kb.add_callback(
+                str(year), self.__calendar_pick_goto_decade,
+                pass_args=(_decade_start(year),), pass_kwargs={"ctx": ctx},
+            )
 
         # -- Month grid ------------------------------------------------------
         # Current month is highlighted with centre dots when year matches today.
         # Months outside the allowed range become static (unclickable).
-        grid: dict[str, object] = {}
+        kb.grid(3)
         for i, name in enumerate(_MONTHS):
             m     = i + 1
-            label = f"·{name}·" if (year == today.year and m == today.month) else name
+            is_current = (year == today.year and m == today.month)
+            label = f"·{name}·" if is_current else name
             if ctx.month_allowed(year, m):
-                grid[label] = _ToMonth(year, m)
+                kb.add_callback(
+                    label, self.__calendar_pick_goto_month,
+                    pass_args=(year, m), pass_kwargs={"ctx": ctx},
+                    style="danger" if is_current else None
+                )
             else:
-                grid[label] = StaticButton()
+                kb.add_static(label, style="danger" if is_current else None)
+        kb.grid_end()
 
         # -- Navigation row --------------------------------------------------
-        nav: dict[str, object] = {}
-
         if ctx.locked_year is None:
             can_prev = ctx.year_allowed(year - 1)
             can_next = ctx.year_allowed(year + 1)
@@ -571,34 +568,33 @@ class CalendarPick(telekit.Trait):
                 prev_label = "«"
                 next_label = "»"
 
-            nav[prev_label] = _ToYear(year - 1) if can_prev else StaticButton()
+            kb.row()
+
+            if can_prev:
+                kb.add_callback(
+                    prev_label, self.__calendar_pick_goto_year,
+                    pass_args=(year - 1,), pass_kwargs={"ctx": ctx},
+                )
+            else:
+                kb.add_static(prev_label)
 
             # Centre button: absent on the current year; otherwise leads to it.
             if year != today.year:
-                can_goto_current = ctx.year_allowed(today.year)
-                nav["This year"] = (
-                    _ToYear(today.year) if can_goto_current
-                    else StaticButton()
+                if ctx.year_allowed(today.year):
+                    kb.add_callback(
+                        "This year", self.__calendar_pick_goto_year,
+                        pass_args=(today.year,), pass_kwargs={"ctx": ctx},
+                    )
+                else:
+                    kb.add_static("This year")
+
+            if can_next:
+                kb.add_callback(
+                    next_label, self.__calendar_pick_goto_year,
+                    pass_args=(year + 1,), pass_kwargs={"ctx": ctx},
                 )
-
-            nav[next_label] = _ToYear(year + 1) if can_next else StaticButton()
-
-        # -- Inline choice handler -------------------------------------------
-
-        def _choice(value: object) -> None:
-            """
-            Dispatch a button tap to the appropriate action.
-
-            :param value: Payload attached to the tapped button.
-            """
-            if isinstance(value, _ToMonth):
-                if ctx.month_allowed(value.year, value.month):
-                    self._month_view(value.year, value.month, ctx=ctx)
-            elif isinstance(value, _ToYear):
-                if ctx.year_allowed(value.year):
-                    self._year_view(value.year, ctx=ctx)
-            elif isinstance(value, _ToDecadePage):
-                self._decade_view(value.first_year, ctx=ctx)
+            else:
+                kb.add_static(next_label)
 
         # -- Text-entry handler ----------------------------------------------
 
@@ -636,27 +632,17 @@ class CalendarPick(telekit.Trait):
             if mo is not None:
                 if not ctx.month_allowed(y, mo):
                     return
-                self._month_view(y, mo, ctx=ctx)
+                self.__calendar_pick_month_view(y, mo, ctx=ctx)
                 return
 
             # Year typed — navigate within constraints.
             if not ctx.year_allowed(y):
                 return
-            self._year_view(ctx.clamp_year(y), ctx=ctx)
+            self.__calendar_pick_year_view(ctx.clamp_year(y), ctx=ctx)
 
         # -- Compose & render ------------------------------------------------
 
-        groups = [year_header, grid]
-        widths = [1, 3]
-
-        if nav:
-            groups.append(nav)
-            widths.append(len(nav))     # 2 (no centre) or 3 (with centre)
-
-        self.chain.set_inline_choice(
-            _choice,
-            *compose_keyboard(*groups, widths=tuple(widths)),
-        )
+        self.chain.set_keyboard(kb)
         self.chain.set_entry_text(_entry, delete_user_response=True)
         self.chain.edit()
 
@@ -664,7 +650,7 @@ class CalendarPick(telekit.Trait):
     # Decade view  (year picker — 10 years, 2 columns x 5 rows)
     # -----------------------------------------------------------------------
 
-    def _decade_view(self, first_year: int, *, ctx: _Ctx) -> None:
+    def __calendar_pick_decade_view(self, first_year: int, *, ctx: _Ctx) -> None:
         """
         Render a decade-page picker showing ten consecutive years.
 
@@ -685,21 +671,28 @@ class CalendarPick(telekit.Trait):
         today     = datetime.date.today()
         last_year = first_year + _DECADE_SIZE - 1
 
+        kb = InlineKeyboard()
+
         # -- Header ----------------------------------------------------------
-        header = {f"{first_year} – {last_year}": StaticButton()}
+        kb.row()
+        kb.add_static(f"{first_year} – {last_year}")
 
         # -- Year grid (2 x 5) -----------------------------------------------
-        grid: dict[str, object] = {}
+        kb.grid(2)
         for y in range(first_year, first_year + _DECADE_SIZE):
-            label = f"·{y}·" if y == today.year else str(y)
+            is_current = y == today.year
+            label = f"·{y}·" if is_current else str(y)
             if ctx.year_allowed(y):
-                grid[label] = _ToYear(y)
+                kb.add_callback(
+                    label, self.__calendar_pick_goto_year,
+                    pass_args=(y,), pass_kwargs={"ctx": ctx},
+                    style="danger" if is_current else None
+                )
             else:
-                grid[label] = StaticButton()
+                kb.add_static(label, style="danger" if is_current else None)
+        kb.grid_end()
 
         # -- Navigation row --------------------------------------------------
-        nav: dict[str, object] = {}
-
         if ctx.locked_year is None:
             prev_first = first_year - _DECADE_SIZE
             next_first = first_year + _DECADE_SIZE
@@ -720,31 +713,33 @@ class CalendarPick(telekit.Trait):
 
             this_decade_first = _decade_start(today.year)
 
-            nav[prev_label] = _ToDecadePage(prev_first) if can_prev else StaticButton()
+            kb.row()
+
+            if can_prev:
+                kb.add_callback(
+                    prev_label, self.__calendar_pick_goto_decade,
+                    pass_args=(prev_first,), pass_kwargs={"ctx": ctx},
+                )
+            else:
+                kb.add_static(prev_label)
 
             # Centre button: absent when already on the current decade page.
             if this_decade_first != first_year:
-                can_this = _page_reachable(this_decade_first)
-                nav["This decade"] = (
-                    _ToDecadePage(this_decade_first) if can_this
-                    else StaticButton()
+                if _page_reachable(this_decade_first):
+                    kb.add_callback(
+                        "This decade", self.__calendar_pick_goto_decade,
+                        pass_args=(this_decade_first,), pass_kwargs={"ctx": ctx},
+                    )
+                else:
+                    kb.add_static("This decade")
+
+            if can_next:
+                kb.add_callback(
+                    next_label, self.__calendar_pick_goto_decade,
+                    pass_args=(next_first,), pass_kwargs={"ctx": ctx},
                 )
-
-            nav[next_label] = _ToDecadePage(next_first) if can_next else StaticButton()
-
-        # -- Inline choice handler -------------------------------------------
-
-        def _choice(value: object) -> None:
-            """
-            Dispatch a button tap to the appropriate action.
-
-            :param value: Payload attached to the tapped button.
-            """
-            if isinstance(value, _ToYear):
-                if ctx.year_allowed(value.year):
-                    self._year_view(value.year, ctx=ctx)
-            elif isinstance(value, _ToDecadePage):
-                self._decade_view(value.first_year, ctx=ctx)
+            else:
+                kb.add_static(next_label)
 
         # -- Text-entry handler ----------------------------------------------
 
@@ -782,26 +777,16 @@ class CalendarPick(telekit.Trait):
             if mo is not None:
                 if not ctx.month_allowed(y, mo):
                     return
-                self._month_view(y, mo, ctx=ctx)
+                self.__calendar_pick_month_view(y, mo, ctx=ctx)
                 return
 
             # Year typed — navigate within constraints.
             if not ctx.year_allowed(y):
                 return
-            self._year_view(ctx.clamp_year(y), ctx=ctx)
+            self.__calendar_pick_year_view(ctx.clamp_year(y), ctx=ctx)
 
         # -- Compose & render ------------------------------------------------
 
-        groups = [header, grid]
-        widths = [1, 2]
-
-        if nav:
-            groups.append(nav)
-            widths.append(len(nav))     # 2 (no centre) or 3 (with centre)
-
-        self.chain.set_inline_choice(
-            _choice,
-            *compose_keyboard(*groups, widths=tuple(widths)),
-        )
+        self.chain.set_keyboard(kb)
         self.chain.set_entry_text(_entry, delete_user_response=True)
         self.chain.edit()

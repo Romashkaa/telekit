@@ -3,4 +3,4 @@
 # PyPI history: https://pypi.org/project/telekit/#history
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-__version__ = "2.5.0rc1"
+__version__ = "2.5.0rc2"
