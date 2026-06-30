@@ -18,6 +18,7 @@ Examples are intentionally minimal: you can copy them, modify them, or use them 
 | [Dialogue](dialogue.md)   | Simple text-based dialogue flow | `on.regexp`, `set_entry_text` |
 | 🌟 [Risk Game](risk_game.md) | Interactive game | `set_inline_keyboard`, `set_remove_inline_keyboard`, `set_remove_timeout`, `set_default_timeout`, `on.command` |
 | 🌟 [Counter](counter.md) | Counter with buttons "+" and "-" | `set_photo`, `set_effect`, `set_keyboard`, `add_callback`, `row`, `set_remove_inline_keyboard`, `sender.set_remove_attachments`, `sender.set_remove_text`, `style=`, `ButtonStyle` |
+| 🌟 [Style Configurator](style_config.md) | Toggle Bold, Italic, Link, and Quote formatting on and off with inline buttons | `Group`, `Bold`, `Italic`, `Link`, `Quote`, `enabled=`, `set_keyboard`, `grid`, `grid_end`, `add_callback` |
 | [On Text](on_text.md) | Example of handling specific templated messages | `on.text`, `on.command`, `user`, `first_name`, `Code`, `Italic`, `set_entry_suggestions`,  |
 | [Append](append_method.md) | Appending messages with timeout control | `append`, `set_timeout`, `Sanitize`, `Quote`, `set_remove_text` |
 | 🌟 [Calendar](calendar.md) | Calendar picker example: a bot lets the user select a date and calculates how far it is from today | `CalendarPick`, `calendar_pick`, `set_inline_keyboard` |
