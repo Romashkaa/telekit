@@ -28,7 +28,9 @@
 }
 ```
 
+## Contents
 
-- [Integration »](12_telekit_dsl_integration.md)
-- [Learn Syntax »](13_telekit_dsl_syntax.md)
-- [Examples »](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl)
+1. [DSL Handler](12_telekit_dsl_integration.md) – Integrate Telekit DSL into your Python bot
+2. [Instance-based DSL Handler](./instance_dsl_handler.md) – Execute DSL scripts with isolated per-instance state
+3. [Syntax](13_telekit_dsl_syntax.md) – Complete language reference
+4. [Examples](https://github.com/Romashkaa/telekit/blob/main/docs/examples/examples.md#telekit-dsl) –  Ready-to-use DSL examples
