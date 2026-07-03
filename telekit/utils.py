@@ -493,148 +493,213 @@ class CyclicList:
 # Markdown Sanitizing
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-# All special chars that must be escaped in MarkdownV2
-_SPECIAL = r'_*[]()~`>#+-=|{}.!' 
+import re
+
+
+class TelegramMarkdownV2Sanitizer:
+    """
+    Soft parser/sanitizer for Telegram MarkdownV2.
+
+    Idea: scan the text left to right, recognize valid (i.e. correctly
+    CLOSED) markup tags (*bold*, _italic_, __underline__,
+    ~strike~, ||spoiler||, `code`, ```pre```, [text](url), >quote),
+    recursively sanitize their content and leave the markup unescaped.
+
+    If a matching closing token is not found, the character is
+    treated as plain text and escaped.
+    """
+
+    # Characters that MarkdownV2 requires to be escaped in plain text
+    ESCAPE_SPECIAL = r'_*[]()~`>#+-=|{}.!'
+
+    def sanitize(self, text: str) -> str:
+        return self._parse(text)
+
+    # ---------- helper methods ----------
+
+    def _escape_literal(self, ch: str) -> str:
+        if ch == '\\':
+            return '\\\\'
+        if ch in self.ESCAPE_SPECIAL:
+            return '\\' + ch
+        return ch
+
+    def _escape_plain_run(self, s: str) -> str:
+        return ''.join(self._escape_literal(c) for c in s)
+
+    def _escape_code(self, s: str) -> str:
+        # Inside code/pre only backslash and backtick need escaping
+        return s.replace('\\', '\\\\').replace('`', '\\`')
+
+    def _find_closing(self, s: str, start: int, token: str) -> int:
+        """
+        Finds the nearest UNescaped occurrence of token, skipping
+        escape sequences and inline/block code spans (their content
+        is considered "foreign territory" and cannot close an outer tag).
+        """
+        i = start
+        n = len(s)
+        tlen = len(token)
+        while i < n:
+            c = s[i]
+            if c == '\\' and i + 1 < n:
+                i += 2
+                continue
+            if s[i:i + 3] == '```':
+                end = s.find('```', i + 3)
+                i = end + 3 if end != -1 else n
+                continue
+            if c == '`':
+                end = s.find('`', i + 1)
+                i = end + 1 if end != -1 else n
+                continue
+            if s[i:i + tlen] == token:
+                return i
+            i += 1
+        return -1
+
+    # ---------- main parser ----------
+
+    def _parse(self, s: str) -> str:
+        out = []
+        i = 0
+        n = len(s)
+
+        while i < n:
+            c = s[i]
+
+            # 1. Already escaped character - leave as is
+            if c == '\\':
+                if i + 1 < n and (s[i + 1] in self.ESCAPE_SPECIAL or s[i + 1] == '\\'):
+                    out.append('\\' + s[i + 1])
+                    i += 2
+                else:
+                    # "bare" backslash at the end of the string or before a non-special char
+                    out.append('\\\\')
+                    i += 1
+                continue
+
+            # 2. Code block ```...```
+            if s[i:i + 3] == '```':
+                end = s.find('```', i + 3)
+                if end != -1 and end > i + 3:
+                    inner = s[i + 3:end]
+                    out.append('```' + self._escape_code(inner) + '```')
+                    i = end + 3
+                    continue
+                out.append(self._escape_literal(c))
+                i += 1
+                continue
+
+            # 3. Inline code `...`
+            if c == '`':
+                end = s.find('`', i + 1)
+                if end != -1 and end > i + 1:
+                    inner = s[i + 1:end]
+                    out.append('`' + self._escape_code(inner) + '`')
+                    i = end + 1
+                    continue
+                out.append(self._escape_literal(c))
+                i += 1
+                continue
+
+            # 4. Link [text](url)
+            if c == '[':
+                m = re.match(r'\[((?:[^\[\]\\]|\\.)*)\]\(((?:[^()\\]|\\.)*)\)', s[i:])
+                if m:
+                    inner_text = self._parse(m.group(1))
+                    url = m.group(2).replace('\\', '\\\\').replace(')', '\\)')
+                    out.append('[' + inner_text + '](' + url + ')')
+                    i += m.end()
+                    continue
+                out.append(self._escape_literal(c))
+                i += 1
+                continue
+
+            # 5. Spoiler ||...||
+            if s[i:i + 2] == '||':
+                close = self._find_closing(s, i + 2, '||')
+                if close != -1 and close > i + 2:
+                    out.append('||' + self._parse(s[i + 2:close]) + '||')
+                    i = close + 2
+                    continue
+                out.append(self._escape_literal('|'))
+                i += 1
+                continue
+
+            # 6. Underline __...__
+            if s[i:i + 2] == '__':
+                close = self._find_closing(s, i + 2, '__')
+                if close != -1 and close > i + 2:
+                    out.append('__' + self._parse(s[i + 2:close]) + '__')
+                    i = close + 2
+                    continue
+                out.append(self._escape_literal('_'))
+                i += 1
+                continue
+
+            # 7. Legacy **bold** (from markdown, if not adapted) -> single *
+            if s[i:i + 2] == '**':
+                close = self._find_closing(s, i + 2, '**')
+                if close != -1 and close > i + 2:
+                    out.append('*' + self._parse(s[i + 2:close]) + '*')
+                    i = close + 2
+                    continue
+                out.append(self._escape_literal('*'))
+                i += 1
+                continue
+
+            # 8. Bold *...*
+            if c == '*':
+                close = self._find_closing(s, i + 1, '*')
+                if close != -1 and close > i + 1:
+                    out.append('*' + self._parse(s[i + 1:close]) + '*')
+                    i = close + 1
+                    continue
+                out.append(self._escape_literal(c))
+                i += 1
+                continue
+
+            # 9. Italic _..._
+            if c == '_':
+                close = self._find_closing(s, i + 1, '_')
+                if close != -1 and close > i + 1:
+                    out.append('_' + self._parse(s[i + 1:close]) + '_')
+                    i = close + 1
+                    continue
+                out.append(self._escape_literal(c))
+                i += 1
+                continue
+
+            # 10. Strikethrough ~...~
+            if c == '~':
+                close = self._find_closing(s, i + 1, '~')
+                if close != -1 and close > i + 1:
+                    out.append('~' + self._parse(s[i + 1:close]) + '~')
+                    i = close + 1
+                    continue
+                out.append(self._escape_literal(c))
+                i += 1
+                continue
+
+            # 11. Quote > (only at the start of a line)
+            if c == '>' and (i == 0 or s[i - 1] == '\n'):
+                end = s.find('\n', i)
+                end = end if end != -1 else n
+                out.append('>' + self._parse(s[i + 1:end]))
+                i = end
+                continue
+
+            # 12. Regular character
+            out.append(self._escape_literal(c))
+            i += 1
+
+        return ''.join(out)
+
 
 def sanitize_markdown(text: str) -> str:
-    result = []
-    i = 0
-
-    while i < len(text):
-        # Already escaped sequence — pass through as-is
-        if text[i] == '\\' and i + 1 < len(text) and text[i+1] in _SPECIAL:
-            result.append(text[i:i+2])
-            i += 2
-            continue
-
-        # Code block ```...```
-        if text[i:i+3] == '```':
-            end = text.find('```', i + 3)
-            if end != -1:
-                result.append(text[i:end+3])
-                i = end + 3
-                continue
-
-        # Inline code `...`
-        if text[i] == '`':
-            end = text.find('`', i + 1)
-            if end != -1:
-                result.append(text[i:end+1])
-                i = end + 1
-                continue
-
-        # Bold+italic ***...***
-        if text[i:i+3] == '***':
-            end = text.find('***', i + 3)
-            if end != -1:
-                result.append(text[i:end+3])
-                i = end + 3
-                continue
-
-        # Bold **...** (standard md — should be gone after adapt_markdown)
-        if text[i:i+2] == '**':
-            end = text.find('**', i + 2)
-            if end != -1:
-                result.append(text[i:end+2])
-                i = end + 2
-                continue
-
-        # Bold *...* (tg)
-        if text[i] == '*':
-            end = i + 1
-            while end < len(text):
-                if text[end] == '\\' and end + 1 < len(text) and text[end+1] in _SPECIAL:
-                    end += 2
-                    continue
-                if text[end] == '*':
-                    break
-                end += 1
-            if end < len(text):
-                result.append(text[i:end+1])
-                i = end + 1
-                continue
-
-        # Underline+italic ___...___
-        if text[i:i+3] == '___':
-            end = text.find('___', i + 3)
-            if end != -1:
-                result.append(text[i:end+3])
-                i = end + 3
-                continue
-
-        # Underline __...__
-        if text[i:i+2] == '__':
-            end = text.find('__', i + 2)
-            if end != -1:
-                result.append(text[i:end+2])
-                i = end + 2
-                continue
-
-        # Italic _..._
-        if text[i] == '_':
-            end = i + 1
-            while end < len(text):
-                if text[end] == '\\' and end + 1 < len(text) and text[end+1] in _SPECIAL:
-                    end += 2
-                    continue
-                if text[end] == '_':
-                    break
-                end += 1
-            if end < len(text):
-                result.append(text[i:end+1])
-                i = end + 1
-                continue
-
-        # Strikethrough ~~...~~
-        if text[i:i+2] == '~~':
-            end = text.find('~~', i + 2)
-            if end != -1:
-                result.append(text[i:end+2])
-                i = end + 2
-                continue
-
-        # Strikethrough ~...~ (tg)
-        if text[i] == '~':
-            end = text.find('~', i + 1)
-            if end != -1:
-                result.append(text[i:end+1])
-                i = end + 1
-                continue
-
-        # Spoiler ||...||
-        if text[i:i+2] == '||':
-            end = text.find('||', i + 2)
-            if end != -1:
-                result.append(text[i:end+2])
-                i = end + 2
-                continue
-
-        # Link [text](url)
-        if text[i] == '[':
-            m = re.match(r'\[(.+?)\]\((.+?)\)', text[i:])
-            if m:
-                result.append(m.group(0))
-                i += m.end()
-                continue
-
-        # Blockquote > (only at start of line)
-        if text[i] == '>' and (i == 0 or text[i-1] == '\n'):
-            end = text.find('\n', i)
-            end = end if end != -1 else len(text)
-            result.append(text[i:end])
-            i = end
-            continue
-
-        # Plain special char — escape it
-        if text[i] in _SPECIAL:
-            result.append('\\' + text[i])
-            i += 1
-            continue
-
-        result.append(text[i])
-        i += 1
-
-    return ''.join(result)
+    """Backward-compatible wrapper function."""
+    return TelegramMarkdownV2Sanitizer().sanitize(text)
 
 def adapt_markdown(text: str) -> str:
     """
