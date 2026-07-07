@@ -17,6 +17,7 @@
 - [Template Variables](#template-variables)
     - [Available Variables](#available-variables)
     - [Custom Static Variables](#custom-static-variables)
+        - [Random Static Variables](#random-static-variables)
     - [Custom Dynamic Variables](#custom-dynamic-variables)
     - [Default Values](#default-values)
     - [Variable Resolution Order](#variable-resolution-order)
@@ -603,6 +604,25 @@ When used in a template, lists and other non-string values are automatically con
 ```js
 title = "{{AMENITIES}}" // title = '["Wi-Fi", "Breakfast", "Parking"]'
 ```
+
+#### Random Static Variables
+
+If a static variable holds a **string or list**, you can retrieve a random element from it using the `random_` prefix:
+
+```js
+$ vars {
+    AMENITIES = ["Wi-Fi", "Breakfast", "Parking"]
+    GREETING = "Welcome!"
+}
+
+@ main {
+    message = "Enjoy our {{random_AMENITIES}}!" // picks one random item, e.g. "Breakfast"
+}
+```
+
+- `{{random_VAR_NAME}}` resolves to a randomly chosen element from `VAR_NAME` if it's a `str` or `list`.
+- If `VAR_NAME` is not a sequence (e.g. a number), the value is returned as-is, without random selection.
+- This is useful for varying dialogue lines, tips, or flavor text without writing custom Python logic.
 
 ### Custom Dynamic Variables
 

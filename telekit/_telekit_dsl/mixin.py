@@ -18,7 +18,7 @@
 # 
 
 import jinja2
-import re, json, copy
+import re, json, copy, random
 from typing import NoReturn, Callable, Any, Literal
 
 import telekit
@@ -715,10 +715,20 @@ class DSLHandler(telekit.Handler):
 
         if isinstance(value, str):
             return value
+
+    GET_RANDOM_PREFIX = "random_"
         
     def _get_static_var(self, name: str) -> str | None:
-        value = self.script_data.static_vars.get(name)
-        return None if value is None else str(value)
+        if name.startswith(self.GET_RANDOM_PREFIX):
+            name = name[len(self.GET_RANDOM_PREFIX):]
+            seq = self.script_data.static_vars.get(name)
+            if isinstance(seq, (str, list, tuple)):
+                return str(random.choice(seq))
+            else:
+                return str(seq)
+        else:
+            value = self.script_data.static_vars.get(name)
+            return None if value is None else str(value)
     
     def _get_default_var(self, name: str):
         match name:

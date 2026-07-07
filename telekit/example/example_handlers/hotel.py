@@ -58,10 +58,11 @@ script = """
 $ vars {
     ECONOM_PRICE = 50
     COMFORT_PRICE = 120
+    NAME = ["Telekit", "Budapest", "Theft"]
 }
 
 @ main {
-    title = "🏨 Grand Telekit Hotel"
+    title = "🏨 Grand {{random_NAME}} Hotel"
     message = "Welcome, {{first_name}}! Choose your experience and explore our rooms."
     
     buttons (2) {

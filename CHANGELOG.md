@@ -1,3 +1,6 @@
+### v2.5.2
+- Add `random_` variable prefix in `DSLHandler` — resolves to a random choice from a `list`/`tuple`/`str` static variable
+
 ### v2.5.1 `(bug-fix)`
 - Implement `TelegramMarkdownV2Sanitizer` for improved `MarkdownV2` handling
 
