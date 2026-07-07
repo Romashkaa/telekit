@@ -618,7 +618,7 @@ class DSLHandler(telekit.Handler):
 
         return render
 
-    def _filter_entry(self, _, text: str):
+    def _filter_entry(self, text: str):
         scene = self.script_data.get_current_scene()
 
         if text in scene.get("entries", {}): 
@@ -628,7 +628,7 @@ class DSLHandler(telekit.Handler):
         
         return False
 
-    def _handle_entry(self, _, text: str):
+    def _handle_entry(self, text: str):
         scene_name = self.script_data.get_current_scene_name()
         scene = self.script_data.scenes[scene_name]
 
