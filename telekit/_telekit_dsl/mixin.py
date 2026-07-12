@@ -794,7 +794,7 @@ class DSLHandler(telekit.Handler):
 
             value = self._get_variable(var_name)
 
-            if value:
+            if value is not None:
                 return Escape(value).render(parse_mode)
             elif default:
                 return Escape(default).render(parse_mode)

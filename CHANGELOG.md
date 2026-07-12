@@ -1,6 +1,7 @@
-### v2.5.3
+### v2.5.4 `(bug-fix)`
+- Fix: Update condition to check for `None` instead of truthy value in `DSLHandler`
+### v2.5.3 `(bug-fix)`
 - Fix: Remove `_` parameters from `_filter_entry` and `_handle_entry` methods in `DSLHandler`
-
 ### v2.5.2
 - Add `random_` variable prefix in `DSLHandler` — resolves to a random choice from a `list`/`tuple`/`str` static variable
 
