@@ -41,17 +41,16 @@ Telekit comes with a [built-in DSL](https://github.com/Romashkaa/telekit/blob/ma
 
 > See the [full example](https://github.com/Romashkaa/telekit/blob/main/docs/examples/complete_hotel.md)
 
-Even in its beta stage, Telekit accelerates bot development, offering typed **command parameters**, **text styling** via `Bold()`, `Italic()`, a built-in declarative **calendar picker**, emoji **game results** for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
+Even in its beta stage, Telekit accelerates bot development, offering typed **command parameters**, **text styling** via `Bold()`, `Italic()`, a built-in declarative **calendar picker** (!), emoji **game results** for `🎲 🎯 🏀 ⚽ 🎳 🎰`, and much more out of the box. Its declarative design makes bots easier to read, maintain, and extend.
 
 **Key features:**  
-- Declarative bot logic with **chains** for effortless handling of complex conversations
-- [Ready-to-use DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for FAQs and other interactive scripts
-- Automatic handling of [message formatting](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md) via [Sender](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/5_senders.md) and **callback routing**
-- **Deep Linking** support with type-checked [Command Parameters](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/command_trigger_parameters.md) for flexible user input
-- Built-in **Permission** and **Logging** system for user management
-- Reusable **Traits** system for pluggable, self-contained behavior modules
-- Seamless integration with [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
-- Fast to develop and easy-to-extend code
+- **Chains** handle complex conversations without state machines
+- [Ready-to-use DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for FAQs and interactive scripts
+- Automatic [message formatting](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md) via [Sender](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/5_senders.md) and **callback routing**
+- **Deep Linking** with type-checked [Command Parameters](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/command_trigger_parameters.md)
+- Built-in **Permission** and **Logging** system
+- Reusable **Traits** for pluggable behavior modules
+- Works with [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
 
 [GitHub](https://github.com/Romashkaa/telekit)
 [PyPI](https://pypi.org/project/telekit/)
@@ -72,9 +71,7 @@ Even in its beta stage, Telekit accelerates bot development, offering typed **co
 
 ## Overview
 
-**Telekit** is a library for building Telegram bots where dialogs look like normal method calls. No bulky state machines. No scattered handlers.
-
-The idea is simple: you point to the next step — Telekit calls it when the user replies.
+In **Telekit**, dialogs read like normal method calls. You point to the next step. Telekit calls it when the user replies.
 
 ### Entries
 
@@ -91,13 +88,13 @@ def handle_name(self, name: str):
     self.chain.send()
 ```
 
-The `handle` method sends a message and registers `handle_name` as the next step using `set_entry_text`. When the user replies, Telekit automatically calls `handle_name` and passes the user's message as a plain `str` argument.
+`handle` sends a message and registers `handle_name` as the next step with `set_entry_text`. When the user replies, Telekit calls `handle_name` and passes the reply as a plain `str`.
 
 > That's it. No enums. No manual state tracking. No boilerplate.
 
 ### Inline Keyboards
 
-The fastest way to add buttons to a message. Pass a plain `dict` where each key is the button label and each value is the callback to invoke when pressed:
+The fastest way to add buttons to a message. Pass a `dict` where each key is the button label and each value is the callback to run when pressed:
 
 ```python
 self.chain.set_inline_keyboard(
@@ -131,9 +128,7 @@ self.chain.set_inline_keyboard(
 ╰─────────────┴──────────────────╯
 ```
 
-**Need more control?**
-
-When you need precise row layout or conditional buttons, use `InlineKeyboard` — a fluent builder that composes keyboards step by step:
+For precise row layout or conditional buttons, use `InlineKeyboard`, a builder you compose step by step:
 
 ```python
 self.chain.set_keyboard(
@@ -170,7 +165,7 @@ self.chain.set_keyboard(
 
 ### Reply Keyboards
 
-Unlike inline keyboards, reply keyboards replace the user's system keyboard with buttons shown at the bottom of the chat. Tapping a button either sends its text as a regular message or triggers a system action, such as sharing a phone number or location.
+Reply keyboards replace the system keyboard with buttons at the bottom of the chat. Tapping one sends its text as a message, or triggers a system action like sharing a phone number or location.
 
 ```python
 self.chain.set_keyboard(
@@ -240,17 +235,17 @@ class DialogueHandler(telekit.Handler):
 
 How it works:
 
-- The handler reacts to "hello", "hi", or "hey" (lowercase, UPPERCASE, or mixed).
+- The handler reacts to "hello", "hi", or "hey" in any case.
 - `handle_hello` asks for the user's name.
 - `set_entry_suggestions` attaches the user's Telegram `first_name` as a suggestion button.
 - `handle_name` stores the name in `self.user_name`.
-- `handle_feeling` completes the flow and adds a `"↺ Restart"` button that routes back to the beginning.
+- `handle_feeling` closes the flow and adds a "↺ Restart" button that routes back to the start.
 
-It looks like regular Python. And reads like it too.
+It reads like regular Python because it is regular Python.
 
 ### Sender
 
-Want to add an image, document or an effect in a single line?
+Want to attach an image, document or add an effect in a single line?
 
 ```python
 self.chain.sender.set_effect(Effect.HEART) # Add effect to message. Use enum or string
@@ -261,11 +256,11 @@ self.chain.sender.send_chat_action(ChatAction.TYPING) # Send chat action. Use en
 ```
 
 > [!NOTE]
-> Telekit automatically decides whether to use `bot.send_message` or `bot.send_photo` based on the content
+> Telekit picks `bot.send_message` or `bot.send_photo` based on the content you attach.
 
 ### Styles
 
-Telekit lets you describe formatting as objects instead of writing raw HTML or Markdown.
+Describe formatting as objects instead of writing raw HTML or Markdown.
 
 ```py
 from telekit.styles import *
@@ -286,7 +281,7 @@ def handle(self) -> None:
     self.chain.send()
 ```
 
-You describe structure. Telekit generates HTML or MarkdownV2 automatically:
+You describe structure. Telekit turns that structure into HTML or MarkdownV2:
 
 ```html
 <b>Text style examples:</b>
@@ -298,11 +293,11 @@ You describe structure. Telekit generates HTML or MarkdownV2 automatically:
 - 5. <a href="https://t.me/MyBot?start=promo_42">Deep link</a>
 ```
 
-No manual escaping. No broken formatting because of one missing character.
+You skip manual escaping and the broken formatting one stray character causes.
 
 ### Telekit DSL
 
-If you prefer not to write dialog logic in Python, you can use the built-in DSL with Jinja support.
+Prefer not to write dialog logic in Python? Use the built-in DSL with Jinja support.
 
 ```py
 import telekit
@@ -377,7 +372,7 @@ telekit.Server(BOT_TOKEN).polling()
 
 Traits are reusable behavior modules you can mix into any handler.
 
-This example demonstrates the simplest way to use the built-in CalendarPick trait. It allows a user to pick a date from an inline calendar and handles the result via a callback.
+Here's the built-in `CalendarPick` trait: a user picks a date from an inline calendar, and a callback handles the result.
 
 ```py
 from telekit.traits import CalendarPick
@@ -411,7 +406,7 @@ class CalendarHandler(CalendarPick, telekit.Handler):
 
 ### Example Bot
 
-You can launch an example bot by **running the following code**:
+Run this to launch an example bot:
 
 ```py
 import telekit
@@ -423,18 +418,17 @@ It includes example commands, dialogs, keyboards, and style usage.
 
 ## Why Telekit
 
-- No FSM — just **chains**.
+- Chains instead of an FSM.
 - Declarative, behavior-focused bot logic with minimal boilerplate.
-- Automatic **callback routing** and **input handling**.
-- **Styles API** for rich text (`Bold`, `Italic`, `Links`) with **automatic escaping**.
-- Deep linking and **typed command parameters**.
-- **Built-in DSL** for menus, FAQs, and simple bots.
-- Reusable **Traits** for composable, plug-and-play behavior (for example, a built-in declarative calendar picker).
-- **Zero-code** [Obsidian Canvas](https://github.com/Romashkaa/telekit/blob/main/docs/examples/canvas_faq.md) mode.
-- Seamless integration with **pyTelegramBotAPI**.
+- Automatic callback routing and input handling.
+- A Styles API for rich text (`Bold`, `Italic`, links) with automatic escaping.
+- Deep linking and typed command parameters.
+- A built-in DSL for menus, FAQs, and simple bots.
+- Reusable Traits for composable behavior, including a built-in calendar picker.
+- Zero-code mode [Obsidian Canvas](https://github.com/Romashkaa/telekit/blob/main/docs/examples/canvas_faq.md) mode.
+- Works with `pyTelegramBotAPI`.
 
-Telekit doesn't try to be everything.  
-It tries to make Telegram bot development easier.
+Telekit focuses on one job: making Telegram bot development easier.
 
 > [!TIP]
-> If you're interested and want to learn more, check out the [Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md)
+> Interested? Start with the [Tutorial](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/0_tutorial.md).

@@ -1545,6 +1545,28 @@ class BaseSender:
 
         Raw(code).debug(parse_mode, label)
 
+    # # TEST
+    # def _send_rich_message(self, content: str, parse_mode: str = "html") -> Message:
+    #     import json
+    #     from telebot import apihelper
+
+    #     if parse_mode not in ("html", "markdown"):
+    #         raise ValueError(f"Unsupported parse_mode: {parse_mode}")
+
+    #     payload = {
+    #         "chat_id": self.chat_id,
+    #         "rich_message": json.dumps({parse_mode: content})
+    #     }
+    #     result_dict = apihelper._make_request(
+    #         self.bot.token,
+    #         "sendRichMessage",
+    #         method="post",
+    #         params=payload
+    #     )
+    #     msg = Message.de_json(result_dict)
+    #     msg.rich_message = result_dict.get('rich_message')  # зберігаємо структуру, бо de_json її не знає
+    #     return msg
+
 # ---------------------------------------------------------------------------------
 # Sender
 # ---------------------------------------------------------------------------------
