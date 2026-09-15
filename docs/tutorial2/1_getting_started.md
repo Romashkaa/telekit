@@ -35,7 +35,17 @@ import telekit
 telekit.Server(BOT_TOKEN).polling() # here
 ```
 
-That's it — your bot is connected.
+## Using the Project Template
+
+Rather than starting from a blank folder, you can pull in the ready-made `template` project straight into your current directory.
+
+**macOS / Linux:**
+```bash
+curl -L https://github.com/Romashkaa/telekit/archive/refs/heads/main.tar.gz | tar -xz --strip-components=4 telekit-main/docs/templates/default
+```
+> Uses only `curl` and `tar`, which ship with macOS and most Linux distros.
+
+That's it – your bot is connected.
 
 However, the bot doesn't do anything yet. Let's fix that by adding our first message handler.
 
