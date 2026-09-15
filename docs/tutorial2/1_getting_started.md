@@ -1,7 +1,7 @@
 # Getting Started
 
 Telekit makes building Telegram bots fast and clean.  
-Even if you’ve never written one before, this guide will take you from zero to a working bot in minutes.
+Even if you've never written one before, this guide will take you from zero to a working bot in minutes.
 
 ## Installation
 
@@ -15,7 +15,7 @@ pip install telekit
 
 First, get your bot token from [BotFather](https://t.me/BotFather). 
 
-After that, you can run the example bot to explore Telekit’s basic features:
+After that, you can run the example bot to explore Telekit's basic features:
 
 ```py
 import telekit # import library
@@ -35,8 +35,8 @@ import telekit
 telekit.Server(BOT_TOKEN).polling() # here
 ```
 
-That’s it — your bot is connected.
+That's it — your bot is connected.
 
-However, the bot doesn’t do anything yet. Let’s fix that by adding our first message handler.
+However, the bot doesn't do anything yet. Let's fix that by adding our first message handler.
 
 [Next: Create Basic Handler »](2_basic_handler.md)
