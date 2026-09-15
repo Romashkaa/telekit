@@ -1,23 +1,25 @@
-# 
+# –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+#
 # Copyright (C) 2026 Romashka
-# 
+#
 # This file is part of Telekit.
-# 
-# Telekit is free software: you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or 
+#
+# Telekit is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
-# Telekit is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty 
-# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See 
+#
+# Telekit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
 # the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License 
+#
+# You should have received a copy of the GNU General Public License
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 # 
+# –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-from typing import Callable
+from typing import Callable, Iterable
 import typing
 import shlex
 import re
@@ -464,7 +466,139 @@ class On:
             return trigger
 
         return Invoker(register, self.handler) 
-    
+
+    def document(
+        self,
+        chat_types: list[str] | None = None,
+        whitelist: list[int] | None = None,
+        **kwargs
+    ):
+        """
+        Handles new incoming document (file) messages of any kind. All message handlers are tested in the order they were added.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
+
+        ---
+        ## Example:
+        ```
+        class MyHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls) -> None:
+                cls.on.document().invoke(cls.handle)
+
+                # Or define the handler manually:
+                @cls.on.document()
+                def handler(message: telebot.types.Message) -> None:
+                    cls(message).handle()
+        ```
+        ---
+
+        Triggers when receive a document (content_type="document"), regardless of its file type.
+
+        Filters:
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
+
+        Args:
+            chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
+            whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
+            **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
+        """
+        def register(handler: Callable[..., typing.Any]):
+            @self.bot.message_handler(
+                content_types=["document"],
+                chat_types=chat_types,
+                **kwargs
+            )
+            def trigger(message):
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return
+                return handler(message)
+
+            return trigger
+
+        return Invoker(register, self.handler)
+
+    def text_document(
+        self,
+        chat_types: list[str] | None = None,
+        whitelist: list[int] | None = None,
+        extensions: tuple[str, ...] = (".txt", ".md", ".log", ".csv", ".json", ".py", ".ini", ".yaml", ".yml"),
+        **kwargs
+    ):
+        """
+        Handles incoming documents that are plain text files: mime type starting
+        with "text/", or a filename ending in a common text extension. Useful for
+        catching `.txt`/`.md`/`.log`/`.csv`/`.py` uploads, or files produced by
+        `Sender.set_text_as_document`.
+
+        • [See Documentation on GitHub](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/3_triggers.md)
+
+        ---
+        ## Example:
+        ```
+        class MyHandler(telekit.Handler):
+            @classmethod
+            def init_handler(cls) -> None:
+                cls.on.text_document().invoke(cls.handle)
+
+                # Or define the handler manually:
+                @cls.on.text_document()
+                def handler(message: telebot.types.Message) -> None:
+                    cls(message).handle()
+        ```
+        ---
+
+        Triggers when receive a document (content_type="document") whose mime_type
+        starts with "text/" or whose filename ends with a known text extension.
+
+        Filters:
+            - By chat type(s) (via `chat_types` argument)
+            - By whitelist (via `whitelist` argument)
+            - Additional filters can be applied via chat_types and whitelist.
+
+        Args:
+            chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
+            whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
+            **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
+
+        Returns:
+            Invoker: An invoker object allowing `.invoke()` or decorator-style usage.
+        """
+
+        def _is_text_document(message: telebot.types.Message) -> bool:
+            document = message.document
+            if document is None:
+                return False
+
+            if document.mime_type and document.mime_type.startswith("text/"):
+                return True
+
+            if document.file_name and document.file_name.lower().endswith(extensions):
+                return True
+
+            return False
+
+        def register(handler: Callable[..., typing.Any]):
+            @self.bot.message_handler(
+                content_types=["document"],
+                func=_is_text_document,
+                chat_types=chat_types,
+                **kwargs
+            )
+            def trigger(message):
+                if whitelist is not None and message.chat.id not in whitelist:
+                    return
+                return handler(message)
+
+            return trigger
+
+        return Invoker(register, self.handler)
+
     def func(
         self,
         func: Callable[[telebot.types.Message], bool],
@@ -504,8 +638,8 @@ class On:
 
         Args:
             func (Callable[[telebot.types.Message], bool]): Custom filter function that must return True for messages to trigger the handler.
-            invoke_args (list | tuple | None): Optional positional arguments to pass to the handler function when invoked.
-            invoke_kwargs (dict[str, Any] | None): Optional keyword arguments to pass to the handler function when invoked.
+            invoke_args (list | tuple | None): Optional positional arguments to pass to the handler function when invoked. If provided (including an empty list/tuple), it overrides any args telebot would otherwise pass.
+            invoke_kwargs (dict[str, Any] | None): Optional keyword arguments to pass to the handler function when invoked. If provided (including an empty dict), it overrides any kwargs telebot would otherwise pass.
             chat_types (list[str] | None): List of chat types, e.g., ['private', 'group'].
             whitelist (list[int] | None): List of chat IDs allowed to trigger the handler.
             **kwargs: Any other keyword arguments supported by `telebot.TeleBot.message_handler`.
@@ -520,7 +654,7 @@ class On:
             return bool(func(message))
 
         def decorator(handler: Callable[..., typing.Any]):
-            if not invoke_args and not invoke_kwargs:
+            if invoke_args is None and invoke_kwargs is None:
                 return self.bot.message_handler(
                     func=_filter,
                     chat_types=chat_types,
@@ -532,15 +666,9 @@ class On:
                 chat_types=chat_types,
                 **kwargs
             )
-            def trigger(message, *args, **kwargs):
-                final_args = args
-                final_kwargs = kwargs
-
-                if invoke_args is not None:
-                    final_args = invoke_args
-
-                if invoke_kwargs is not None:
-                    final_kwargs = invoke_kwargs
+            def trigger(message, *trigger_args, **trigger_kwargs):
+                final_args = invoke_args if invoke_args is not None else trigger_args
+                final_kwargs = invoke_kwargs if invoke_kwargs is not None else trigger_kwargs
 
                 return handler(message, *final_args, **final_kwargs)
 

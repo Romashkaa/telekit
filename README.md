@@ -198,7 +198,7 @@ class GreetHandler(telekit.Handler):
         self.chain.send()
 ```
 
-Now `/greet 64 "Alice Reingold"` or `/greet 128 Dracula` are parsed automatically.
+Now `/greet 128 Dracula` or even `/greet 64 "Alice Reingold"` are parsed automatically.
 
 > [!NOTE]
 > If arguments are invalid or missing, you simply receive `None` and decide how to respond.
@@ -235,8 +235,8 @@ class DialogueHandler(telekit.Handler):
 
 How it works:
 
-- The handler reacts to "hello", "hi", or "hey" in any case.
-- `handle_hello` asks for the user's name.
+- The handler reacts to `"hello"`, `"hi"`, or `"hey"` in any case.
+- `handle_hello` asks for the user's name.ч
 - `set_entry_suggestions` attaches the user's Telegram `first_name` as a suggestion button.
 - `handle_name` stores the name in `self.user_name`.
 - `handle_feeling` closes the flow and adds a "↺ Restart" button that routes back to the start.
