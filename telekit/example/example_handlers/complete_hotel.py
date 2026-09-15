@@ -24,7 +24,7 @@ class CompleteHotelHandler(telekit.TelekitDSL.Mixin):
     @classmethod
     def init_handler(cls) -> None:
         cls.analyze_string(script)
-        cls.on.command("start").invoke(cls.handle)
+        cls.on.command("complete_hotel").invoke(cls.handle)
         
     def handle(self):
         self.start_script()

@@ -474,6 +474,49 @@ def make_qrcode(
 # Tools
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
+import importlib
+import pkgutil
+
+def load_modules(package_name: str) -> None:
+    """
+    Automatically import all modules inside the given package.
+
+    Finds every submodule of ``package_name`` (skipping ones that start
+    with ``_``) and imports each one, so their top-level code (e.g.
+    handler class definitions) runs and gets registered.
+
+    .. warning::
+        Modules are imported in filename order (usually alphabetical). 
+        If handlers have overlapping triggers,
+        the one imported first may shadow the others.
+
+        Fix: manually import the priority modules first, then call
+        ``load_modules`` -- Python skips modules that are already
+        imported, so they won't be re-imported or reordered::
+
+            from . import on_text  # will be checked before other handlers
+
+            telekit.utils.load_modules(__name__)
+
+    :param package_name: Dotted name of the package to load
+        (typically ``__name__``).
+    :type package_name: str
+
+    :Example:
+
+    .. code-block:: python
+
+        # handlers/__init__.py
+        import telekit
+        telekit.utils.load_modules(__name__)
+    """
+    package = importlib.import_module(package_name)
+
+    for module in pkgutil.iter_modules(package.__path__):
+        if module.name.startswith("_"):
+            continue
+
+        importlib.import_module(f"{package_name}.{module.name}")
 
 class CyclicList:
     def __init__(self, *items):
@@ -483,7 +526,7 @@ class CyclicList:
         return self._items[index % len(self._items)]
 
     def __len__(self):
-        return len(self._items) # float("inf")   ;)
+        return len(self._items) # Actually `float("inf")` ;)
 
     def __repr__(self):
         return f"CyclicList({self._items})"

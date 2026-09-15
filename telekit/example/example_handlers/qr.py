@@ -20,7 +20,7 @@ class QRHandler(telekit.Handler):
 
     @classmethod
     def init_handler(cls) -> None:
-        cls.on.command("start").invoke(cls.handle)
+        cls.on.command("qr").invoke(cls.handle)
 
     def handle(self) -> None:
         self.qrcode = QRCode()
