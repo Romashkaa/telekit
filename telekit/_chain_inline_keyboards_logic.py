@@ -111,7 +111,7 @@ class ChainInlineKeyboardLogic(ChainBase):
                 )
 
         markup = InlineKeyboardMarkup()
-        markup.keyboard = self._build_keyboard_rows(buttons, row_width)
+        markup.inline_keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
         self._handler.set_button_callbacks(button_callbacks)
@@ -173,7 +173,7 @@ class ChainInlineKeyboardLogic(ChainBase):
                     )
 
             markup = InlineKeyboardMarkup()
-            markup.keyboard = self._build_keyboard_rows(buttons, row_width)
+            markup.inline_keyboard = self._build_keyboard_rows(buttons, row_width)
 
             self.sender.set_reply_markup(markup)
             self._handler.set_button_callbacks(callback_functions)
@@ -281,7 +281,7 @@ class ChainInlineKeyboardLogic(ChainBase):
                 )
 
         markup = InlineKeyboardMarkup()
-        markup.keyboard = self._build_keyboard_rows(buttons, row_width)
+        markup.inline_keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
         self._handler.set_button_callbacks(callback_functions)
@@ -333,7 +333,7 @@ class ChainInlineKeyboardLogic(ChainBase):
                 buttons.append(InlineButton.Suggest(suggestion)._compile(caption))
 
         markup = InlineKeyboardMarkup()
-        markup.keyboard = self._build_keyboard_rows(buttons, row_width)
+        markup.inline_keyboard = self._build_keyboard_rows(buttons, row_width)
 
         self.sender.set_reply_markup(markup)
 

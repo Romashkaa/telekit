@@ -45,7 +45,7 @@ def long_description():
 setup(
     name='telekit',
     version=version,
-    description='Declarative, developer-friendly library for building Telegram bots',
+    description='Declarative, developer-friendly framework for building Telegram bots',
     long_description=long_description(),
     long_description_content_type='text/markdown',
     keywords='telegram bot api declarative tools bot-api',

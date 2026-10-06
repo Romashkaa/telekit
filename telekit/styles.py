@@ -23,32 +23,57 @@ __all__ = [
     "TextEntity",
     "StaticTextEntity",
     "EasyTextEntity",
-
     "Styles",
 
+    # Regular Tags
     "Group",
     "Stack",
-
     "Escape",
     "Raw",
-
     "Bold",
     "Italic",
     "Underline",
     "Strikethrough",
     "Code",
     "Spoiler",
-
     "Link",
     "Mention",
     "UserLink",
     "BotLink",
-
     "Quote",
     "Language",
     "Python",
-
     "EncodeURL",
+
+    # Rich Tags
+    "Marked",
+    "Subscript",
+    "Superscript",
+    "CustomEmoji",
+    "DateTime",
+    "Math",
+    "MathBlock",
+    "Anchor",
+    "AnchorLink",
+    "Reference",
+    "Heading",
+    "Paragraph",
+    "Footer",
+    "Divider",
+    "Cite",
+    "PullQuote",
+    "Details",
+    "ListItem",
+    "UnorderedList",
+    "OrderedList",
+    "Table",
+    "TableCell",
+    "Image",
+    "Video",
+    "Audio",
+    "Map",
+    "Collage",
+    "Slideshow",
 
     "label_cheatsheet"
 ]

@@ -32,9 +32,11 @@ class StartHandler(telekit.Handler):
                 "🖼️ QR Editor":               "QRHandler",
                 "📆 Calendar":          "CalendarHandler",
 
+                "✨ Rich HTML": "RichTestHandler",
+
                 "📜 Article":            "ArticleHandler",
                 "🛠️ Style":              "StyleHandler",
-            }, row_width=[3, 1, 3, 2, 2]
+            }, row_width=[3, 1, 3, 2, 1, 2]
         )
         def handle_response(handler: str):
             self.handoff(handler).handle()

@@ -19,13 +19,14 @@
 
 from typing import Any, Literal, NoReturn, TYPE_CHECKING, Union
 import textwrap
+import json
 import io
 
 if TYPE_CHECKING:
     from string.templatelib import Template # pyright: ignore[reportMissingImports]
 
 
-from telebot import TeleBot
+from telebot import TeleBot, apihelper
 from telebot.types import (
     Message, MessageEntity,
     ReplyParameters, LinkPreviewOptions,
@@ -39,6 +40,14 @@ from telekit.debug import Debug
 from telekit.styles import TextEntity, Escape, Raw, Group, Bold, Italic
 from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
 from telekit import dices
+
+from ._rich import (
+    RichMessageError, RICH_MAX_LENGTH,
+    find_rich_tags, find_invalid_media_sources,
+    downgrade_rich_html, build_media_html, serialize_rich_message,
+    newlines_to_br
+)
+
 from ._logger import logger
 library = logger.library
 
@@ -106,6 +115,11 @@ class BaseSender:
     Effect: type[_Effect] = _Effect
     ChatAction: type[_ChatAction] = _ChatAction
 
+    rich_html: bool = False
+    _rich_is_rtl: bool | None = None
+    _rich_skip_entity_detection: bool | None = None
+    _rich_payload: str | None = None
+
     @classmethod
     def _init(cls, bot: TeleBot):
         """
@@ -128,31 +142,33 @@ class BaseSender:
                 return None
 
     def __init__(
-            self,
-            chat_id: int,
+        self,
+        chat_id: int,
 
-            text: str = "",
-            reply_markup = None,
+        text: str = "",
+        reply_markup = None,
 
-            is_temporary: bool = False,
-            delele_temporaries: bool = True,
-            
-            parse_mode: Literal["html", "markdown"] | ParseMode | None = "html",
-            reply_to_message_id: int | None = None,
+        is_temporary: bool = False,
+        delele_temporaries: bool = True,
+        
+        parse_mode: Literal["html", "markdown"] | ParseMode | None = "html",
+        reply_to_message_id: int | None = None,
 
-            edit_message_id: int | None = None,
+        edit_message_id: int | None = None,
 
-            thread_id: int | None = None,
-            effect_id: str | None = None,
+        thread_id: int | None = None,
+        effect_id: str | None = None,
 
-            photo: str | None = None,
-            document: str | Any = None,
-            video_note: str | Any = None,  
-            animation: str | Any = None,
-            video: str | Any = None,
-            audio: str | Any = None,
-            voice: str | Any = None,
-            ):
+        photo: str | None = None,
+        document: str | Any = None,
+        video_note: str | Any = None,  
+        animation: str | Any = None,
+        video: str | Any = None,
+        audio: str | Any = None,
+        voice: str | Any = None,
+
+        rich_html: bool = False
+    ):
         """
         Initializes the BaseSender object with message details.
 
@@ -165,6 +181,7 @@ class BaseSender:
             parse_mode (str): Parse mode for message formatting. Default is 'HTML'.
             reply_to_message_id (int): Optional ID of a message to reply to.
             edit_message_id (int): Optional ID of the message to edit.
+            rich_html (bool): Send as a Rich Message (Bot API 10.1+). Sets parse_mode to html
         """
         self.chat_id = chat_id
         
@@ -203,6 +220,10 @@ class BaseSender:
         self._do_remove_attachments = True
 
         self.sent_message: Message | None = None
+
+        self.rich_html = False
+        if rich_html:
+            self.set_rich_html(True)
 
     # --------------------------------------------------------
     # Setter methods for configuring media attachments
@@ -535,6 +556,31 @@ class BaseSender:
                 self.parse_mode = None
             case _:
                 raise ValueError("Invalid Parse Mode")
+
+    def set_rich_html(self, rich_html: bool = True):
+        """
+        Enables sending the message as a Rich Message (Rich HTML).
+
+        Automatically sets `parse_mode` to `html`. In rich mode:
+        - a photo given as an http(s) URL is embedded into the rich text on send
+          (`text` is not modified); several URL photos in a media group become a collage;
+        - all other attachments (local photo, document, video, audio, voice, venue...)
+          are ignored with a console warning;
+        - `link_preview_options` is ignored.
+        """
+        self.rich_html = rich_html
+        if rich_html:
+            self.set_parse_mode("html")
+
+    def set_rich_options(self, *, is_rtl: bool | None = None, skip_entity_detection: bool | None = None):
+        """
+        Extra `InputRichMessage` options.
+
+        :param is_rtl: Show the rich message right-to-left.
+        :param skip_entity_detection: Skip auto-detection of URLs, emails, mentions, hashtags, etc.
+        """
+        self._rich_is_rtl = is_rtl
+        self._rich_skip_entity_detection = skip_entity_detection
 
     def set_edit_message_id(self, edit_message_id: int | None):
         """
@@ -890,7 +936,7 @@ class BaseSender:
     # Internal send dispatcher
     # --------------------------------------------------------
 
-    def _edit_or_send(self) -> tuple[Message | None, bool]:
+    def _edit_or_send_core(self) -> tuple[Message | None, bool]:
         if self.edit_message_id:
 
             try:
@@ -911,13 +957,183 @@ class BaseSender:
                 self._delete_message(self.edit_message_id)
         
         return self._send(), False
+
+    def _edit_or_send(self) -> tuple[Message | None, bool]:
+        adapted_from: str | None = None
+        succeeded = False
+        try:
+            if self.rich_html:
+                self._rich_payload = self._prepare_rich_payload()
+            else:
+                adapted_from = self._adapt_rich_tags_for_plain()
+
+            result = self._edit_or_send_core()
+            succeeded = True
+            return result
+        finally:
+            self._rich_payload = None
+            # `text` was temporarily replaced by the downgraded version: restore it,
+            # unless the send consumed it (_reset_after_send already cleared it)
+            if adapted_from is not None and (not succeeded or not self._do_remove_text):
+                self.text = adapted_from
+
+    # --------------------------------------------------------
+    # Rich messages
+    # --------------------------------------------------------
+
+    def _adapt_rich_tags_for_plain(self) -> str | None:
+        """rich_html is off but the text has rich-only tags: downgrade for regular send_message."""
+        if self.parse_mode != "html" or not self.text:
+            return None
+
+        found = find_rich_tags(self.text)
+        if not found:
+            return None
+
+        library.warning(
+            f"The text contains rich-only HTML tags ({', '.join(found)}) but rich mode is disabled. "
+            "Sending it as a regular message: these tags are converted to plain formatting. "
+            "To send a real rich message call sender.set_rich_html(True) "
+            "(it also sets parse_mode to html)."
+        )
+        original = self.text
+        self.text = downgrade_rich_html(original)
+        return original
+
+    def _collect_rich_media(self) -> tuple[list[str], list[str]]:
+        """Returns (photo URLs to embed, names of attachments that will be ignored)."""
+        def is_url(value: Any) -> bool:
+            return isinstance(value, str) and value.startswith(("http://", "https://"))
+
+        urls: list[str] = []
+        ignored: list[str] = []
+
+        if self.photo:
+            if is_url(self.photo):
+                urls.append(self.photo)
+            else:
+                ignored.append("photo (not a URL)")
+
+        for item in self.media:
+            source = getattr(item, "media", None)
+            if source and is_url(source):
+                urls.append(source)
+            else:
+                ignored.append("media group photo (not a URL)")
+
+        for name in ("document", "video", "animation", "audio", "voice", "video_note"):
+            if getattr(self, name, None):
+                ignored.append(name)
+
+        if self.venue:
+            ignored.append("venue")
+
+        return urls, ignored
+
+    def _prepare_rich_payload(self) -> str:
+        """Validates the sender state and builds the final Rich HTML (without touching `self.text`)."""
+        if self.parse_mode != "html":
+            raise RichMessageError(
+                f"Rich messages require parse_mode='html', but parse_mode={self.parse_mode!r}. "
+                "Fix: call sender.set_rich_html(True) (it sets parse_mode to html automatically) "
+                "or sender.set_parse_mode('html'). "
+                "To send a regular message instead, call sender.set_rich_html(False)."
+            )
+
+        urls, ignored = self._collect_rich_media()
+
+        if ignored:
+            library.warning(
+                f"Rich messages do not support these attachments: {', '.join(ignored)}. "
+                "They will be ignored. Only photos passed as http(s) URLs are embedded. "
+                "To send attachments call sender.set_rich_html(False)."
+            )
+
+        if self.link_preview_options:
+            library.warning("link_preview_options is not supported in rich messages and will be ignored.")
+
+        text = newlines_to_br(self.text or "")
+
+        bad_sources = find_invalid_media_sources(text)
+        if bad_sources:
+            library.warning(
+                "Rich messages accept only http(s):// or tg:// media sources. "
+                f"Invalid src in text: {', '.join(bad_sources)}"
+            )
+
+        media_html = build_media_html(urls)
+
+        if media_html and text:
+            # the same convention as show_caption_above_media for regular photos
+            payload = text + media_html if self.show_caption_above_media else media_html + text
+        else:
+            payload = media_html or text
+
+        if not payload.strip():
+            raise RichMessageError(
+                "Rich message text is empty. Did you forget sender.set_remove_text(False)?"
+            )
+
+        if len(payload) > RICH_MAX_LENGTH:
+            library.warning(
+                f"Rich message is {len(payload)} characters long; the Telegram limit is {RICH_MAX_LENGTH}."
+            )
+
+        return payload
+
+    def _rich_message_json(self) -> str:
+        if self._rich_payload is None:
+            raise RichMessageError("Rich payload is not prepared (internal error).")
+
+        return serialize_rich_message(
+            self._rich_payload,
+            is_rtl=self._rich_is_rtl,
+            skip_entity_detection=self._rich_skip_entity_detection,
+        )
+
+    def _rich_request(self, method: str, params: dict[str, Any]) -> Message | None:
+        result = apihelper._make_request(self.bot.token, method, method="post", params=params)
+        if isinstance(result, dict):
+            return Message.de_json(result)
+        return None
+
+    def _send_rich(self) -> Message | None:
+        params = self.get_send_media_params(
+            ignore=("parse_mode", "reply_to_message_id", "reply_parameters")
+        )
+        params = {k: v for k, v in params.items() if v is not None}
+
+        reply_parameters = self.reply_parameters
+        if reply_parameters is None and self.reply_to_message_id:
+            reply_parameters = ReplyParameters(message_id=self.reply_to_message_id)
+        if reply_parameters is not None:
+            params["reply_parameters"] = reply_parameters.to_json()
+
+        if params.get("reply_markup") is not None:
+            params["reply_markup"] = params["reply_markup"].to_json()
+
+        params["rich_message"] = self._rich_message_json()
+        return self._rich_request("sendRichMessage", params)
+
+    def _edit_rich(self) -> Message | None:
+        params: dict[str, Any] = {
+            "chat_id": self.chat_id,
+            "message_id": self.edit_message_id,
+            "rich_message": self._rich_message_json(),
+        }
+        if self.reply_markup:
+            params["reply_markup"] = self.reply_markup.to_json()
+
+        return self._rich_request("editMessageText", params)
     
     # --------------------------------------------------------
     # Internal methods for sending messages
     # --------------------------------------------------------
 
     def _send(self) -> Message | None:
-        if self.photo:
+        if self.rich_html:
+            message = self._send_rich()
+        elif self.photo:
             message = self._send_photo()
         elif self.document:
             message = self._send_document()
@@ -1013,7 +1229,7 @@ class BaseSender:
         media: list[InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo] = list(self.media)
 
         return self.bot.send_media_group(
-            media=media,
+            media=media, # pyright: ignore[reportArgumentType]
             reply_to_message_id=self.reply_to_message_id,
             chat_id=self.chat_id,
             **self.get_send_media_params(ignore=("parse_mode", "reply_to_message_id"))
@@ -1036,7 +1252,9 @@ class BaseSender:
         if isinstance(self.reply_markup, ReplyKeyboardMarkup):
             raise _FallbackToSend("ReplyKeyboardMarkup cannot be edited")
 
-        if self.photo:
+        if self.rich_html:
+            message = self._edit_rich()
+        elif self.photo:
             message = self._edit_photo()
         elif self.document:
             message = self._edit_document()
@@ -1544,28 +1762,6 @@ class BaseSender:
         parse_mode: str | None = self.parse_mode
 
         Raw(code).debug(parse_mode, label)
-
-    # # TEST
-    # def _send_rich_message(self, content: str, parse_mode: str = "html") -> Message:
-    #     import json
-    #     from telebot import apihelper
-
-    #     if parse_mode not in ("html", "markdown"):
-    #         raise ValueError(f"Unsupported parse_mode: {parse_mode}")
-
-    #     payload = {
-    #         "chat_id": self.chat_id,
-    #         "rich_message": json.dumps({parse_mode: content})
-    #     }
-    #     result_dict = apihelper._make_request(
-    #         self.bot.token,
-    #         "sendRichMessage",
-    #         method="post",
-    #         params=payload
-    #     )
-    #     msg = Message.de_json(result_dict)
-    #     msg.rich_message = result_dict.get('rich_message')  # зберігаємо структуру, бо de_json її не знає
-    #     return msg
 
 # ---------------------------------------------------------------------------------
 # Sender
