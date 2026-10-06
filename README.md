@@ -6,7 +6,7 @@
 
 # Telekit
 
-**Telekit** is a declarative, developer-friendly library for building Telegram bots. It gives developers a dedicated Sender for composing and sending messages and a Chain for handling dialogue between the user and the bot. The library also handles inline keyboards and callback routing automatically, letting you focus on the bot's behavior instead of repetitive tasks.
+**Telekit** is a declarative, developer-friendly framework for building Telegram bots. It gives developers a dedicated Sender for composing and sending messages and a Chain for handling dialogue between the user and the bot. The framework also handles inline keyboards and callback routing automatically, letting you focus on the bot's behavior instead of repetitive tasks.
 
 ```py
 import telekit
