@@ -242,10 +242,45 @@ class Handler:
     def _on_handoff(self, origin: "Handler") -> None:
         """Called when this handler is reached via handoff(). Override to customize."""
         pass
-    
+
+    def handle_handoff(self, handler: type["Handler"] | str):
+        """
+        Transfers control to another handler and immediately runs its ``handle()``.
+
+        This is a shortcut for ``self.handoff(handler).handle()``. The target
+        handler is created via :meth:`handoff`, so it inherits the same initial
+        user message and the previous chain message (which allows editing it).
+
+        Unlike ``self.handoff(handler).handle``, it takes the target handler as
+        an argument, so it can be passed directly as a callback together with
+        its arguments, without creating an extra closure::
+
+            self.chain.add_callback(
+                "Settings",
+                self.handle_handoff, [SettingsHandler],
+            )
+
+        It can also be called directly::
+
+            self.handle_handoff(SettingsHandler)
+            self.handle_handoff("SettingsHandler")
+
+        :param handler: Target handler name or ``Handler`` subclass to transfer
+            control to.
+        :type handler: str | type[Handler]
+
+        :raises NameError: If a string name is provided but no registered
+            handler exists with that name.
+        :raises TypeError: If the provided value is not a ``Handler`` subclass.
+
+        .. seealso:: :meth:`handoff`
+        """
+        self.handoff(handler).handle()
 
     def freeze(self, func, *args):
         """
+        DEPRECATED
+
         Return a zero-argument callback that invokes the given function
         with the provided arguments.
 
