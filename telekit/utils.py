@@ -1,5 +1,7 @@
 import os
 import re
+import difflib
+import shlex
 
 from pathlib import Path
 from urllib.parse import urlencode, quote
@@ -116,48 +118,352 @@ def format_file_size(size: int, precision: int = 1) -> str:
     return f"{formatted} {units[index]}"
 
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-# Environment
+# Environment: errors
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-def _split_env_path(path: str, default: str) -> tuple[str, str]:
-    if ":" in path:
-        path, name = path.split(":", 1)
-    else:
-        path, name = path, default
-
-    return path, name
+class EnvError(Exception):
+    """Base class for all errors raised while reading env / token / canvas files."""
 
 
-def load_env(path=".env") -> dict[str, str]:
-    """
-    Load all key-value pairs from a ``.env`` file.
+class EnvFileNotFoundError(EnvError, FileNotFoundError):
+    """The file does not exist. The message contains commands to create it."""
 
-    Lines starting with ``#`` and empty lines are ignored.
 
-    :param path: Path to the ``.env`` file. Defaults to ``".env"``.
-    :type path: ``str``
-    :return: Dictionary of all key-value pairs found in the file,
-             or an empty dict if the file does not exist.
-    :rtype: ``dict[str, str]``
-    """
-    if not os.path.exists(path):
-        return {}
-    
-    env: dict[str, str] = {}
-        
-    with open(path, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
+class EnvPermissionError(EnvError, PermissionError):
+    """The file cannot be read because of missing permissions."""
+
+
+class EnvKeyError(EnvError, KeyError):
+    """The requested variable is missing in the ``.env`` file."""
+
+    def __str__(self) -> str:
+        return str(self.args[0]) if self.args else ""
+
+
+class EnvSyntaxError(EnvError, ValueError):
+    """The ``.env`` file contains a line that cannot be parsed."""
+
+
+class EnvValueError(EnvError, ValueError):
+    """The file exists, but its content is empty, invalid or not UTF-8."""
+
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Environment: cache
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+# Parsed ``.env`` files: absolute path -> {key: value}
+_ENV_CACHE: dict[str, dict[str, str]] = {}
+# Meaningful first line of plain text files (token.txt, canvas_path.txt): absolute path -> line
+_TEXT_CACHE: dict[str, str] = {}
+
+
+def clear_cache() -> None:
+    """Drop everything cached by ``cache=True`` calls."""
+    _ENV_CACHE.clear()
+    _TEXT_CACHE.clear()
+
+
+def _cache_key(path: str) -> str:
+    return os.path.abspath(os.path.expanduser(path))
+
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Environment: error helpers
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+def _create_commands(path: str, line: str) -> str:
+    """Shell commands that append ``line`` to ``path`` (creating the file if needed)."""
+    return "\n".join([
+        f"    Linux/macOS:  printf '%s\\n' {shlex.quote(line)} >> {shlex.quote(path)}",
+        f'    Win:          echo {line} >> "{path}"',
+    ])
+
+
+def _find_similar_files(path: str) -> list[str]:
+    """Look for files with a similar name next to ``path`` and in the current directory."""
+    p = Path(path)
+    found: list[str] = []
+
+    for folder in {p.parent, Path.cwd()}:
+        try:
+            if not folder.is_dir():
                 continue
-            
-            key, value = line.split("=", 1)
-            env[key.strip()] = value.strip()
+            names = [e.name for e in folder.iterdir() if e.is_file()]
+        except OSError:
+            continue
+
+        close = set(difflib.get_close_matches(p.name, names, n=5, cutoff=0.6))
+        if p.name.startswith(".env") or p.suffix == ".env":
+            close |= {n for n in names if n.startswith(".env") or n.endswith(".env")}
+
+        for name in sorted(close):
+            candidate = str(folder / name)
+            if _cache_key(candidate) != _cache_key(path) and candidate not in found:
+                found.append(candidate)
+
+    return found[:5]
+
+
+def _missing_file_message(path: str, example: str, kind: str) -> str:
+    p = Path(path)
+    lines = [
+        f"{kind} file not found: '{path}'",
+        f"  Resolved to: {_cache_key(path)}",
+        f"  Current working directory: {os.getcwd()}",
+    ]
+
+    if not p.parent.exists():
+        lines += [
+            f"  The directory '{p.parent}' does not exist either. Create it first:",
+            f"    mkdir -p {shlex.quote(str(p.parent))}    (Windows: mkdir \"{p.parent}\")",
+        ]
+
+    similar = _find_similar_files(path)
+    if similar:
+        lines.append("  Similar files found - maybe you meant one of these:")
+        lines += [f"    {s}" for s in similar]
+
+    lines += [
+        "  To create the file, run one of the commands below",
+        f"  (replace the example value with your own):",
+        _create_commands(path, example),
+        "  Or pass the correct location, e.g. read_*(\"path/to/file\") "
+        "(relative paths are resolved from the current working directory).",
+    ]
+    return "\n".join(lines)
+
+
+def _syntax_error(source: str, lineno: int, line: str, problem: str, hint: str) -> EnvSyntaxError:
+    return EnvSyntaxError(
+        f"Invalid syntax in '{source}' at line {lineno}: {problem}\n"
+        f"    > {line.strip()}\n"
+        f"  Hint: {hint}"
+    )
+
+
+def _read_text(path: str, example: str, kind: str) -> str:
+    """Read a text file as UTF-8 (BOM tolerated) and turn I/O errors into helpful ones."""
+    try:
+        return Path(path).read_text(encoding="utf-8-sig")
+    except FileNotFoundError:
+        raise EnvFileNotFoundError(_missing_file_message(path, example, kind)) from None
+    except IsADirectoryError:
+        raise EnvError(
+            f"Expected a file but '{path}' is a directory.\n"
+            f"  Hint: pass the path to the file itself, e.g. '{os.path.join(path, '.env')}'."
+        ) from None
+    except PermissionError:
+        raise EnvPermissionError(
+            f"No permission to read '{path}'.\n"
+            f"  Hint: check the access rights - Linux/macOS: `chmod u+r {shlex.quote(path)}`; "
+            f"Windows: file Properties -> Security. Also make sure no other program locks the file."
+        ) from None
+    except UnicodeDecodeError as e:
+        raise EnvValueError(
+            f"'{path}' is not valid UTF-8 ({e.reason} at byte {e.start}).\n"
+            f"  Hint: re-save the file in UTF-8 encoding (in most editors: "
+            f"'Save with encoding' -> 'UTF-8')."
+        ) from None
+    except OSError as e:
+        raise EnvError(
+            f"Cannot read '{path}': {e.strerror or e}.\n"
+            f"  Hint: check that the path is correct and the file is accessible."
+        ) from None
+
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# Environment: .env parser
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+# Syntax supported:
+#   # full-line comment
+#   KEY=value                  unquoted, inline comment after " #"
+#   export KEY=value           "export" prefix
+#   KEY = value                spaces around "="
+#   KEY=                       empty value
+#   KEY='literal $value\n'     single quotes: no escapes, no interpolation
+#   KEY="line1\nline2 \"q\""   double quotes: \n \r \t \" \\ \$ escapes + interpolation
+#   KEY="multi                 quoted values may span several lines
+#   line"
+#   B=${A}/x  B=$A  B=${A:-d}  interpolation (earlier keys of the file, then os.environ);
+#                              unknown variables without a default are left untouched
+#   UTF-8 BOM and CRLF line endings are handled.
+
+_KEY_RE = re.compile(r"^(?:export\s+)?([A-Za-z_][A-Za-z0-9_.\-]*)\s*=(.*)$")
+_AFTER_QUOTE_RE = re.compile(r"^\s*(?:#.*)?$")
+_INLINE_COMMENT_RE = re.compile(r"\s+#.*$")
+_VAR_RE = re.compile(
+    r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?:(:?-)([^}]*))?\}|\$([A-Za-z_][A-Za-z0-9_]*)"
+)
+_ESCAPES = {"n": "\n", "r": "\r", "t": "\t", '"': '"', "\\": "\\"}
+_DOLLAR = "\x00"  # placeholder for an escaped "\$" until interpolation is done
+
+
+def _scan_double_quoted(s: str) -> tuple[str, int] | None:
+    """Scan ``s`` (text after an opening ``"``). Return (value, index of closing quote) or None."""
+    out: list[str] = []
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if c == "\\" and i + 1 < len(s):
+            nxt = s[i + 1]
+            if nxt in _ESCAPES:
+                out.append(_ESCAPES[nxt])
+            elif nxt == "$":
+                out.append(_DOLLAR)
+            else:
+                out.append("\\" + nxt)  # unknown escape stays as is
+            i += 2
+            continue
+        if c == '"':
+            return "".join(out), i
+        out.append(c)
+        i += 1
+    return None
+
+
+def _interpolate(value: str, env: dict[str, str]) -> str:
+    def repl(m: re.Match) -> str:
+        name = m.group(1) or m.group(4)
+        op, default = m.group(2), m.group(3)
+        found = env.get(name, os.environ.get(name))
+
+        if op == ":-" and not found:
+            return default or ""
+        if op == "-" and found is None:
+            return default or ""
+        return m.group(0) if found is None else found
+
+    return _VAR_RE.sub(repl, value).replace(_DOLLAR, "$")
+
+
+def _parse_env(text: str, source: str) -> dict[str, str]:
+    """Parse the content of a ``.env`` file. ``source`` is only used in error messages."""
+    env: dict[str, str] = {}
+    lines = text.lstrip("\ufeff").splitlines()
+    i = 0
+
+    while i < len(lines):
+        raw = lines[i]
+        lineno = i + 1
+        stripped = raw.strip()
+
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue
+
+        m = _KEY_RE.match(stripped)
+        if not m:
+            if "=" not in stripped:
+                raise _syntax_error(
+                    source, lineno, raw, "missing '='",
+                    f"write the line as KEY=value, or start it with '#' to make it a comment, "
+                    f"e.g. '{stripped.split()[0]}=your_value'.",
+                )
+            raise _syntax_error(
+                source, lineno, raw, "invalid variable name",
+                "names may contain letters, digits, '_', '.', '-' and must not start with a digit "
+                "or contain spaces, e.g. MY_TOKEN=value.",
+            )
+
+        key, rest = m.group(1), m.group(2).strip()
+
+        if rest[:1] in ('"', "'"):
+            quote_char = rest[0]
+            body = rest[1:]
+            start_line = lineno
+
+            while True:
+                if quote_char == '"':
+                    scanned = _scan_double_quoted(body)
+                else:
+                    end = body.find("'")
+                    scanned = (body[:end], end) if end != -1 else None
+
+                if scanned is not None:
+                    break
+                i += 1
+                if i >= len(lines):
+                    raise _syntax_error(
+                        source, start_line, raw, f"unclosed {quote_char} quote",
+                        f"add the closing {quote_char} at the end of the value. For text that "
+                        f"contains the same quote, use the other quote type"
+                        + (' or escape it as \\"' if quote_char == '"' else "") + ".",
+                    )
+                body += "\n" + lines[i]
+
+            value, end = scanned
+            tail = body[end + 1:]
+            if not _AFTER_QUOTE_RE.match(tail):
+                raise _syntax_error(
+                    source, start_line, raw, f"unexpected text after closing quote: {tail.strip()!r}",
+                    "put comments after whitespace and '#', or quote the whole value "
+                    "(escape inner double quotes as \\\").",
+                )
+
+            if quote_char == '"':
+                value = _interpolate(value, env)
+        else:
+            if rest.startswith("#"):
+                rest = ""
+            value = _interpolate(_INLINE_COMMENT_RE.sub("", rest).strip(), env)
+
+        env[key] = value
+        i += 1
 
     return env
 
 
-def read_envar(path: str, name: str) -> str:
+def _split_env_path(path: str, default: str) -> tuple[str, str]:
+    """Split ``"file.env:KEY"`` into ``("file.env", "KEY")``. Windows drive letters are safe."""
+    m = re.match(r"^(.+):([A-Za-z_][A-Za-z0-9_.\-]*)$", path)
+    if m:
+        return m.group(1), m.group(2)
+    return path, default
+
+
+def _is_env_path(path: str) -> bool:
+    base = os.path.basename(_split_env_path(path, "")[0])
+    return base.endswith(".env") or base.startswith(".env")
+
+
+def _load_env(path: str, cache: bool, example: str) -> dict[str, str]:
+    key = _cache_key(path)
+
+    if not (cache and key in _ENV_CACHE):
+        text = _read_text(path, example, ".env")
+        _ENV_CACHE[key] = _parse_env(text, path)
+
+    return dict(_ENV_CACHE[key])
+
+
+def load_env(path=".env", *, cache: bool = True) -> dict[str, str]:
+    """
+    Load all key-value pairs from a ``.env`` file.
+
+    Supported syntax: ``KEY=value``, ``export KEY=value``, spaces around ``=``,
+    full-line and inline (`` # ...``) comments, empty values, single-quoted
+    (literal) and double-quoted values with ``\\n \\r \\t \\" \\\\ \\$`` escapes,
+    multi-line quoted values, ``$VAR`` / ``${VAR}`` / ``${VAR:-default}``
+    interpolation, UTF-8 BOM and CRLF line endings.
+
+    :param path: Path to the ``.env`` file. Defaults to ``".env"``.
+    :type path: ``str``
+    :param cache: If ``True`` (default) and the file was already parsed, return
+        the in-memory result without touching the disk. If ``False``, the file
+        is always read and parsed again, and the cache is updated.
+    :type cache: ``bool``
+    :return: Dictionary of all key-value pairs found in the file.
+    :rtype: ``dict[str, str]``
+    :raises EnvFileNotFoundError: If the file does not exist (the message
+        contains shell commands to create it). Subclass of ``FileNotFoundError``.
+    :raises EnvSyntaxError: If a line cannot be parsed (the message contains
+        the line number and a hint). Subclass of ``ValueError``.
+    :raises EnvPermissionError: If the file cannot be read.
+    :raises EnvValueError: If the file is not UTF-8.
+    """
+    return _load_env(path, cache, "KEY=value")
+
+
+def read_envar(path: str, name: str, *, cache: bool = True) -> str:
     """
     Read a single environment variable from a ``.env`` file.
 
@@ -165,19 +471,75 @@ def read_envar(path: str, name: str) -> str:
     :type path: ``str``
     :param name: Name of the key to read.
     :type name: ``str``
-    :return: Value of the key.
+    :param cache: Use the in-memory copy of the file if available
+        (see :func:`load_env`). Default is ``True``.
+    :type cache: ``bool``
+    :return: Value of the key (may be an empty string if it is declared empty).
     :rtype: ``str``
-    :raises KeyError: If ``name`` is not found in the file.
+    :raises EnvKeyError: If ``name`` is not found in the file. The message
+        lists available keys, close matches and the command to add the key.
+        Subclass of ``KeyError``.
+    :raises EnvFileNotFoundError: See :func:`load_env`.
     """
-    env: dict[str, str] = load_env(path)
+    example = f"{name}=your_value"
+    env = _load_env(path, cache, example)
 
-    if name not in env:
-        raise KeyError(f"{name} not found in {path}")
+    if name in env:
+        return env[name]
 
-    return env[name]
+    lines = [f"Variable '{name}' not found in '{path}'."]
+
+    lower = {k.lower(): k for k in env}
+    if name.lower() in lower:
+        lines.append(
+            f"  Names are case-sensitive: the file has '{lower[name.lower()]}', not '{name}'."
+        )
+
+    close = difflib.get_close_matches(name, list(env), n=3, cutoff=0.6)
+    close = [c for c in close if c != lower.get(name.lower())]
+    if close:
+        lines.append("  Did you mean: " + ", ".join(f"'{c}'" for c in close) + "?")
+
+    if env:
+        lines.append("  Variables in this file: " + ", ".join(env))
+    else:
+        lines.append("  The file contains no variables (it is empty or has only comments).")
+
+    lines += [
+        f"  To fix it, add the line `{example}` to '{path}':",
+        _create_commands(path, example),
+        "  Check also that the line is not commented out with '#' "
+        "and that you are reading the right file.",
+    ]
+    if cache:
+        lines.append("  If you edited the file after the first read, call again with cache=False (or clear_cache()).")
+
+    raise EnvKeyError("\n".join(lines))
 
 
-def read_token(path: str = "token.txt") -> str:
+def _read_first_value(path: str, example: str, kind: str, cache: bool) -> str:
+    """First meaningful (non-empty, non-comment) line of a plain text file."""
+    key = _cache_key(path)
+    if cache and key in _TEXT_CACHE:
+        return _TEXT_CACHE[key]
+
+    text = _read_text(path, example, kind)
+
+    for line in text.splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            _TEXT_CACHE[key] = line
+            return line
+
+    _TEXT_CACHE.pop(key, None)
+    raise EnvValueError(
+        f"{kind} file '{path}' is empty (no lines other than blanks and '#' comments).\n"
+        f"  Write the value on the first line, e.g. `{example}`:\n"
+        f"{_create_commands(path, example)}"
+    )
+
+
+def read_token(path: str = "token.txt", *, cache: bool = True) -> str:
     """
     Read the bot token from a file or ``.env``.
 
@@ -187,9 +549,9 @@ def read_token(path: str = "token.txt") -> str:
         123456789:BotSecretToken  Main production bot
         987654321:AnotherToken    Backup bot
 
-    Reads only the first line. Inline comments (everything after the first
-    whitespace) are ignored. Multiple tokens can be stored and swapped by
-    reordering lines.
+    Reads only the first meaningful line (blank lines and ``#`` comments are
+    skipped). Inline comments (everything after the first whitespace) are
+    ignored. Multiple tokens can be stored and swapped by reordering lines.
 
     **Environment file** (``.env``)::
 
@@ -200,21 +562,35 @@ def read_token(path: str = "token.txt") -> str:
     :param path: Path to a token file, or ``".env"`` / ``".env:KEY"`` for
                  environment files. Defaults to ``"token.txt"``.
     :type path: ``str``
+    :param cache: If ``True`` (default), use the in-memory copy if available; if
+                  ``False``, re-read the file and refresh the cache.
+    :type cache: ``bool``
     :return: Bot token string.
     :rtype: ``str``
-    :raises KeyError: If the key is not found in the ``.env`` file.
-    :raises FileNotFoundError: If the file does not exist.
+    :raises EnvKeyError: If the key is not found in the ``.env`` file.
+    :raises EnvFileNotFoundError: If the file does not exist (message contains
+        commands to create it).
+    :raises EnvValueError: If the file or the value is empty.
     """
-    if path.endswith(".env") or ".env:" in path:
-        return read_envar(*_split_env_path(path, "TOKEN"))
-    
-    with open(path) as f:
-        first_line: str = f.readline().strip()
-        token, *_ = first_line.split()
-        return token
-    
+    example = "123456789:YourBotToken"
 
-def read_canvas_path(path: str = "canvas_path.txt") -> str:
+    if _is_env_path(path):
+        file_path, name = _split_env_path(path, "TOKEN")
+        token = read_envar(file_path, name, cache=cache).strip()
+
+        if not token:
+            raise EnvValueError(
+                f"Variable '{name}' in '{file_path}' is empty.\n"
+                f"  Hint: set the token after '=', e.g. `{name}={example}` "
+                f"(get one from @BotFather in Telegram)."
+            )
+        return token
+
+    line = _read_first_value(path, example, "Token", cache)
+    return line.split()[0]
+
+
+def read_canvas_path(path: str = "canvas_path.txt", *, cache: bool = True) -> str:
     """
     Read the ``.canvas`` file path from a file or ``.env``.
 
@@ -224,8 +600,10 @@ def read_canvas_path(path: str = "canvas_path.txt") -> str:
         /home/user/project/main.canvas  Production canvas
         /home/user/project/test.canvas  Test canvas
 
-    Reads only the first line. Multiple paths can be stored and swapped by
-    reordering lines.
+    Reads only the first meaningful line (blank lines and ``#`` comments are
+    skipped). A comment may follow the path after two or more spaces or a tab
+    (single spaces are part of the path). Multiple paths can be stored and
+    swapped by reordering lines.
 
     **Environment file** (``.env``)::
 
@@ -236,16 +614,31 @@ def read_canvas_path(path: str = "canvas_path.txt") -> str:
     :param path: Path to a canvas path file, or ``".env"`` / ``".env:KEY"`` for
                  environment files. Defaults to ``"canvas_path.txt"``.
     :type path: ``str``
+    :param cache: If ``True`` (default), use the in-memory copy if available; if
+                  ``False``, re-read the file and refresh the cache.
+    :type cache: ``bool``
     :return: Path to the ``.canvas`` file.
     :rtype: ``str``
-    :raises KeyError: If the key is not found in the ``.env`` file.
-    :raises FileNotFoundError: If the file does not exist.
+    :raises EnvKeyError: If the key is not found in the ``.env`` file.
+    :raises EnvFileNotFoundError: If the file does not exist (message contains
+        commands to create it).
+    :raises EnvValueError: If the file or the value is empty.
     """
-    if path.endswith(".env") or ".env:" in path:
-        return read_envar(*_split_env_path(path, "CANVAS_PATH"))
-    
-    with open(path) as f:
-        return f.readline().strip()
+    example = "/path/to/project/main.canvas"
+
+    if _is_env_path(path):
+        file_path, name = _split_env_path(path, "CANVAS_PATH")
+        value = read_envar(file_path, name, cache=cache).strip()
+
+        if not value:
+            raise EnvValueError(
+                f"Variable '{name}' in '{file_path}' is empty.\n"
+                f"  Hint: set the path after '=', e.g. `{name}={example}`."
+            )
+        return value
+
+    line = _read_first_value(path, example, "Canvas path", cache)
+    return re.split(r"\s{2,}|\t", line, maxsplit=1)[0]
     
 # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 # Inline Keyboards

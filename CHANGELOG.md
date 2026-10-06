@@ -1,47 +1,8 @@
-### v2.5.4 `(bug-fix)`
-- Fix: Update condition to check for `None` instead of truthy value in `DSLHandler`
-### v2.5.3 `(bug-fix)`
-- Fix: Remove `_` parameters from `_filter_entry` and `_handle_entry` methods in `DSLHandler`
-### v2.5.2
-- Add `random_` variable prefix in `DSLHandler` — resolves to a random choice from a `list`/`tuple`/`str` static variable
+### v2.6.0 `a2`
+- Reworked `.env` and token/canvas file reading in `utils`: full `.env` syntax support (comments, `export`, quotes and escapes, multi-line values, `$VAR` interpolation), a `cache` parameter (default `True`) with `clear_cache()`, detailed errors with fix suggestions and creation commands, and new `Env*Error` exceptions; `load_env` now raises `EnvFileNotFoundError` for a missing file instead of returning `{}`
 
-### v2.5.1 `(bug-fix)`
-- Implement `TelegramMarkdownV2Sanitizer` for improved `MarkdownV2` handling
+### v2.6.0 `a1`
+- Added a module-loading utility in `utils`
 
-### v2.5.0 `(final)`
-- Refactor `CalendarPick` trait to use `set_keyboard`
-
-### v2.5.0`b3`
-- Added `utils.Markers` class
-- Added `HTMLText` class for handling Telegram HTML strings with tag-aware indexing and slicing.
-- Added `PaginatedText` trait for displaying long HTML text in a paginated format, supporting navigation and smart splitting.
-- Added `__radd__` to `TextEntity`: `"Regular" + Bold(" and Bold")`
-- Added `__mul__` to `TextEntity`: `Bold("Text") * 3`
-- Added `enabled=` parameter to `TextEntity`: `Bold("bold text", enabled=is_text_bold)`
-- Added `TextBuilder` class – a fluent message composition API mirroring `InlineKeyboard`'s builder pattern
-- Added styles to `telekit.types`
-- Added `utils.CyclicList`
-- Fixed `_answer_callback_query` to always call `bot.answer_callback_query()`, even without a popup text
-
-### v2.5.0`b2`
-- Added the `escape` parameter to `telekit.utils.*`:
-  - `make_user_link`
-  - `make_bot_link`
-- `Handler.handlers_dict` now excludes private handlers (classes whose names start with `_`).
-- Added `Debug.duplicate_handler_warnings` to warn about duplicate handler names during initialization.
-- Added `Handler.chat` object (BETA)
-
-### v2.5.0`b1`
-- Added `Sender.send_message` method.
-- Added `utils.make_mention` utility for generating `tg://user?id=` mention links.
-- Added new inline button types to `inline_buttons`:
-  - `ContactButton` — mentions a user by Telegram ID via `tg://user?id=`.
-  - `UserLinkButton` — opens a user profile by username; supports pre-filled message text.
-  - `BotLinkButton` — opens a bot by username; supports deep-link `?start=` payload.
-- Added new methods to `InlineKeyboard`:
-  - `add_contact` — adds a `ContactButton`.
-  - `add_user_link` — adds a `UserLinkButton`.
-  - `add_bot_link` — adds a `BotLinkButton`.
-
-### v2.5.0`b0`
-- Added support for t-strings (PEP 750, Python 3.14+) in `TextEntity`.
+### v2.6.0 `a0`
+- Improved formatting in `_on.py`
