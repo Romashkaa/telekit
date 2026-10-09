@@ -945,6 +945,13 @@ class BaseSender:
                 # silently delete and resend
                 self._delete_message(self.edit_message_id)
             except Exception as exception:
+                if "message content and reply markup are exactly the same" in str(exception):
+                    library.warning(
+                        f"Failed to edit message {self.edit_message_id}, "
+                        f"do nothing instead. Exception: {exception}"
+                    )
+                    return None, False
+                
                 _SILENT_EDIT_ERRORS = (
                     "Bad Request: there is no text in the message to edit",
                     "Bad Request: message can't be edited",

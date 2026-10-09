@@ -153,7 +153,9 @@ class Chain(ChainInlineKeyboardLogic, ChainEntryLogic):
 
         # reset edit target and store new previous message
         self.sender.set_edit_message(None)
-        self._previous_message = message
+        
+        if message is not None:
+            self._previous_message = message
 
         if Debug.timeout_warnings and _handler and not _timeout:
             _library.warning(
