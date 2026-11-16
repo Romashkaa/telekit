@@ -1,3 +1,8 @@
+### v2.6.0 `a6` (Fixes #6)
+- Reworked the timeout engine to fix thread exhaustion with many concurrent chats (#6): every `set_timeout()` used to start its own `threading.Timer` (one OS thread per waiting chat), so ~1000 active users crashed the bot with `can't start new thread`
+- Timeout callback exceptions are now logged
+- Added `configure_timeouts(max_workers, *, idle_timeout, log_worker_changes, warn_on_max_workers)` to tune the worker pool, log worker start/stop, and control the "all workers busy" warning (enabled by default)
+
 ### v2.6.0 `a4`
 - Added `handle_handoff()` to `Handler`: a shortcut for `handoff(handler).handle()` that takes the target handler as an argument, so it can be passed to `add_callback()` without an extra closure
 - Added `handle_handoff_back_or()` to `TrackHandoffOrigin`: a closure-free counterpart of `handoff_back_or()`

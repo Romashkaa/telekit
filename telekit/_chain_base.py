@@ -130,9 +130,12 @@ class ChainBase:
         """
         Enables or disables automatic timeout removal after sending a message.
 
-        When True, the timeout handler will be cleared after each message, 
+        When True, the timeout handler will be cleared after each message,
         preventing it from triggering for every subsequent message.
-        Set to False if you want to keep the same timeout across messages.
+
+        When False, the timeout callback is kept and the countdown starts over
+        after every `chain.send()` / `chain.edit()`: the timeout is measured from
+        the last sent message, not from the first one.
         """
         self._do_remove_timeout = remove_timeout
 

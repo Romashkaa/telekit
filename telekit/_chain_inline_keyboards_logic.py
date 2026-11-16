@@ -421,11 +421,13 @@ class ChainInlineKeyboardLogic(ChainBase):
         return invoker
     
     def _answer_callback_query(self, call: CallbackQuery, query_answer: tuple[str, bool] | None = None):
+        call_id: int = int(call.id)
+
         if query_answer is None:
-            self.bot.answer_callback_query(call.id)
+            self.bot.answer_callback_query(call_id)
         else:
             self.bot.answer_callback_query(
-                call.id, 
+                call_id, 
                 text=query_answer[0], 
                 show_alert=query_answer[1]
             )

@@ -581,7 +581,7 @@ def read_token(path: str = ".env", name: str = "TOKEN", cache: bool = True) -> s
     example = "123456789:YourBotToken"
 
     if _is_env_path(path):
-        token = read_envar(path, name, cache=cache).strip()
+        token = read_envar(name, path, cache=cache).strip()
 
         if not token:
             raise EnvValueError(
@@ -638,7 +638,7 @@ def read_canvas_path(path: str = ".env", name: str = "CANVAS_PATH", cache: bool 
     example = "/path/to/project/main.canvas"
 
     if _is_env_path(path):
-        value = read_envar(path, name, cache=cache).strip()
+        value = read_envar(name, path, cache=cache).strip()
 
         if not value:
             raise EnvValueError(

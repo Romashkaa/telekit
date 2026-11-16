@@ -32,7 +32,7 @@ from ._telekit_dsl.telekit_dsl import TelekitDSL
 from ._telekit_dsl.mixin import DSLHandler, InstanceDSLHandler
 from ._logger import enable_file_logging
 from .chat import Chat
-
+from ._timeout import configure_timeouts
 from . import senders
 from . import types
 from . import styles
@@ -62,6 +62,7 @@ __all__ = [
     "scheduler",
     "chat",
     "html_text",
+    "configure_timeouts",
 
     "Styles",
     "User",
