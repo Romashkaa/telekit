@@ -1,4 +1,12 @@
-### v2.6.0 `a6` (Fixes #6)
+### v2.6.0 `a7`
+- Added a `FileIdCache` that stores Telegram `file_id` for local files (photo, document, video, animation, audio, voice, video note), so repeated sends skip the upload
+- Added `BaseSender.configure_file_cache()`: a class method that sets the database path, table name and global on/off switch
+- Added `Sender.set_use_file_cache()`: a per-sender override of the global setting (`None` restores it)
+- Changed missing local files to raise on `send()` instead of in the setter
+- A rejected cached `file_id` is dropped and the send is retried with the original file
+- Notes: URLs, `bytes` and file-like objects are not cached; rich messages and media groups are unaffected. A changed file is detected by `size/mtime`, with a `SHA-256` comparison as a fallback
+
+### v2.6.0 `a6` (fixes #6)
 - Reworked the timeout engine to fix thread exhaustion with many concurrent chats (#6): every `set_timeout()` used to start its own `threading.Timer` (one OS thread per waiting chat), so ~1000 active users crashed the bot with `can't start new thread`
 - Timeout callback exceptions are now logged
 - Added `configure_timeouts(max_workers, *, idle_timeout, log_worker_changes, warn_on_max_workers)` to tune the worker pool, log worker start/stop, and control the "all workers busy" warning (enabled by default)

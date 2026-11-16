@@ -49,6 +49,7 @@ Even in its beta stage, Telekit accelerates bot development, offering typed **co
 - **Chains** handle complex conversations without state machines
 - [Ready-to-use DSL](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial/11_telekit_dsl.md) for FAQs and interactive scripts
 - Automatic [message formatting](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/6_styles.md) via [Sender](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/5_senders.md) and **callback routing**
+- Automatic **`file_id` caching**: local files are uploaded once and reused afterwards
 - **Deep Linking** with type-checked [Command Parameters](https://github.com/Romashkaa/telekit/blob/main/docs/tutorial2/command_trigger_parameters.md)
 - Built-in **Permission** and **Logging** system
 - Reusable **Traits** for pluggable behavior modules
@@ -257,6 +258,8 @@ self.chain.sender.set_text_as_document("Hello, this is a text document!") # Conv
 self.chain.sender.send_chat_action(ChatAction.TYPING) # Send chat action. Use enum or string
 ```
 
+Local files are uploaded to Telegram once. Telekit stores the returned `file_id` in a database and reuses it on every next send, so repeated messages with the same photo, document or video go out almost instantly.
+
 > [!NOTE]
 > Telekit picks `bot.send_message` or `bot.send_photo` based on the content you attach.
 
@@ -423,9 +426,10 @@ It includes example commands, dialogs, keyboards, and style usage.
 - Chains instead of an FSM.
 - Declarative, behavior-focused bot logic with minimal boilerplate.
 - Automatic callback routing and input handling.
-- A Styles API for rich text (`Bold`, `Italic`, links) with automatic escaping.
+- Automatic `file_id` caching for local files: no re-uploads, no manual bookkeeping.
+- Styles API for rich text (`Bold`, `Italic`, links) with automatic escaping.
 - Deep linking and typed command parameters.
-- A built-in DSL for menus, FAQs, and simple bots.
+- Built-in DSL for menus, FAQs, and simple bots.
 - Reusable Traits for composable behavior, including a built-in calendar picker.
 - Zero-code mode [Obsidian Canvas](https://github.com/Romashkaa/telekit/blob/main/docs/examples/canvas_faq.md) mode.
 - Works with `pyTelegramBotAPI`.

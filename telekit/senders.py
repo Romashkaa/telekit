@@ -41,6 +41,8 @@ from telekit.styles import TextEntity, Escape, Raw, Group, Bold, Italic
 from telekit.types import ParseMode, Effect as _Effect, ChatAction as _ChatAction
 from telekit import dices
 
+from ._file_cache import FileIdCache, FILE_KINDS, CacheEntry
+
 from ._rich import (
     RichMessageError, RICH_MAX_LENGTH,
     find_rich_tags, find_invalid_media_sources,
@@ -130,6 +132,22 @@ class BaseSender:
         """
         cls.bot = bot
 
+    @classmethod
+    def configure_file_cache(
+        cls, *,
+        path: str | None = None,
+        enabled: bool | None = None,
+        table_name: str | None = None,
+    ) -> None:
+        """
+        Configures the file_id cache for local files.
+
+        :param path: Path to the database. Default: "data_base".
+        :param enabled: Globally enable or disable caching. Default: True.
+        :param table_name: Table name. Default: "file_ids".
+        """
+        FileIdCache.configure(path=path, enabled=enabled, table_name=table_name)
+
     parse_mode: Literal["html", "markdown"] | None
 
     def _get_parse_mode(self):
@@ -216,6 +234,10 @@ class BaseSender:
         self.venue = []
         self.media = []
 
+        self._file_cache: bool | None = None
+        self._cache_keys: dict[str, CacheEntry] = {}
+        self._cache_hits: dict[str, CacheEntry] = {}
+
         self._do_remove_text = True
         self._do_remove_attachments = True
 
@@ -247,7 +269,7 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        self.photo = self._load_item(photo)
+        self.photo = photo
 
     def set_document(self, document: str | None | Any):
         """
@@ -267,7 +289,7 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        self.document = self._load_item(document)
+        self.document = document
 
     def set_text_as_document(self, text: str | None, name: str="text.txt", encoding: str="utf-8"):
         """
@@ -311,7 +333,7 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        self.video = self._load_item(video)
+        self.video = video
 
     def set_animation(self, animation: str | None | Any):
         """
@@ -331,7 +353,7 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        self.animation = self._load_item(animation)
+        self.animation = animation
 
     def set_audio(self, audio: str | None | Any, *, performer: str | None=None, title: str | None=None):
         """
@@ -357,7 +379,7 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        self.audio = self._load_item(audio)
+        self.audio = audio
         self.audio_performer = performer
         self.audio_title = title
 
@@ -379,7 +401,7 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        self.voice = self._load_item(voice)
+        self.voice = voice
 
     def set_video_note(self, video_note: str | None | Any):
         """
@@ -401,7 +423,6 @@ class BaseSender:
             return
 
         self.remove_attachments()
-        video_note = self._load_item(video_note)
 
         if isinstance(video_note, str) and video_note.startswith(("http://", "https://")):
             raise ValueError("Sending video notes by a URL is currently unsupported")
@@ -537,6 +558,10 @@ class BaseSender:
         Whether to delete temporary messages in the chat.  
         """
         self.delele_temporaries = del_temps
+
+    def set_use_file_cache(self, use: bool | None = True):
+        """True/False overrides the global setting for this sender, None restores it."""
+        self._file_cache = use
 
     def set_parse_mode(self, parse_mode: Literal["html", "markdown"] | ParseMode | None):
         """
@@ -933,6 +958,71 @@ class BaseSender:
         self._handle_is_temp(message)
 
     # --------------------------------------------------------
+    # File id cache
+    # --------------------------------------------------------
+
+    def _use_cache(self) -> bool:
+        if self.rich_html:
+            return False
+        return FileIdCache.enabled if self._file_cache is None else self._file_cache
+
+    def _bot_id(self) -> str:
+        return self.bot.token.split(":")[0]
+
+    def _active_kind(self) -> str | None:
+        return next((k for k in FILE_KINDS if getattr(self, k, None)), None)
+
+    def _resolve_files(self) -> dict[str, str]:
+        """Local path -> cached file_id (hash matches) or loaded bytes. Returns the originals."""
+        originals: dict[str, str] = {}
+        self._cache_keys = {}
+        self._cache_hits = {}
+        use_cache = self._use_cache()
+
+        for kind in FILE_KINDS:
+            source = getattr(self, kind, None)
+
+            # URLs, bytes and file-like objects are passed through untouched
+            if not isinstance(source, str) or source.startswith(("http://", "https://")):
+                continue
+
+            originals[kind] = source
+
+            cached, entry = (
+                FileIdCache.lookup(self._bot_id(), kind, source)
+                if use_cache else (None, None)
+            )
+
+            if cached:
+                setattr(self, kind, cached)
+                self._cache_hits[kind] = entry  # type: ignore[assignment]
+            else:
+                # first send, or the file changed: upload and refresh the record
+                if entry:
+                    self._cache_keys[kind] = entry
+                if not self.rich_html:
+                    setattr(self, kind, self._load_item(source))
+
+        return originals
+
+    def _remember_file_id(self, message: Message | None, kind: str | None):
+        if not kind or kind not in self._cache_keys:
+            return
+        file_id = FileIdCache.extract(kind, message)
+        if file_id:
+            key, sig, file_hash = self._cache_keys[kind]
+            FileIdCache.set(key, sig, file_hash, file_id)
+
+    @staticmethod
+    def _is_stale_file_id(exception: Exception) -> bool:
+        text = str(exception).lower()
+        return any(hint in text for hint in (
+            "wrong file identifier",
+            "wrong remote file identifier",
+            "wrong file_id",
+        ))
+
+    # --------------------------------------------------------
     # Internal send dispatcher
     # --------------------------------------------------------
 
@@ -967,18 +1057,41 @@ class BaseSender:
 
     def _edit_or_send(self) -> tuple[Message | None, bool]:
         adapted_from: str | None = None
+        originals: dict[str, str] = {}
         succeeded = False
         try:
             if self.rich_html:
                 self._rich_payload = self._prepare_rich_payload()
             else:
                 adapted_from = self._adapt_rich_tags_for_plain()
+                originals = self._resolve_files()
 
-            result = self._edit_or_send_core()
+            try:
+                result = self._edit_or_send_core()
+            except Exception as exception:
+                if not (self._cache_hits and self._is_stale_file_id(exception)):
+                    raise
+                # stale file_id: drop it from the cache and retry with the original
+                library.warning(f"Cached file_id is stale, re-uploading: {exception}")
+                for kind, entry in self._cache_hits.items():
+                    FileIdCache.forget(entry[0])
+                    self._cache_keys[kind] = entry
+                    setattr(self, kind, self._load_item(originals[kind]))
+                self._cache_hits = {}
+                result = self._edit_or_send_core()
+
             succeeded = True
             return result
         finally:
             self._rich_payload = None
+            self._cache_keys = {}
+            self._cache_hits = {}
+
+            # restore the str sources, unless the send consumed them
+            if originals and (not succeeded or not self._do_remove_attachments):
+                for kind, source in originals.items():
+                    setattr(self, kind, source)
+
             # `text` was temporarily replaced by the downgraded version: restore it,
             # unless the send consumed it (_reset_after_send already cleared it)
             if adapted_from is not None and (not succeeded or not self._do_remove_text):
@@ -1138,6 +1251,8 @@ class BaseSender:
     # --------------------------------------------------------
 
     def _send(self) -> Message | None:
+        kind = self._active_kind()
+
         if self.rich_html:
             message = self._send_rich()
         elif self.photo:
@@ -1160,7 +1275,8 @@ class BaseSender:
             message = self._send_media()
         else:
             message = self._send_text()
-        
+
+        self._remember_file_id(message, kind)
         self._reset_after_send()
         self.sent_message = message
 
@@ -1259,6 +1375,8 @@ class BaseSender:
         if isinstance(self.reply_markup, ReplyKeyboardMarkup):
             raise _FallbackToSend("ReplyKeyboardMarkup cannot be edited")
 
+        kind = self._active_kind()
+
         if self.rich_html:
             message = self._edit_rich()
         elif self.photo:
@@ -1282,6 +1400,7 @@ class BaseSender:
         else:
             message = self._edit_text()
 
+        self._remember_file_id(message if isinstance(message, Message) else None, kind)
         self._reset_after_send()
 
         if isinstance(message, Message):
