@@ -1,5 +1,9 @@
 # Inline Keyboards
 
+Inline keyboards in classic bot frameworks usually mean a lot of ceremony: you invent `callback_data` strings, parse them back in a central dispatcher, and track the user's position in a dialog with a finite state machine (FSM) and a pile of Enum states.
+
+**Telekit works differently.** A button is simply a reference to a method: you pass `self.delete` (or any other callable), and when the user presses the button, Telekit calls it.
+
 Inline keyboards let you attach interactive buttons directly to bot messages.
 Depending on how much control you need, Telekit offers two approaches — a quick dict-based shorthand and a fluent builder with full layout control.
 

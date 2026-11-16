@@ -1,6 +1,14 @@
 # Basic Handler
 
 Handler is a class that defines the logic for processing incoming updates from the server.
+
+Think of a handler as a specialized administrator in an office: each one is **responsible for a specific task** (for example, user registration or profile settings), and triggers are the rules the administrator uses to decide which desk a client's request should be directed to.
+
+Instead of registering separate handler functions all over your code, Telekit groups the logic into classes that inherit from `telekit.Handler`:
+
+- **The class method `init_handler(cls)`** is called when the server is initialized. This is where you register all triggers using the `cls.on` object.
+- **The instance method `handle(self)`** contains the actual request-processing logic. Note that the trigger automatically creates a new instance of the class for each update.
+
 For example, handling the `/start` command:
 
 ```python
@@ -35,5 +43,14 @@ Here:
 > The trigger automatically creates an instance of the `MyHandler` class.  
 > That is why `handle` is defined as an instance method (using `self`),  
 > but is passed to the trigger via `cls.handle`.
+
+## Triggers at a glance
+
+The `on` object offers many ways to intercept messages:
+
+- `cls.on.command("start")` — reacts to commands.
+- `cls.on.text("hi", "hello")` — reacts to specific text (case-insensitive).
+- `cls.on.text()` — intercepts any text message.
+- `cls.on.photo()`, `cls.on.regexp(r"...")`, `cls.on.func(...)` — filter by media, regular expressions, or arbitrary Python functions.
 
 [Next: Triggers »](3_triggers.md)

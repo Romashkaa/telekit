@@ -1,10 +1,20 @@
 # Tutorial v2
 
-Welcome to the Telekit tutorial — the official source of knowledge from the developer.
-This guide will help you quickly get familiar with the library and understand its features in practice, even if you’ve never worked with Telegram bots before.
+## Introduction
+
+What if developing a complex conversational Telegram bot didn't require bulky finite state machines (FSM), tangled state containers, or hundreds of lines of duplicated code?
+
+Welcome to the world of Telekit, a modern, declarative Python framework that makes bot development clear, elegant, and logical. This is the official guide from the developer, and it's suitable even if you've never worked with Telegram bots before.
+
+By the end of this tutorial, you will be able to:
+
+- Master the core architecture of Telekit: the server, Handlers, the Sender system, and Chain management.
+- Configure precise message triggers and typed command parameters for Deep Linking.
+- Design multi-step dialogs without FSM using the Entries mechanism.
+- Build flexible Inline and Reply keyboards, implement seamless control transfer between handlers (Handoff), and apply modular Traits.
 
 > I recommend reading the full material to avoid missing any important details.
-> If you have questions or run into difficulties while learning, reach out to the [Telekit community](https://t.me/+wu-dFrOBFIwyNzc0). Where community members are always ready to help.
+> If you have questions or run into difficulties while learning, reach out to the [Telekit community](https://t.me/+wu-dFrOBFIwyNzc0), where community members are always ready to help.
 
 ## Contents
 

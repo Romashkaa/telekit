@@ -435,7 +435,7 @@ def _load_env(path: str, cache: bool, example: str) -> dict[str, str]:
     return dict(_ENV_CACHE[key])
 
 
-def load_env(path=".env", *, cache: bool = True) -> dict[str, str]:
+def load_env(path: str = ".env", *, cache: bool = True) -> dict[str, str]:
     """
     Load all key-value pairs from a ``.env`` file.
 
@@ -463,7 +463,7 @@ def load_env(path=".env", *, cache: bool = True) -> dict[str, str]:
     return _load_env(path, cache, "KEY=value")
 
 
-def read_envar(path: str, name: str, *, cache: bool = True) -> str:
+def read_envar(name: str, path: str = ".env", *, cache: bool = True) -> str:
     """
     Read a single environment variable from a ``.env`` file.
 
@@ -539,29 +539,35 @@ def _read_first_value(path: str, example: str, kind: str, cache: bool) -> str:
     )
 
 
-def read_token(path: str = "token.txt", *, cache: bool = True) -> str:
+def read_token(path: str = ".env", name: str = "TOKEN", cache: bool = True) -> str:
     """
-    Read the bot token from a file or ``.env``.
+    Read the bot token from a ``.env`` file or a plain text file.
 
-    **Plain text file** (default)::
+    **Environment file** (default)::
+
+        read_token()                          # reads the key "TOKEN" from ".env" file
+        read_token(name="TOKEN")              # same, explicit key
+        read_token("secret/.env", "BOT_KEY")  # custom path & custom key
+
+    **Plain text file** (``token.txt``)::
 
         # token.txt
         123456789:BotSecretToken  Main production bot
         987654321:AnotherToken    Backup bot
 
+        >> read_token("token.txt")
+        "123456789:BotSecretToken"
+
     Reads only the first meaningful line (blank lines and ``#`` comments are
     skipped). Inline comments (everything after the first whitespace) are
     ignored. Multiple tokens can be stored and swapped by reordering lines.
 
-    **Environment file** (``.env``)::
-
-        read_token(".env")          # reads the key named TOKEN
-        read_token(".env:TOKEN")    # same, explicit key
-        read_token(".env:BOT_KEY")  # reads a custom key
-
-    :param path: Path to a token file, or ``".env"`` / ``".env:KEY"`` for
-                 environment files. Defaults to ``"token.txt"``.
+    :param path: Path to a ``.env`` file or to a plain text file with tokens.
+                 Defaults to ``".env"``.
     :type path: ``str``
+    :param name: Key to read from the ``.env`` file. Ignored for plain text
+                 files. Defaults to ``"TOKEN"``.
+    :type name: ``str``
     :param cache: If ``True`` (default), use the in-memory copy if available; if
                   ``False``, re-read the file and refresh the cache.
     :type cache: ``bool``
@@ -575,12 +581,11 @@ def read_token(path: str = "token.txt", *, cache: bool = True) -> str:
     example = "123456789:YourBotToken"
 
     if _is_env_path(path):
-        file_path, name = _split_env_path(path, "TOKEN")
-        token = read_envar(file_path, name, cache=cache).strip()
+        token = read_envar(path, name, cache=cache).strip()
 
         if not token:
             raise EnvValueError(
-                f"Variable '{name}' in '{file_path}' is empty.\n"
+                f"Variable '{name}' in '{path}' is empty.\n"
                 f"  Hint: set the token after '=', e.g. `{name}={example}` "
                 f"(get one from @BotFather in Telegram)."
             )
@@ -590,30 +595,36 @@ def read_token(path: str = "token.txt", *, cache: bool = True) -> str:
     return line.split()[0]
 
 
-def read_canvas_path(path: str = "canvas_path.txt", *, cache: bool = True) -> str:
+def read_canvas_path(path: str = ".env", name: str = "CANVAS_PATH", cache: bool = True) -> str:
     """
-    Read the ``.canvas`` file path from a file or ``.env``.
+    Read the ``.canvas`` file path from a ``.env`` file or a plain text file.
 
-    **Plain text file** (default)::
+    **Environment file** (default)::
+
+        read_canvas_path()                            # reads the key "CANVAS_PATH" from ".env" file
+        read_canvas_path(name="CANVAS_PATH")          # same, explicit key
+        read_canvas_path("secret/.env", "MY_CANVAS")  # custom path & custom key
+
+    **Plain text file** (``canvas_path.txt``)::
 
         # canvas_path.txt
         /home/user/project/main.canvas  Production canvas
         /home/user/project/test.canvas  Test canvas
+
+        >> read_canvas_path("canvas_path.txt")
+        "/home/user/project/main.canvas"
 
     Reads only the first meaningful line (blank lines and ``#`` comments are
     skipped). A comment may follow the path after two or more spaces or a tab
     (single spaces are part of the path). Multiple paths can be stored and
     swapped by reordering lines.
 
-    **Environment file** (``.env``)::
-
-        read_canvas_path(".env")               # reads the key named CANVAS_PATH
-        read_canvas_path(".env:CANVAS_PATH")   # same, explicit key
-        read_canvas_path(".env:MY_CANVAS")     # reads a custom key
-
-    :param path: Path to a canvas path file, or ``".env"`` / ``".env:KEY"`` for
-                 environment files. Defaults to ``"canvas_path.txt"``.
+    :param path: Path to a ``.env`` file or to a plain text file with canvas
+                 paths. Defaults to ``".env"``.
     :type path: ``str``
+    :param name: Key to read from the ``.env`` file. Ignored for plain text
+                 files. Defaults to ``"CANVAS_PATH"``.
+    :type name: ``str``
     :param cache: If ``True`` (default), use the in-memory copy if available; if
                   ``False``, re-read the file and refresh the cache.
     :type cache: ``bool``
@@ -627,12 +638,11 @@ def read_canvas_path(path: str = "canvas_path.txt", *, cache: bool = True) -> st
     example = "/path/to/project/main.canvas"
 
     if _is_env_path(path):
-        file_path, name = _split_env_path(path, "CANVAS_PATH")
-        value = read_envar(file_path, name, cache=cache).strip()
+        value = read_envar(path, name, cache=cache).strip()
 
         if not value:
             raise EnvValueError(
-                f"Variable '{name}' in '{file_path}' is empty.\n"
+                f"Variable '{name}' in '{path}' is empty.\n"
                 f"  Hint: set the path after '=', e.g. `{name}={example}`."
             )
         return value

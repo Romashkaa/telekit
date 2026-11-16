@@ -21,7 +21,9 @@ class MyStartHandler(telekit.Handler):
         self.chain.sender.set_photo("robot.png")
         self.chain.send()
 
-telekit.Server("BOT_TOKEN").polling()
+TOKEN: str = telekit.utils.read_token(".env")
+
+telekit.Server(TOKEN).polling()
 ```
 
 > Send "Hello!" with a photo on `/start`
