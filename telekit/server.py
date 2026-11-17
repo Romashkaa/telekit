@@ -26,7 +26,7 @@ import time
 import traceback
 import warnings
 from enum import Enum
-from typing import Callable, Literal, Optional
+from typing import Callable, Literal, Optional, Union
 from urllib.parse import urlparse
 
 import requests
@@ -45,6 +45,9 @@ from ._logger import server_logger
 
 _TOKEN_RE = re.compile(r"bot\d+:[A-Za-z0-9_-]+")
 
+# Credentials inside a URL: ``scheme://user:pass@host`` -> ``scheme://<hidden>@host``
+_PROXY_CREDS_RE = re.compile(r"(://)[^/@\s]+@")
+
 _NETWORK_ERRORS = (
     requests.exceptions.ConnectionError,
     requests.exceptions.Timeout,
@@ -60,10 +63,44 @@ _NETWORK_ERRORS = (
 # Transient Bot API answers: rate limit and server-side failures.
 _RETRYABLE_API_CODES = frozenset({429, 500, 502, 503, 504})
 
+ProxyType = Union[str, dict[str, str], None]
+"""Accepted forms of the ``proxy`` parameter."""
+
+_DEFAULT_PROXY_PORTS = {
+    "http": 8080,
+    "https": 8080,
+    "socks4": 1080,
+    "socks5": 1080,
+    "socks5h": 1080,
+}
+
 
 def _mask(obj: object) -> str:
-    """Hide bot tokens (``bot<id>:<secret>``) that leak via request URLs."""
-    return _TOKEN_RE.sub("bot<hidden>", str(obj))
+    """Hide bot tokens (``bot<id>:<secret>``) that leak via request URLs
+    and proxy credentials (``scheme://user:pass@host``)."""
+    text = _TOKEN_RE.sub("bot<hidden>", str(obj))
+    return _PROXY_CREDS_RE.sub(r"\1<hidden>@", text)
+
+
+def _normalize_proxy(proxy: ProxyType) -> Optional[dict[str, str]]:
+    """
+    Convert the user-supplied proxy to the dict format used by ``requests``.
+
+    * ``None`` -> ``None`` (leave :data:`telebot.apihelper.proxy` untouched).
+    * ``""`` / ``{}`` -> ``{}`` (explicitly disable the proxy).
+    * ``"scheme://host:port"`` -> ``{"http": url, "https": url}``.
+    * ``dict`` -> a shallow copy.
+
+    :raises TypeError: If ``proxy`` is of an unsupported type.
+    """
+    if proxy is None:
+        return None
+    if isinstance(proxy, str):
+        proxy = proxy.strip()
+        return {"http": proxy, "https": proxy} if proxy else {}
+    if isinstance(proxy, dict):
+        return dict(proxy)
+    raise TypeError("'proxy' must be a str, a dict or None")
 
 
 def is_network_error(exc: Optional[BaseException]) -> bool:
@@ -121,19 +158,54 @@ class _Backoff:
 _DEFAULT_API_URL = "https://api.telegram.org/bot{0}/{1}"
 
 
+def _proxy_endpoint() -> Optional[tuple[str, int]]:
+    """
+    Resolve ``(host, port)`` of the proxy configured in
+    :data:`telebot.apihelper.proxy`.
+
+    Returns ``None`` if no proxy is configured or its URL cannot be parsed.
+    """
+    proxy = getattr(apihelper, "proxy", None)
+    if not proxy:
+        return None
+
+    if isinstance(proxy, str):
+        url: object = proxy
+    elif isinstance(proxy, dict):
+        url = proxy.get("https") or proxy.get("http") or next(iter(proxy.values()), None)
+    else:
+        return None
+
+    if not url or not isinstance(url, str):
+        return None
+
+    try:
+        parsed = urlparse(url)
+        if not parsed.hostname:
+            return None
+        port = parsed.port or _DEFAULT_PROXY_PORTS.get(parsed.scheme, 8080)
+    except ValueError:
+        return None
+    return parsed.hostname, port
+
+
 def _api_endpoint() -> Optional[tuple[str, int]]:
     """
-    Resolve ``(host, port)`` of the Bot API from :mod:`telebot.apihelper`.
+    Resolve ``(host, port)`` that must be reachable for the bot to work.
 
-    Falls back to the official ``api.telegram.org`` if
-    :data:`telebot.apihelper.API_URL` is not set (``None``), which is the
-    case in some telebot versions.
+    * If a proxy is configured in :data:`telebot.apihelper.proxy`, the
+      **proxy** host is returned, because that is the only host the bot
+      connects to directly.
+    * Otherwise the Bot API host is taken from
+      :data:`telebot.apihelper.API_URL`, falling back to the official
+      ``api.telegram.org`` if it is not set (``None``), which is the case
+      in some telebot versions.
 
-    Returns ``None`` when a proxy is configured, because a direct TCP probe
-    would be meaningless in that case.
+    Returns ``None`` when the endpoint cannot be determined (for example,
+    an unparsable proxy URL), in which case no probe is performed.
     """
     if getattr(apihelper, "proxy", None):
-        return None
+        return _proxy_endpoint()
 
     api_url = getattr(apihelper, "API_URL", None) or _DEFAULT_API_URL
     try:
@@ -152,11 +224,12 @@ def wait_for_network(
     max_wait: Optional[float] = None,
 ) -> bool:
     """
-    Block until a TCP connection to the Bot API host succeeds.
+    Block until a TCP connection to the Bot API host (or to the proxy host,
+    if a proxy is configured) succeeds.
 
     Covers both DNS (``Temporary failure in name resolution``) and routing
     (``Network is unreachable``) problems. Returns immediately if the
-    endpoint cannot be probed (proxy in use).
+    endpoint cannot be probed.
 
     :param check_timeout: Timeout of a single connection attempt, seconds.
     :type check_timeout: :obj:`float`
@@ -192,7 +265,7 @@ def wait_for_network(
 # Server
 # ------------------------------------------
 
-__all__ = ["Server", "RestartMode", "RestartLiteral"]
+__all__ = ["Server", "RestartMode", "RestartLiteral", "ProxyType"]
 
 
 RestartLiteral = Literal["never", "network", "always"]
@@ -236,6 +309,7 @@ class Server:
         *,
         auto_restart: "bool | _Unset" = _UNSET,
         restart: "RestartMode | RestartLiteral | None" = None,
+        proxy: ProxyType = None,
     ):
         """
         :param bot: Bot instance or bot token.
@@ -250,7 +324,16 @@ class Server:
             Defaults to :attr:`RestartMode.ALWAYS`.
         :type restart: :class:`RestartMode` | ``"never"`` | ``"network"`` | ``"always"`` | :obj:`None`
 
-        :raises TypeError: If both ``auto_restart`` and ``restart`` are given.
+        :param proxy: Proxy for Bot API requests. Either a URL string
+            (``"http://host:port"``, ``"socks5://user:pass@host:1080"``)
+            or a ``requests``-style dict (``{"https": "..."}``).
+            ``None`` (default) leaves :data:`telebot.apihelper.proxy`
+            untouched; an empty string or dict disables the proxy.
+            SOCKS requires ``pip install requests[socks]``.
+        :type proxy: :obj:`str` | :obj:`dict` | :obj:`None`
+
+        :raises TypeError: If both ``auto_restart`` and ``restart`` are given,
+            or if ``proxy`` has an unsupported type.
         :raises ValueError: If ``restart`` is not a valid :class:`RestartMode`.
 
         .. deprecated:: X.Y.Z
@@ -259,7 +342,14 @@ class Server:
         .. note::
 
             Unless ``restart`` is :attr:`RestartMode.NEVER`, the constructor
-            blocks until the Bot API is reachable, because it needs ``getMe``.
+            blocks until the Bot API (or the proxy, if one is configured)
+            is reachable, because it needs ``getMe``.
+
+        .. note::
+
+            The proxy is applied globally through
+            :data:`telebot.apihelper.proxy` and affects every
+            :class:`telebot.TeleBot` instance in the process.
         """
         if auto_restart is not _UNSET:
             if restart is not None:
@@ -278,6 +368,17 @@ class Server:
 
         self._restart = mode
         self._auto_restart = mode is not RestartMode.NEVER  # kept for backward compatibility
+
+        # The proxy must be set before wait_for_network() and before a
+        # TeleBot is created from a token.
+        normalized = _normalize_proxy(proxy)
+        if normalized is not None:
+            if normalized:
+                apihelper.proxy = normalized
+                server_logger.info(f"Using proxy: {_mask(normalized)}")
+            else:
+                apihelper.proxy = None
+                server_logger.info("Proxy disabled")
 
         if mode is not RestartMode.NEVER:
             wait_for_network()

@@ -21,7 +21,7 @@ from ._handler import Handler
 from ._trait import Trait
 from ._chain import Chain
 from ._callback_query_handler import CallbackQueryHandler
-from .server import Server, example
+from .server import Server, RestartMode, RestartLiteral, ProxyType, example
 from ._inline_keyboard import InlineKeyboard
 from ._reply_keyboard import ReplyKeyboard
 from ._text_builder import TextBuilder
@@ -48,8 +48,8 @@ from . import html_text
 
 Styles = styles.Styles
 
-from ._version import __version__
-    
+from .__version__ import __version__
+
 __all__ = [
     "traits",
     "utils",
@@ -68,6 +68,9 @@ __all__ = [
     "User",
 
     "Server",
+    "RestartMode",
+    "RestartLiteral",
+    "ProxyType",
     "Chat",
     "Chain", 
     "Trait",
