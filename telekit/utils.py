@@ -880,7 +880,7 @@ def make_qrcode(
 import importlib
 import pkgutil
 
-def load_modules(package_name: str) -> None:
+def load_modules(package_name: str) -> list[str]:
     """
     Automatically import all modules inside the given package.
 
@@ -905,21 +905,32 @@ def load_modules(package_name: str) -> None:
         (typically ``__name__``).
     :type package_name: str
 
+    :return: Full dotted names of the submodules found in the package
+        (e.g. ``["handlers.on_text", "handlers.start"]``), in the order
+        they were processed. Modules that were imported manually
+        beforehand are included too.
+    :rtype: list[str]
+
     :Example:
 
     .. code-block:: python
 
         # handlers/__init__.py
         import telekit
-        telekit.utils.load_modules(__name__)
+        loaded = telekit.utils.load_modules(__name__)
     """
     package = importlib.import_module(package_name)
+    loaded: list[str] = []
 
     for module in pkgutil.iter_modules(package.__path__):
         if module.name.startswith("_"):
             continue
 
-        importlib.import_module(f"{package_name}.{module.name}")
+        full_name = f"{package_name}.{module.name}"
+        importlib.import_module(full_name)
+        loaded.append(full_name)
+
+    return loaded
 
 class CyclicList:
     def __init__(self, *items):

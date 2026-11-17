@@ -1,23 +1,9 @@
 import telekit
 
-telekit.utils.load_modules(__name__)
+loaded: list[str] = telekit.utils.load_modules(__name__)
 
-# from . import (   
-#     counter,
-#     entry,
-#     pages,
-#     on_text,
-#     spells,
-#     start,
-#     dsl,
-#     faq,
-#     pyapi,
-#     quiz,
-#     hotel,
-#     complete_hotel,
-#     text_document,
-#     qr,
-#     calendar,
-#     article,
-#     style,
-# )
+telekit._logger.library_logger.info(
+    f"Welcome to the Telekit family!\n\n"
+    f"Loaded {len(loaded)} example handlers:\n"
+    f"{'\n'.join(loaded)}\n"
+)

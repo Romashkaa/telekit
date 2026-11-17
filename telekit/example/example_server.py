@@ -17,28 +17,11 @@
 # along with Telekit. If not, see <https://www.gnu.org/licenses/>.
 #
 
-import telebot
 import telekit
 
 from . import example_handlers
 
+from telekit._logger import library_logger
+
 def run_example(token: str):
-    print(
-"""
-Welcome to the Telekit family!
-
-# Example commands:
-/start - simple counter
-/entry - sequence for collecting user data + using Vault as a DB
-/help  - custom help implementation + scanning files using `chapters`
-/faq   - extended help page written in Telekit DSL for FAQ pages
-
-# Example message handlers (+ styles example):
-"Name: {name}. Age: {age}"
-"My name is {name} and I am {age} years old"
-"My name is {name}"
-"I'm {age} years old"
-"""
-    )
-    bot = telebot.TeleBot(token)
-    telekit.Server(bot).polling()
+    telekit.Server(token).polling()

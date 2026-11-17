@@ -13,6 +13,7 @@ FileKind = Literal["photo", "document", "video", "animation", "audio", "voice", 
 FILE_KINDS: tuple[FileKind, ...] = (
     "photo", "document", "video", "animation", "audio", "voice", "video_note"
 )
+"""Supported file kinds. See :meth:`senders.BaseSender._active_kind`."""
 
 CacheEntry = tuple[str, str, str]
 """(db key, stat signature, content hash)"""

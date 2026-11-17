@@ -34,7 +34,7 @@ from ._callback_query_handler import CallbackQueryHandler
 from ._inline_keyboard import InlineKeyboard
 from ._reply_keyboard import ReplyKeyboard
 from ._inline_buttons import InlineButton, CallbackButton
-from ._chain_base import ChainBase, _library
+from ._chain_base import ChainBase, library_logger
 
 if typing.TYPE_CHECKING:
     from ._chain import Chain # only for type hints
@@ -251,7 +251,7 @@ class ChainInlineKeyboardLogic(ChainBase):
         if not isinstance(choices, dict):
             for c in choices:
                 if type(c).__str__ is object.__str__:
-                    _library.warning(
+                    library_logger.warning(
                         f"{type(c).__name__} does not implement __str__. "
                         f"Consider passing a dict with explicit labels.",
                         stacklevel=3

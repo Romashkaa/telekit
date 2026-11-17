@@ -31,7 +31,7 @@ from . import _timeout
 
 # Logging
 from .debug import Debug
-from ._logger import _library as _library
+from ._logger import library_logger
 
 class ChainBase:
 

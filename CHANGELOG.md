@@ -1,4 +1,22 @@
 ### v2.6.0 `a7`
+#### Server
+- Added `restart` parameter to `Server`: `"always"` (default), `"network"` or `"never"`; accepts `RestartMode` or the matching string
+- Deprecated `Server(auto_restart=...)`: `True` is now `restart="always"`, `False` is `restart="never"`; emits `DeprecationWarning` and a log warning. Cannot be combined with `restart` (`TypeError`)
+- Added network protection to `Server.polling()` and `Server.long_polling()`: restarts are now delayed by exponential backoff (5 s up to 60 s, reset after 120 s of stable work) instead of a fixed 10 s / 5 s. Tunable via `Server.RESTART_DELAY_MIN`, `RESTART_DELAY_MAX` and `STABLE_AFTER`
+- Added `restart="network"`: survives only network errors and Bot API `429`, `500`, `502`, `503`, `504`; any other error (bad token, `409` conflict, bugs) is re-raised. `retry_after` from Telegram is respected
+- Changed `Server.__init__()` to wait for the Bot API to become reachable before calling `getMe` (skipped for `restart="never"` and when `apihelper.proxy` is set)
+- Fixed `Server.polling()` and `Server.long_polling()` restarting after `stop_polling()`: they now return instead
+- Fixed a failed `getMe` in the restart cycle killing the server and hiding the original error
+- Fixed bot tokens leaking into logs through request URLs: they are now masked as `bot<hidden>`
+- Changed log levels in `Server`: network errors are logged as `WARNING` (without traceback), unexpected errors as `ERROR` (with traceback), `FATAL` is kept for `[server dead]`.
+#### Logging
+- Added Rich output for logs when `rich` is installed; set `TELEKIT_NO_RICH=1` to disable it
+- Added direct exports `server_logger`, `library_logger`, `user_logger` and `get_user_logger()` to `_logger.py`. `logger.server`, `logger.library`, `logger.users()`, `_server` and `_library` still work
+- Added `set_level()`, `disable_user_logging()` and `UserLogger.exception()`
+- Changed `telekit` loggers to `propagate=False`: records no longer reach the root logger, so they are not duplicated when the app configures it. Attach custom handlers to `logging.getLogger("telekit")`
+- Changed `enable_file_logging()` to be idempotent, to create parent folders, and to use one format (with `filename:lineno`) for all files, including `server.log`
+- Fixed `UserLogger` reporting its own module as the log source
+#### Sender
 - Added a `FileIdCache` that stores Telegram `file_id` for local files (photo, document, video, animation, audio, voice, video note), so repeated sends skip the upload
 - Added `BaseSender.configure_file_cache()`: a class method that sets the database path, table name and global on/off switch
 - Added `Sender.set_use_file_cache()`: a per-sender override of the global setting (`None` restores it)
