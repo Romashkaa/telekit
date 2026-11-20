@@ -1,3 +1,19 @@
+## File ID Caching, Rich HTML, New Timeout Engine
+
+**Telekit 2.6** speeds up file sending, makes bots more resilient and adds Rich HTML messages. What's new:
+
+1. **File ID caching.** Local files are uploaded to Telegram once and reused on every next send.
+2. **Rich HTML messages** (Bot API 10.1+).
+3. **New timeout engine.** No more `can't start new thread` with ~1000 active chats (#6).
+4. **Smart restarts.** The new `restart` parameter (`"always"`, `"network"`, `"never"`) with exponential backoff keeps the server alive through network failures.
+5. **Keyboards in senders.** `set_keyboard()` and `to_markup()` let you attach keyboards to a plain `sender` without a chain.
+6. **Full `.env` support.** Comments, quotes, multi-line values and `$VAR` interpolation.
+7. **Better logging.** Rich output when `rich` is installed, bot tokens masked in logs, no duplicated records.
+8. **Handoff shortcuts.** `handle_handoff()` and `handle_handoff_back_or()` work without closures.
+
+### v2.6.0
+- Stable release. See the `a0`–`a9` entries below for the full list of changes.
+
 ### v2.6.0 `a9` – Keyboards in Senders
 - Added `InlineKeyboard.to_markup()`: compiles the keyboard into a ready-to-send `InlineKeyboardMarkup`. Only buttons that don't need a chain to register handlers are supported (`StaticButton`, `LinkButton` and its subclasses, `WebAppButton`, `SuggestButton`, `CopyTextButton`); callback-based buttons (`CallbackButton`, `InvokeButton`, `AnswerButton`, `AlertButton`, `NotificationButton`) raise `TypeError` and should be used via `chain.set_inline_keyboard()`
 - Added `ReplyKeyboard.to_markup()`: a public counterpart of the internal `_compile()` that returns a `ReplyKeyboardMarkup`
