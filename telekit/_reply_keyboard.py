@@ -22,16 +22,19 @@ class ReplyKeyboard:
 
     Basic usage::
 
-        markup = (
+        keyboard = (
             ReplyKeyboard(resize_keyboard=True)
                 .add_contact("📱 Share phone")
                 .add_location("📍 My location")
             .row()
                 .add_text("Option A")
                 .add_text("Option B")
-            .build()
         )
-        bot.send_message(chat_id, "Choose:", reply_markup=markup)
+        # Attach the keyboard via a chain:
+        chain.set_keyboard(keyboard)
+
+        # Or attach it directly to a standalone sender:
+        sender.set_keyboard(keyboard)
 
     :param keyboard: Pre-built rows of ``(text, ReplyButton)`` tuples to seed
         the builder with. Useful for composing keyboards programmatically.
@@ -183,6 +186,34 @@ class ReplyKeyboard:
         """Flush the current row when the grid width is reached."""
         if self._grid_width and self._grid_count() >= self._grid_width:
             self.row()
+
+    def to_markup(self) -> ReplyKeyboardMarkup:
+        """
+        Compiles the keyboard into a ready-to-send :class:`telebot.types.ReplyKeyboardMarkup`.
+
+        The result can be passed directly to :meth:`Sender.set_reply_markup`,
+        or you can use :meth:`Sender.set_keyboard` as a shortcut.
+
+        Any pending row is flushed automatically, so calling :meth:`row`
+        at the end of the chain is not required.
+
+        :returns: The compiled reply keyboard markup.
+        :rtype: :class:`telebot.types.ReplyKeyboardMarkup`
+
+        Example::
+
+            markup = (
+                ReplyKeyboard(resize_keyboard=True)
+                    .add_contact("📱 Share phone")
+                    .add_location("📍 My location")
+                .row()
+                    .add_text("Option A")
+                    .add_text("Option B")
+                .to_markup()
+            )
+            sender.set_reply_markup(markup)
+        """
+        return self._compile()
 
     # ── Generic add ───────────────────────────────────────────────────────────
 

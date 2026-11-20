@@ -19,12 +19,12 @@
 
 from typing import Any, Literal, NoReturn, TYPE_CHECKING, Union
 import textwrap
-import json
 import io
 
 if TYPE_CHECKING:
     from string.templatelib import Template # pyright: ignore[reportMissingImports]
-
+    from telekit._inline_keyboard import InlineKeyboard
+    from telekit._reply_keyboard import ReplyKeyboard
 
 from telebot import TeleBot, apihelper
 from telebot.types import (
@@ -546,6 +546,41 @@ class BaseSender:
         Sets Inline keyboards, reply keyboards, or other markup objects
         """
         self.reply_markup = reply_markup
+
+    def set_keyboard(self, keyboard: Union["InlineKeyboard", "ReplyKeyboard"]) -> None:
+        """
+        Sets an inline or reply keyboard as the message's reply markup.
+
+        Compiles ``keyboard`` via its ``to_markup()`` method and stores the
+        result in :attr:`reply_markup`. This is a shortcut for
+        ``sender.set_reply_markup(keyboard.to_markup())``.
+
+        .. note::
+            For :class:`InlineKeyboard`, only buttons that don't need a chain
+            to register handlers are supported: :class:`StaticButton`,
+            :class:`LinkButton` (and its subclasses), :class:`WebAppButton`,
+            :class:`SuggestButton` and :class:`CopyTextButton`.
+            Use ``chain.set_inline_keyboard(...)`` for callback-based buttons.
+
+        :param keyboard: The keyboard to attach to the message.
+        :type keyboard: :class:`InlineKeyboard` | :class:`ReplyKeyboard`
+
+        :raises TypeError: If an :class:`InlineKeyboard` contains a callback-based
+            button (:class:`CallbackButton`, :class:`InvokeButton`,
+            :class:`AnswerButton`, :class:`AlertButton`, :class:`NotificationButton`).
+
+        Example::
+
+            sender.set_keyboard(
+                InlineKeyboard().add_link("Docs", "https://example.com")
+            )
+
+            sender.set_keyboard(
+                ReplyKeyboard().add_text("Yes").add_text("No")
+            )
+            sender.send()
+        """
+        self.reply_markup = keyboard.to_markup()
 
     def set_temporary(self, is_temp: bool):
         """

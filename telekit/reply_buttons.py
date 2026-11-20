@@ -94,6 +94,7 @@ class LocationButton(ReplyButton):
         """
         return KeyboardButton(text, request_location=True)
 
+# Telebot API fix
 class _FixedKeyboardButtonPollType(KeyboardButtonPollType):
     def to_dict(self):
         # FIX: Bad Request: can't parse keyboard button: Field "type" must be of type String.
@@ -123,7 +124,6 @@ class PollButton(ReplyButton):
         :type text: str
         :rtype: :class:`telebot.types.KeyboardButton`
         """
-        print(f"{self.poll_type=}")
         return KeyboardButton(
             text,
             request_poll=_FixedKeyboardButtonPollType(type=self.poll_type),

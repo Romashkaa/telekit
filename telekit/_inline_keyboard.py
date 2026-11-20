@@ -1,8 +1,59 @@
 from typing import Callable, Any, Literal
 
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 from telekit.inline_buttons import *
 
+
 class InlineKeyboard:
+    """
+    A fluent builder for Telegram inline keyboards.
+
+    Supports all button types available in the Telegram Bot API for inline
+    keyboards, as well as row/column layout helpers and bulk-add methods.
+
+    The finished keyboard can be attached to a message in two ways: through
+    a chain, or directly through a sender. The difference is in which buttons
+    each of them supports.
+
+    Usage in a chain (callback buttons are supported)::
+
+        keyboard = (
+            InlineKeyboard()
+                .add_callback("✅ Confirm", self.on_confirm)
+                .add_callback("✕ Cancel", self.on_cancel)
+            .row()
+                .add_link("📖 Docs", "https://example.com")
+        )
+
+        self.chain.set_keyboard(keyboard)
+
+    Usage with a standalone sender (buttons without callbacks only)::
+
+        keyboard = (
+            InlineKeyboard()
+                .add_link("📖 Docs", "https://example.com")
+                .add_copy("📋 Copy", "hello")
+            .row()
+                .add_webapp("🚀 Open app", "https://example.com/app")
+        )
+
+        sender.set_keyboard(keyboard)
+
+    .. note::
+        A standalone sender has no chain to register button handlers, so
+        :meth:`to_markup` supports only :class:`StaticButton`,
+        :class:`LinkButton` (and its subclasses), :class:`WebAppButton`,
+        :class:`SuggestButton` and :class:`CopyTextButton`. Callback-based
+        buttons (:class:`CallbackButton`, :class:`InvokeButton`,
+        :class:`AnswerButton`, :class:`AlertButton`, :class:`NotificationButton`)
+        raise :class:`TypeError`; attach such a keyboard through
+        ``chain.set_keyboard()`` instead.
+
+    :param inline_keyboard: Pre-built rows of ``(text, InlineButton)`` tuples
+        used to seed the builder.
+    :type inline_keyboard: list[list[tuple[str, InlineButton]]] or None
+    """
     def __init__(self, inline_keyboard: list[list[tuple[str, InlineButton]]] | None = None):
         self._rows: list[list[tuple[str, InlineButton]]] = []
 
@@ -109,6 +160,48 @@ class InlineKeyboard:
     def _compile(self) -> list[list[tuple[str, InlineButton]]]:
         self.row()
         return self._rows
+
+    def to_markup(self) -> InlineKeyboardMarkup:
+        """
+        Compiles the keyboard into a ready-to-send `InlineKeyboardMarkup`.
+
+        The result can be passed directly to `sender.set_reply_markup(...)`.
+
+        Only buttons that don't need a chain/handler are supported:
+        `StaticButton`, `LinkButton` (and subclasses), `WebAppButton`,
+        `SuggestButton`, `CopyTextButton`.
+
+        Callback-based buttons (`CallbackButton`, `InvokeButton`,
+        `AnswerButton`, `AlertButton`, `NotificationButton`) require a chain
+        to register their handlers, so they raise `TypeError` here.
+
+        Example::
+
+            kb = (
+                InlineKeyboard()
+                .add_link("Docs", "https://example.com")
+                .add_copy("Copy", "hello")
+            )
+            sender.set_reply_markup(kb.to_markup())
+            sender.send()
+        """
+        markup = InlineKeyboardMarkup()
+
+        for row in self._compile():
+            buttons: list[InlineKeyboardButton] = []
+
+            for caption, button in row:
+                if isinstance(button, CallbackButton):
+                    raise TypeError(
+                        f"{type(button).__name__} cannot be compiled via to_markup(): "
+                        f"callback buttons need a chain to register handlers. "
+                        f"Use chain.set_inline_keyboard(...) instead."
+                    )
+                buttons.append(button._compile(caption))
+
+            markup.row(*buttons)
+
+        return markup
     
     def add(self, text: str, inline_button: InlineButton | None = None, *, when: bool | int = True):
         """
