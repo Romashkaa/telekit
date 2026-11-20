@@ -50,7 +50,7 @@ class TelekitDSL:
             cls.analyze_file(path)
             cls.on.command(*on_commands).invoke(cls.start_script)
 
-        class_name = f"_DLSFromPath_{id(path)}"
+        class_name = f"_DSLFromPath_{id(path)}"
         class_dict = {
             "init_handler": init_handler
         }

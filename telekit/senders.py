@@ -33,7 +33,7 @@ from telebot.types import (
     InputMediaPhoto, InputFile, 
     InputMediaAudio, InputMediaDocument, 
     InputMediaVideo, InputMediaAnimation,
-    ReplyKeyboardMarkup
+    ReplyKeyboardMarkup, InlineKeyboardMarkup
 )
 
 from telekit.debug import Debug
@@ -167,7 +167,7 @@ class BaseSender:
         reply_markup = None,
 
         is_temporary: bool = False,
-        delele_temporaries: bool = True,
+        delete_temporaries: bool = True,
         
         parse_mode: Literal["html", "markdown"] | ParseMode | None = "html",
         reply_to_message_id: int | None = None,
@@ -207,7 +207,7 @@ class BaseSender:
         self.reply_markup = reply_markup
         
         self.is_temporary = is_temporary
-        self.delele_temporaries = delele_temporaries
+        self.delele_temporaries = delete_temporaries
 
         self.set_parse_mode(parse_mode)
         self.reply_to_message_id = reply_to_message_id
@@ -541,9 +541,30 @@ class BaseSender:
         """
         self.text = text
 
-    def set_reply_markup(self, reply_markup):
+    def set_reply_markup(self, reply_markup: Union[ReplyKeyboardMarkup, InlineKeyboardMarkup]):
         """
-        Sets Inline keyboards, reply keyboards, or other markup objects
+        Sets Inline keyboards, reply keyboards, or other markup objects as-is.
+
+        This is a low-level method: ``reply_markup`` is stored without any
+        conversion, so it must already be a compiled Telegram markup object
+        (e.g. ``InlineKeyboardMarkup`` or ``ReplyKeyboardMarkup``).
+
+        .. tip::
+            In most cases use :meth:`set_keyboard` instead. It accepts
+            :class:`InlineKeyboard` and :class:`ReplyKeyboard` builders directly
+            and compiles them for you.
+
+        If you do want to pass a builder here, compile it first with
+        ``to_markup()``::
+
+            keyboard = InlineKeyboard().add_link("Docs", "https://example.com")
+
+            sender.set_reply_markup(keyboard.to_markup())
+
+            # equivalent, and shorter:
+            sender.set_keyboard(keyboard)
+
+        :param reply_markup: A compiled markup object ready to be sent.
         """
         self.reply_markup = reply_markup
 

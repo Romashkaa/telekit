@@ -4,6 +4,7 @@ Telekit provides flexible methods to handle various types of user input, from pl
 
 ```python
 import telekit
+from telekit.types import InlineKeyboard
 
 class NameHandler(telekit.Handler):
 
@@ -14,10 +15,9 @@ class NameHandler(telekit.Handler):
     def display_name(self, name: str) -> None:
         self.chain.sender.set_title(f"Hello {name}!")
         self.chain.sender.set_message("Your name has been set. You can change it below if you want")
-        self.chain.set_inline_keyboard(
-            {
-                "✏️ Change": self.change_name
-            }
+        self.chain.set_keyboard(
+            InlineKeyboard()
+                .add_callback("✏️ Change", self.change_name)
         )
         self.chain.edit()
 
@@ -38,7 +38,7 @@ Explanation:
 - The bot listens for messages that match the pattern `"My name is {name}"`.  
 - When such a message is received, `display_name` is called with the captured `name`.  
 - It greets the user using the captured name.
-- `set_inline_keyboard` adds a button labeled `"✏️ Change"`, which calls the `change_name` method when pressed.
+- `set_keyboard` with an `InlineKeyboard` adds a button labeled `"✏️ Change"`, which calls the `change_name` method when pressed.
 - In `change_name`, the bot prompts the user and sets up an entry handler using `set_entry_text`.  
 - `delete_user_response=True` ensures that the user's sent message is deleted after being received.
 - Once the user enters a name, `display_name` is invoked with new received name.
@@ -168,10 +168,9 @@ Entries can be combined with inline keyboards to create a more intuitive user ex
 ```py
 def handle(self):
     self.chain.set_entry_text(self.handle_text)
-    self.chain.set_inline_keyboard(
-        {
-            "Cancel": self.cancel_entry
-        }
+    self.chain.set_keyboard(
+        InlineKeyboard()
+            .add_callback("Cancel", self.cancel_entry)
     )
 ```
 
@@ -199,10 +198,9 @@ class NameHandler(telekit.Handler):
             if name else
             "You can set the name below if you want"
         )
-        self.chain.set_inline_keyboard(
-            {
-                "✏️ Change" if name else "✏️ Set": self.change_name
-            }
+        self.chain.set_keyboard(
+            InlineKeyboard()
+                .add_callback("✏️ Change" if name else "✏️ Set", self.change_name)
         )
         self.chain.edit()
 

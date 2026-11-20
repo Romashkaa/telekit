@@ -97,41 +97,7 @@ def handle_name(self, name: str):
 
 ### Inline Keyboards
 
-The fastest way to add buttons to a message. Pass a `dict` where each key is the button label and each value is the callback to run when pressed:
-
-```python
-self.chain.set_inline_keyboard(
-    {
-        "✏️ Change": self.change_name,
-        "❌ Delete": self.delete,
-    }
-)
-```
-
-`row_width` controls how many buttons appear per row:
-
-```python
-self.chain.set_inline_keyboard(
-    {
-        "One":   self.one,
-        "Two":   self.two,
-        "Three": self.three,
-        "Four":  self.four,
-        "Five":  self.five,
-    },
-    row_width=(3, 2)  # first row: 3 buttons, second row: 2
-)
-```
-
-```
-╭──────────┬──────────┬──────────╮
-│   One    │   Two    │  Three   │
-├──────────┴──┬───────┴──────────┤
-│    Four     │       Five       │
-╰─────────────┴──────────────────╯
-```
-
-For precise row layout or conditional buttons, use `InlineKeyboard`, a builder you compose step by step:
+Build a keyboard with `InlineKeyboard`, a fluent builder you compose step by step, and attach it with `set_keyboard`. Each `add_callback` takes a button label and the callback to run when it is pressed. Call `.row()` to start a new row:
 
 ```python
 self.chain.set_keyboard(
@@ -152,6 +118,33 @@ self.chain.set_keyboard(
 ```
 
 > `InlineKeyboard` is built by chaining method calls. Just call `.row()` to start a new row.
+
+**Grid layout**
+
+Wrap buttons in `.grid(width=...)` / `.grid_end()` to split them into rows of a fixed width automatically:
+
+```python
+self.chain.set_keyboard(
+    InlineKeyboard()
+    .grid(width=3)
+        .add_callback("One",   self.one)
+        .add_callback("Two",   self.two)
+        .add_callback("Three", self.three)
+        .add_callback("Four",  self.four)
+        .add_callback("Five",  self.five)
+    .grid_end()
+)
+```
+
+```
+╭──────────┬──────────┬──────────╮
+│   One    │   Two    │  Three   │
+├──────────┴──┬───────┴──────────┤
+│    Four     │       Five       │
+╰─────────────┴──────────────────╯
+```
+
+Use `.column()` / `.column_end()` to put every button on its own row, and `.extend(...)` to add many buttons at once from a dict or list. Pass `when=...` to any method to add a button or row conditionally.
 
 **Not just callback buttons**
 
@@ -232,14 +225,17 @@ class DialogueHandler(telekit.Handler):
 
     def handle_feeling(self, feeling: str) -> None:
         self.chain.sender.set_text(f"Got it, {self.user_name.title()}! You feel: {feeling}")
-        self.chain.set_inline_keyboard({"↺ Restart": self.handle_hello})
+        self.chain.set_keyboard(
+            InlineKeyboard()
+                .add_callback("↺ Restart", self.handle_hello)
+        )
         self.chain.send()
 ```
 
 How it works:
 
 - The handler reacts to `"hello"`, `"hi"`, or `"hey"` in any case.
-- `handle_hello` asks for the user's name.ч
+- `handle_hello` asks for the user's name.
 - `set_entry_suggestions` attaches the user's Telegram `first_name` as a suggestion button.
 - `handle_name` stores the name in `self.user_name`.
 - `handle_feeling` closes the flow and adds a "↺ Restart" button that routes back to the start.

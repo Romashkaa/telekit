@@ -28,10 +28,11 @@ class SettingsHandler(telekit.Handler):
     def handle(self) -> None:
         self.chain.sender.set_title("⚙️ Settings")
         self.chain.sender.set_message("Choose a section:")
-        self.chain.set_inline_keyboard({
-            "👤 Profile":  self.handoff(ProfileHandler).handle,
-            "🔔 Notifications": self.handoff(NotificationsHandler).handle,
-        })
+        self.chain.set_keyboard(
+            InlineKeyboard()
+                .add_callback("👤 Profile", self.handoff(ProfileHandler).handle)
+                .add_callback("🔔 Notifications", self.handoff(NotificationsHandler).handle)
+        )
         self.chain.edit()
 ```
 
@@ -47,31 +48,13 @@ self.handoff("ProfileHandler").handle() # by name — resolved from the handler 
 Since `handoff()` returns a handler instance, you can pass `.handle` directly as a button callback:
 
 ```python
-self.chain.set_inline_keyboard({
-    "« Back": self.handoff(StartHandler).handle,
-})
-```
-
-When the user presses the button, `StartHandler.handle()` is called with the preserved chain context.
-
-## Handoff from a Choice Keyboard
-
-`handoff()` works naturally inside choice keyboards — the selected value is passed as the handler name or used to branch logic:
-
-```python
-@self.chain.inline_keyboard(
-    {
-        "🧮 Counter": "CounterHandler",
-        "📖 Pages":   "PagesHandler",
-        "📆 Calendar": "CalendarHandler",
-    },
-    row_width=3
+self.chain.set_keyboard(
+    InlineKeyboard()
+        .add_callback("« Back", self.handoff(StartHandler).handle)
 )
-def handle_response(handler: str):
-    self.handoff(handler).handle()
-
-self.chain.edit()
 ```
+
+When the user presses the button, `.handle()` is called with the preserved chain context.
 
 ## `_on_handoff` Hook
 

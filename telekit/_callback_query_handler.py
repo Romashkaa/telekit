@@ -73,12 +73,27 @@ class CallbackQueryHandler:
     # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
     @classmethod
+    def _get_chat_id(cls, call: CallbackQuery) -> int:
+        """
+        Returns the chat id the callbacks are registered under.
+
+        Falls back to the user id when the callback has no message
+        (e.g. inline-mode messages, where only inline_message_id is set).
+        """
+        message = call.message
+        if message is not None and getattr(message, "chat", None) is not None:
+            return message.chat.id
+        return call.from_user.id
+
+    @classmethod
     def _handle_inline_button(cls, call: CallbackQuery):
         if not call.data:
             cls.bot.answer_callback_query(call.id, text=cls._invalid_data_answer[0], show_alert=cls._invalid_data_answer[1])
             return
-        
-        button_callbacks: dict[str, Callable] | None = cls.user_button_callbacks.get(call.from_user.id)
+
+        chat_id: int = cls._get_chat_id(call)
+
+        button_callbacks: dict[str, Callable] | None = cls.user_button_callbacks.get(chat_id)
 
         if not button_callbacks:
             cls.bot.answer_callback_query(call.id, text=cls._button_is_no_active_answer[0], show_alert=cls._button_is_no_active_answer[1])
@@ -91,7 +106,7 @@ class CallbackQueryHandler:
             return
 
         if not getattr(callback, "_persistent", False):
-            cls.remove_user_button_callbacks(call.from_user.id)
+            cls.remove_user_button_callbacks(chat_id)
         
         callback(call)
 

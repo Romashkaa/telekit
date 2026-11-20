@@ -11,6 +11,9 @@
 7. **Better logging.** Rich output when `rich` is installed, bot tokens masked in logs, no duplicated records.
 8. **Handoff shortcuts.** `handle_handoff()` and `handle_handoff_back_or()` work without closures.
 
+### v2.6.1 – Fixes #7
+- In groups, any chat member can now press the button (previously effectively broken for everyone).
+
 ### v2.6.0
 - Stable release. See the `a0`–`a9` entries below for the full list of changes.
 
