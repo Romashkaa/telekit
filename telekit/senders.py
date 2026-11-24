@@ -19,7 +19,7 @@
 
 from typing import Any, Literal, NoReturn, TYPE_CHECKING, Union
 import textwrap
-import io
+import io, os
 
 if TYPE_CHECKING:
     from string.templatelib import Template # pyright: ignore[reportMissingImports]
@@ -456,6 +456,9 @@ class BaseSender:
 
         if item.startswith(("http://", "https://")):
             return item
+
+        if not os.path.isfile(item):
+            return item
         
         with open(item, "rb") as item:
             return item.read()
@@ -486,7 +489,7 @@ class BaseSender:
                 self.media.append(InputMediaPhoto(media=m))
                 continue
 
-            if m.startswith(("http://", "https://")):
+            if m.startswith(("http://", "https://")) or not os.path.isfile(m):
                 self.media.append(InputMediaPhoto(media=m))
                 continue
 
@@ -1038,8 +1041,13 @@ class BaseSender:
         for kind in FILE_KINDS:
             source = getattr(self, kind, None)
 
-            # URLs, bytes and file-like objects are passed through untouched
-            if not isinstance(source, str) or source.startswith(("http://", "https://")):
+            # URLs, file_ids (strings that are not local files), bytes and
+            # file-like objects are passed through untouched
+            if (
+                not isinstance(source, str)
+                or source.startswith(("http://", "https://"))
+                or not os.path.isfile(source)
+            ):
                 continue
 
             originals[kind] = source

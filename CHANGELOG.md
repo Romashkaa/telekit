@@ -11,6 +11,9 @@
 7. **Better logging.** Rich output when `rich` is installed, bot tokens masked in logs, no duplicated records.
 8. **Handoff shortcuts.** `handle_handoff()` and `handle_handoff_back_or()` work without closures.
 
+### v2.6.2 – Fix: Sender `file_id` support
+- Restored support for Telegram `file_id` strings in `set_photo()`, `set_document()`, etc.
+
 ### v2.6.1 – Fixes #7
 - In groups, any chat member can now press the button (previously effectively broken for everyone).
 
