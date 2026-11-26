@@ -875,6 +875,7 @@ RestrictedToken = Literal[
     "config",
     "vars",
     "images",
+    "local_images",
     "links",
     "suggest",
     "entry",
@@ -927,6 +928,9 @@ class InstanceDSLHandler(DSLHandler):
                         (``vars_*`` keys from the script are still applied on top).
     - ``"vars"``      — disables ``vars_*`` config keys and ``{{variable}}`` substitution.
     - ``"images"``    — strips ``image`` field from every scene (no photo attachments).
+    - ``"local_images"`` — blocks images that point to local files on disk. The path is
+                           checked at render time: if the file exists on disk, the photo
+                           is not attached. URLs and Telegram ``file_id``s still work.
     - ``"links"``     — disables ``link`` button type (external URLs).
     - ``"suggest"``   — disables ``suggest`` button type (pre-filled entry suggestions).
     - ``"entry"``     — disables entry handlers (free-text input routing).
@@ -1264,6 +1268,29 @@ class InstanceDSLHandler(DSLHandler):
         model["config"] = config
         model["scenes"] = scenes
         return model
+
+    # ------------------------------------------------------------------ #
+    # Local images protection                                            #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _is_local_file(image: Any) -> bool:
+        if not isinstance(image, str):
+            return True
+        if image.startswith(("http://", "https://")):
+            return False
+        if len(image) < 20:
+            return True
+        return any(ch in image for ch in "~/\\. ")
+
+    def _render_context(self, scene: dict, parse_mode: Literal["html", "markdown"]):
+        if self._is_restricted("local_images"):
+            image = scene.get("image")
+
+            if image and self._is_local_file(image):
+                scene = {k: v for k, v in scene.items() if k != "image"}
+
+        super()._render_context(scene, parse_mode)
 
     # ------------------------------------------------------------------ #
     # Override rendering hooks to respect restrictions at runtime        #

@@ -243,7 +243,7 @@ class Handler:
         """Called when this handler is reached via handoff(). Override to customize."""
         pass
 
-    def handle_handoff(self, handler: type["Handler"] | str):
+    def handle_handoff(self, handler: type["Handler"] | str, *args, **kwargs):
         """
         Transfers control to another handler and immediately runs its ``handle()``.
 
@@ -265,50 +265,33 @@ class Handler:
             self.handle_handoff(SettingsHandler)
             self.handle_handoff("SettingsHandler")
 
+        Any extra arguments are forwarded as-is to the target handler's
+        ``handle()``, so they must match its signature::
+
+            # target: def handle(self, page: int, *, edit: bool = False): ...
+            self.handle_handoff(ListHandler, 2, edit=True)
+
+            # as a callback, extra positional arguments follow the handler
+            self.chain.add_callback(
+                "Page 2",
+                self.handle_handoff, [ListHandler, 2],
+            )
+
         :param handler: Target handler name or ``Handler`` subclass to transfer
             control to.
         :type handler: str | type[Handler]
+        :param args: Positional arguments passed to the target handler's
+            ``handle()``.
+        :param kwargs: Keyword arguments passed to the target handler's
+            ``handle()``.
 
         :raises NameError: If a string name is provided but no registered
             handler exists with that name.
-        :raises TypeError: If the provided value is not a ``Handler`` subclass.
+        :raises TypeError: If the provided value is not a ``Handler`` subclass,
+            or if ``args`` / ``kwargs`` do not match the signature of the target
+            handler's ``handle()``.
 
-        .. seealso:: :meth:`handoff`
+        .. seealso:: 
+            :meth:`handoff`
         """
-        self.handoff(handler).handle()
-
-    def freeze(self, func, *args):
-        """
-        DEPRECATED
-
-        Return a zero-argument callback that invokes the given function
-        with the provided arguments.
-
-        Args:
-            func (Callable): The function to be executed when the callback is triggered.
-            *args: Arguments that will be passed to the function upon execution.
-
-        Returns:
-            Callable: A wrapper function that calls `func(*args)` when invoked.
-
-        Example:
-            >>> btn = self.freeze((lambda a, b: a + b), 2, 3)
-            >>> btn() # 5
-        """
-        def wrapper():
-            func(*args)
-
-        return wrapper
-
-# def accepts_parameter(func: Callable) -> bool:
-#     """
-#     Checks if the function accepts at least one parameter,
-#     ignoring 'self' for class methods.
-#     """
-#     sig = inspect.signature(func)
-#     params = list(sig.parameters.values())
-
-#     if params and params[0].name == "cls":
-#         params = params[1:]
-
-#     return len(params) > 0
+        self.handoff(handler).handle(*args, **kwargs)

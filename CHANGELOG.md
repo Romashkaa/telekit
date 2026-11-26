@@ -11,6 +11,10 @@
 7. **Better logging.** Rich output when `rich` is installed, bot tokens masked in logs, no duplicated records.
 8. **Handoff shortcuts.** `handle_handoff()` and `handle_handoff_back_or()` work without closures.
 
+### v2.6.3 – Security & Handoff
+- Added `RESTRICTED["local_images"]` for `InstanceDSLHandler`: blocks **local file paths** in scene images.
+- `Handler.handle_handoff()` now accepts `*args` and `**kwargs` and forwards them to the target handler's `handle()`: `self.chain.add_callback("Page 2", self.handle_handoff, [ListHandler, 2])`.
+
 ### v2.6.2 – Fix: Sender `file_id` support
 - Restored support for Telegram `file_id` strings in `set_photo()`, `set_document()`, etc.
 
