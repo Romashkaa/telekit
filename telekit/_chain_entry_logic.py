@@ -485,17 +485,18 @@ class ChainEntryLogic(ChainBase):
                 downloaded_file = self.bot.download_file(str(file_info.file_path))
 
                 if not encoding:
-                    results = charset_normalizer.from_bytes(downloaded_file)
-                    best_guess = results.best()
-
-                    if not best_guess:
-                        return False # unknown encoding
-                    
-                    _encoding = best_guess.encoding
+                    try:
+                        text = downloaded_file.decode("utf-8-sig")
+                        _encoding = "utf-8"
+                    except UnicodeDecodeError:
+                        best_guess = charset_normalizer.from_bytes(downloaded_file).best()
+                        if not best_guess:
+                            return False  # unknown encoding
+                        _encoding = best_guess.encoding
+                        text = downloaded_file.decode(_encoding, decoding_errors)
                 else:
                     _encoding = encoding
-
-                text = downloaded_file.decode(_encoding, decoding_errors)
+                    text = downloaded_file.decode(_encoding, decoding_errors)
             except Exception:
                 return False
             
