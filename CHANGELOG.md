@@ -12,6 +12,12 @@
 8. **Handoff shortcuts.** `handle_handoff()` and `handle_handoff_back_or()` work without closures.
 
 
+### v2.6.5 – Fix: Stale timeouts
+- Fixed a stale timeout of an abandoned chain wiping the inline buttons and the next-step handler of a newer chain in the same chat. Symptom: a timeout firing right away (or after a few minutes) and `Button is no longer active` on the next button press
+- Added chat ownership tracking to `InputHandler`: the chain that sent the last message owns the chat. `reset()` and `set_button_callbacks()` of a superseded chain no longer touch the chat-wide state
+- Changed timeouts of superseded chains to be ignored: neither the chain state is reset nor the timeout callback is called
+- Fixed `Handler.new_chain()` leaving the timeout of the discarded chain alive: it is now cancelled
+
 ### v2.6.4 – Fix: Encoding
 - `set_entry_text_document()`: when `encoding` is not set, UTF-8 is now tried first; `charset_normalizer` is used only as a fallback. Fixes garbled emoji in short, mostly-ASCII files.
 

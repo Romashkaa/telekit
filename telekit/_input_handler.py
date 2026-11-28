@@ -32,6 +32,11 @@ class InputHandler:
     # class attributes
     bot: telebot.TeleBot
 
+    # chat_id -> the InputHandler that currently owns the chat state
+    # (button callbacks + next-step handler). Used to prevent a stale chain
+    # (e.g. one whose timeout fires late) from wiping the state of a newer one.
+    _owners: dict[int, "InputHandler"] = {}
+
     # instance attributes
     break_only_on_match: bool
     break_on_commands: bool
@@ -55,14 +60,33 @@ class InputHandler:
         self.break_on_commands: bool = True
 
     # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Ownership
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+    def is_superseded(self) -> bool:
+        """
+        Returns True if another InputHandler has taken over this chat.
+        """
+        owner = InputHandler._owners.get(self.chat_id)
+        return owner is not None and owner is not self
+
+    def _release_ownership(self) -> None:
+        if InputHandler._owners.get(self.chat_id) is self:
+            InputHandler._owners.pop(self.chat_id, None)
+
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
     # Configuration API
     # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
     # Timeout
 
     def reset(self):
+        if self.is_superseded():
+            return  # a newer chain owns this chat now; don't wipe its state
+
         CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
         self.bot.clear_step_handler_by_chat_id(self.chat_id)
+        self._release_ownership()
 
     def cancel_timeout(self):
         cancel_timeout_callback = self.__dict__["cancel_timeout_callback"]
@@ -83,7 +107,7 @@ class InputHandler:
         """
         self.button_callbacks = button_callbacks
 
-        if not button_callbacks:
+        if not button_callbacks and not self.is_superseded():
             CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
 
     # Message Handling
@@ -108,6 +132,10 @@ class InputHandler:
         Registers a handler for the next user message (input).
         """
             
+        # Every send takes over the chat (even without buttons / entry handlers,
+        # e.g. a timeout-only chain), because it wipes the previous chain's state.
+        InputHandler._owners[self.chat_id] = self
+
         self.bot.clear_step_handler_by_chat_id(self.chat_id)
 
         has_handlers: bool = bool(self.entry_callback) or bool(self.button_callbacks)
@@ -122,7 +150,7 @@ class InputHandler:
     def _update_query_handler_callbacks(self):
         if self.button_callbacks:
             CallbackQueryHandler.set_user_button_callbacks(self.chat_id, self.button_callbacks)
-        else:
+        elif not self.is_superseded():
             CallbackQueryHandler.remove_user_button_callbacks(self.chat_id)
     
     # ––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -156,4 +184,3 @@ class InputHandler:
                 return True
 
         return False
-

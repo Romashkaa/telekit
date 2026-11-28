@@ -544,7 +544,7 @@ class BaseSender:
         """
         self.text = text
 
-    def set_reply_markup(self, reply_markup: Union[ReplyKeyboardMarkup, InlineKeyboardMarkup]):
+    def set_reply_markup(self, reply_markup: Union[ReplyKeyboardMarkup, InlineKeyboardMarkup, None]):
         """
         Sets Inline keyboards, reply keyboards, or other markup objects as-is.
 
@@ -571,7 +571,7 @@ class BaseSender:
         """
         self.reply_markup = reply_markup
 
-    def set_keyboard(self, keyboard: Union["InlineKeyboard", "ReplyKeyboard"]) -> None:
+    def set_keyboard(self, keyboard: Union["InlineKeyboard", "ReplyKeyboard", None]) -> None:
         """
         Sets an inline or reply keyboard as the message's reply markup.
 
@@ -604,6 +604,9 @@ class BaseSender:
             )
             sender.send()
         """
+        if keyboard is None:
+            self.reply_markup = None
+            return
         self.reply_markup = keyboard.to_markup()
 
     def set_temporary(self, is_temp: bool):

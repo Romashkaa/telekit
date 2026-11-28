@@ -157,7 +157,9 @@ class Handler:
 
         The previous `self.chain` (if present) is discarded and fully
         replaced with a fresh Chain configured with the current chat ID
-        and default sender type.
+        and default sender type. Its pending timeout (if any) is cancelled,
+        so the discarded chain can never fire later and interfere with
+        the new one.
 
         Use this when you want to completely reset the handler’s chain
         state, including previous message id, input handlers, and sender configuration:
@@ -165,6 +167,7 @@ class Handler:
         >>> self.new_chain()
         """
         if hasattr(self, "chain"):
+            self.chain.remove_timeout()
             del self.chain
 
         self.chain = Chain(self.message.chat.id)

@@ -189,6 +189,10 @@ class ChainBase:
 
     def _set_timeout_callback(self, callback: Callable):
         def wrapper():
+            if self._handler.is_superseded():
+                # The user is already working with a newer chain in this chat:
+                # this timeout is stale and must not touch the chat state.
+                return
             self._handler.reset()
             callback()
         self._handler.set_cancel_timeout_callback(self._timeout_handler.cancel)
